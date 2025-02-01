@@ -1,0 +1,29 @@
+package com.example.dev.controller;
+
+import com.example.dev.entity.ChatLieu;
+import com.example.dev.service.ChatLieuService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/admin/chat-lieu")
+public class ChatLieuController {
+    @Autowired
+    ChatLieuService chatLieuService;
+
+    @GetMapping("/hien-thi")
+    public ResponseEntity<?> hienThi(){
+        return ResponseEntity.ok(chatLieuService.getChatLieu());
+    }
+
+    @PostMapping("/them")
+    public ResponseEntity<?> themChatLieu(@RequestBody ChatLieu cl){
+        return ResponseEntity.ok(chatLieuService.themChatLieu(cl));
+    }
+
+    @PostMapping("/sua/{id}")
+    public ResponseEntity<?> suaChatLieu(@RequestBody ChatLieu cl, @PathVariable Integer id){
+        return ResponseEntity.ok(chatLieuService.suaChatLieu(cl,id));
+    }
+}
