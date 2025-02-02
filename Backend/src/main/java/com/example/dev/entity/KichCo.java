@@ -17,7 +17,31 @@ public class KichCo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idKichCo;
-@NotEmpty
+    @NotEmpty
     private String ten;
     private Boolean trangThai = true;
+
+    public Integer getIdKichCo() {
+        return idKichCo;
+    }
+
+    public void setIdKichCo(Integer idKichCo) {
+        this.idKichCo = idKichCo;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }

@@ -19,4 +19,28 @@ public class DeGiay {
     @NotEmpty
     private String ten;
     private Boolean trangThai = true;
+
+    public Integer getIdDeGiay() {
+        return idDeGiay;
+    }
+
+    public void setIdDeGiay(Integer idDeGiay) {
+        this.idDeGiay = idDeGiay;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }

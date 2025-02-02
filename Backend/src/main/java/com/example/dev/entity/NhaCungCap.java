@@ -19,4 +19,28 @@ public class NhaCungCap {
     @NotEmpty
     private String ten;
     private Boolean trangThai = true;
+
+    public Integer getIdNhaCungCap() {
+        return idNhaCungCap;
+    }
+
+    public void setIdNhaCungCap(Integer idNhaCungCap) {
+        this.idNhaCungCap = idNhaCungCap;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }

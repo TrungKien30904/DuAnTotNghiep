@@ -19,4 +19,28 @@ public class DanhMucSanPham {
     @NotEmpty
     private String ten;
     private Boolean trangThai = true;
+
+    public Integer getIdDanhMuc() {
+        return idDanhMuc;
+    }
+
+    public void setIdDanhMuc(Integer idDanhMuc) {
+        this.idDanhMuc = idDanhMuc;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }
