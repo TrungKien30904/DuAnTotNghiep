@@ -45,4 +45,84 @@ public class ThanhToanHoaDon {
     private String nguoiTao;
 
     private String nguoiSua;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getHinhThucThanhToan() {
+        return hinhThucThanhToan;
+    }
+
+    public void setHinhThucThanhToan(String hinhThucThanhToan) {
+        this.hinhThucThanhToan = hinhThucThanhToan;
+    }
+
+    public HoaDon getHoaDon() {
+        return hoaDon;
+    }
+
+    public void setHoaDon(HoaDon hoaDon) {
+        this.hoaDon = hoaDon;
+    }
+
+    public BigDecimal getSoTienThanhToan() {
+        return soTienThanhToan;
+    }
+
+    public void setSoTienThanhToan(BigDecimal soTienThanhToan) {
+        this.soTienThanhToan = soTienThanhToan;
+    }
+
+    public String getGhiChu() {
+        return ghiChu;
+    }
+
+    public void setGhiChu(String ghiChu) {
+        this.ghiChu = ghiChu;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
+
+    public LocalDateTime getNgayTao() {
+        return ngayTao;
+    }
+
+    public void setNgayTao(LocalDateTime ngayTao) {
+        this.ngayTao = ngayTao;
+    }
+
+    public LocalDateTime getNgaySua() {
+        return ngaySua;
+    }
+
+    public void setNgaySua(LocalDateTime ngaySua) {
+        this.ngaySua = ngaySua;
+    }
+
+    public String getNguoiTao() {
+        return nguoiTao;
+    }
+
+    public void setNguoiTao(String nguoiTao) {
+        this.nguoiTao = nguoiTao;
+    }
+
+    public String getNguoiSua() {
+        return nguoiSua;
+    }
+
+    public void setNguoiSua(String nguoiSua) {
+        this.nguoiSua = nguoiSua;
+    }
 }

@@ -19,4 +19,28 @@ public class ChatLieu {
     @NotEmpty
     private String ten;
     private Boolean trangThai = true ;
+
+    public Integer getIdChatLieu() {
+        return idChatLieu;
+    }
+
+    public void setIdChatLieu(Integer idChatLieu) {
+        this.idChatLieu = idChatLieu;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }

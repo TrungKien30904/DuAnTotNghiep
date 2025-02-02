@@ -27,4 +27,44 @@ public class DanhGia {
     private String thongTinDanhGia;
 
     private Float sao;
+
+    public Integer getIdDanhGia() {
+        return idDanhGia;
+    }
+
+    public void setIdDanhGia(Integer idDanhGia) {
+        this.idDanhGia = idDanhGia;
+    }
+
+    public ChiTietSanPham getChiTietSanPham() {
+        return chiTietSanPham;
+    }
+
+    public void setChiTietSanPham(ChiTietSanPham chiTietSanPham) {
+        this.chiTietSanPham = chiTietSanPham;
+    }
+
+    public KhachHang getKhachHang() {
+        return khachHang;
+    }
+
+    public void setKhachHang(KhachHang khachHang) {
+        this.khachHang = khachHang;
+    }
+
+    public String getThongTinDanhGia() {
+        return thongTinDanhGia;
+    }
+
+    public void setThongTinDanhGia(String thongTinDanhGia) {
+        this.thongTinDanhGia = thongTinDanhGia;
+    }
+
+    public Float getSao() {
+        return sao;
+    }
+
+    public void setSao(Float sao) {
+        this.sao = sao;
+    }
 }

@@ -19,4 +19,28 @@ public class MauSac {
     @NotEmpty
     private String ten;
     private Boolean trangThai = true;
+
+    public Integer getIdMauSac() {
+        return idMauSac;
+    }
+
+    public void setIdMauSac(Integer idMauSac) {
+        this.idMauSac = idMauSac;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }

@@ -22,4 +22,27 @@ public class MuiGiay {
     private String ten;
     private Boolean trangThai = true;
 
+    public Integer getIdMuiGiay() {
+        return idMuiGiay;
+    }
+
+    public void setIdMuiGiay(Integer idMuiGiay) {
+        this.idMuiGiay = idMuiGiay;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
 }

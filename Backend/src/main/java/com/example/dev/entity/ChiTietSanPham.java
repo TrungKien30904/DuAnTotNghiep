@@ -80,4 +80,156 @@ public class ChiTietSanPham {
     @Column(updatable = false)
     private String nguoiTao;
     private String nguoiSua;
+
+    public Integer getIdChiTietSanPham() {
+        return idChiTietSanPham;
+    }
+
+    public void setIdChiTietSanPham(Integer idChiTietSanPham) {
+        this.idChiTietSanPham = idChiTietSanPham;
+    }
+
+    public MuiGiay getMuiGiay() {
+        return muiGiay;
+    }
+
+    public void setMuiGiay(MuiGiay muiGiay) {
+        this.muiGiay = muiGiay;
+    }
+
+    public SanPham getSanPham() {
+        return sanPham;
+    }
+
+    public void setSanPham(SanPham sanPham) {
+        this.sanPham = sanPham;
+    }
+
+    public MauSac getMauSac() {
+        return mauSac;
+    }
+
+    public void setMauSac(MauSac mauSac) {
+        this.mauSac = mauSac;
+    }
+
+    public NhaCungCap getNhaCungCap() {
+        return nhaCungCap;
+    }
+
+    public void setNhaCungCap(NhaCungCap nhaCungCap) {
+        this.nhaCungCap = nhaCungCap;
+    }
+
+    public KichCo getKichCo() {
+        return kichCo;
+    }
+
+    public void setKichCo(KichCo kichCo) {
+        this.kichCo = kichCo;
+    }
+
+    public ChatLieu getChatLieu() {
+        return chatLieu;
+    }
+
+    public void setChatLieu(ChatLieu chatLieu) {
+        this.chatLieu = chatLieu;
+    }
+
+    public DeGiay getDeGiay() {
+        return deGiay;
+    }
+
+    public void setDeGiay(DeGiay deGiay) {
+        this.deGiay = deGiay;
+    }
+
+    public ThuongHieu getThuongHieu() {
+        return thuongHieu;
+    }
+
+    public void setThuongHieu(ThuongHieu thuongHieu) {
+        this.thuongHieu = thuongHieu;
+    }
+
+    public DanhMucSanPham getDanhMucSanPham() {
+        return danhMucSanPham;
+    }
+
+    public void setDanhMucSanPham(DanhMucSanPham danhMucSanPham) {
+        this.danhMucSanPham = danhMucSanPham;
+    }
+
+    public CoGiay getCoGiay() {
+        return coGiay;
+    }
+
+    public void setCoGiay(CoGiay coGiay) {
+        this.coGiay = coGiay;
+    }
+
+    public Integer getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(Integer soLuong) {
+        this.soLuong = soLuong;
+    }
+
+    public BigDecimal getGia() {
+        return gia;
+    }
+
+    public void setGia(BigDecimal gia) {
+        this.gia = gia;
+    }
+
+    public String getMoTa() {
+        return moTa;
+    }
+
+    public void setMoTa(String moTa) {
+        this.moTa = moTa;
+    }
+
+    public Boolean getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
+    }
+
+    public LocalDateTime getNgayTao() {
+        return ngayTao;
+    }
+
+    public void setNgayTao(LocalDateTime ngayTao) {
+        this.ngayTao = ngayTao;
+    }
+
+    public LocalDateTime getNgaySua() {
+        return ngaySua;
+    }
+
+    public void setNgaySua(LocalDateTime ngaySua) {
+        this.ngaySua = ngaySua;
+    }
+
+    public String getNguoiTao() {
+        return nguoiTao;
+    }
+
+    public void setNguoiTao(String nguoiTao) {
+        this.nguoiTao = nguoiTao;
+    }
+
+    public String getNguoiSua() {
+        return nguoiSua;
+    }
+
+    public void setNguoiSua(String nguoiSua) {
+        this.nguoiSua = nguoiSua;
+    }
 }
