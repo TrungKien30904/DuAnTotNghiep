@@ -9,8 +9,13 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+=======
+    "axios": "^1.7.9",
+    "cenndiii-shopshop": "file:",
+>>>>>>> 2d95d9b (hoan)
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "^5.0.1"

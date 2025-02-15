@@ -96,6 +96,7 @@
 <<<<<<< HEAD
 =======
         </dependency>
+<<<<<<< HEAD
         <dependency>
             <groupId>com.netflix.graphql.dgs.codegen</groupId>
             <artifactId>graphql-dgs-codegen-gradle</artifactId>
@@ -123,6 +124,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+=======
+>>>>>>> 2d95d9b (hoan)
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

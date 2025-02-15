@@ -14,9 +14,55 @@ export default function Sidebar() {
   };
 
   return (
+<<<<<<< HEAD
       <aside className="w-64 h-screen bg-white p-4 shadow-md flex flex-col">
         <div className="text-center mb-6">
           <img src="/logo.png" alt="Cennai Logo" className="h-20 mx-auto"/>
+=======
+    <aside className="w-64 h-screen bg-white p-4 shadow-md flex flex-col">
+      <div className="text-center mb-6">
+        <img src="/logo.png" alt="Cennai Logo" className="h-20 mx-auto" />
+      </div>
+      <nav className="space-y-2">
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) => `flex items-center space-x-2 p-2 rounded text-sm transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`}
+          onClick={handleMenuClick} // Đóng menu con khi chọn menu này
+        >
+          <Home size={20} />
+          <span>Trang chủ</span>
+        </NavLink>
+
+        <NavLink
+          to="/orders"
+          className={({ isActive }) => `flex items-center space-x-2 p-2 rounded text-sm transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`}
+          onClick={handleMenuClick} // Đóng menu con khi chọn menu này
+        >
+          <ShoppingCart size={20} />
+          <span>Bán hàng</span>
+        </NavLink>
+
+        {/* Quản lý tài khoản */}
+        <div>
+          <button
+            onClick={() => toggleMenu("account")}
+            className="flex items-center justify-between p-2 w-full text-left rounded text-sm transition-all hover:bg-gray-200"
+          >
+            <div className="flex items-center space-x-2">
+              <User size={20} />
+              <span>Quản lý tài khoản</span>
+            </div>
+            <ChevronRight size={18} className={`transition-transform duration-300 ${openMenu === "account" ? "rotate-90" : ""}`} />
+          </button>
+          <div className={`pl-6 transition-all duration-300 overflow-hidden ${openMenu === "account" ? "max-h-64 overflow-y-auto opacity-100" : "max-h-0 opacity-0"}`}>
+            <NavLink to="/customers" className={({ isActive }) => `block p-2 rounded text-xs transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-100"}`}>
+              Khách hàng
+            </NavLink>
+            <NavLink to="/employees" className={({ isActive }) => `block p-2 rounded text-xs transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-100"}`}>
+              Nhân viên
+            </NavLink>
+          </div>
+>>>>>>> 2d95d9b (hoan)
         </div>
         <nav className="space-y-2">
           <NavLink

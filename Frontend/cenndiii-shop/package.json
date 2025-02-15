@@ -3,10 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+<<<<<<< HEAD
     "@floating-ui/react": "^0.27.4",
     "@headlessui/react": "^2.2.0",
+=======
+    "@cloudinary/react": "^1.13.1",
+    "@cloudinary/url-gen": "^1.21.0",
+    "@testing-library/jest-dom": "^6.6.3",
+>>>>>>> 2d95d9b (hoan)
     "axios": "^1.7.9",
+    "cenndiii-shop": "file:",
     "cra-template-tailwindcss": "4.0.1",
+<<<<<<< HEAD
     "dayjs": "^1.11.13",
     "lucide-react": "^0.474.0",
     "react": "^18.3.1",
@@ -15,6 +23,21 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.3",
     "web-vitals": "^2.1.4"
+=======
+    "crypto-random-string": "^5.0.0",
+    "file-saver": "^2.0.5",
+    "firebase": "^11.2.0",
+    "lucide-react": "^0.474.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-qr-code": "^2.0.15",
+    "react-qr-scanner": "^1.0.0-alpha.11",
+    "react-router-dom": "^6.29.0",
+    "react-scripts": "^5.0.1",
+    "react-toastify": "^11.0.3",
+    "web-vitals": "^4.2.4",
+    "xlsx": "^0.18.5"
+>>>>>>> 2d95d9b (hoan)
   },
   "scripts": {
     "start": "react-scripts start",
