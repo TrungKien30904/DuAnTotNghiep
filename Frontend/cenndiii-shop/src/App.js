@@ -19,6 +19,7 @@ import AddDiscounts from "./pages/Discounts/AddDiscounts";
 import EditDiscounts from "./pages/Discounts/EditDiscounts";
 import Coupons from "./pages/Coupons";
 import Categories from "./pages/Categories";
+<<<<<<< HEAD
 import AddCoupon from "./pages/AddCoupon";
 import CouponDetails from "./pages/CouponDetails";
 function App() {
@@ -51,7 +52,51 @@ function App() {
         </Route>
       </Routes>
     </Router>
+=======
+import AddCustomers from "./pages/AddCustomers";
+import EditCustomer from "./pages/EditCustomer";
+import DynamicForm from "./pages/ModelSample";
+import { ToastProvider } from './utils/ToastContext'
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { LoadingProvider, useLoading } from './components/ui/spinner/LoadingContext';
+
+function App() {
+  return (
+      <LoadingProvider>
+        <ToastProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<DashboardLayout />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="customers" element={<Customers />} />
+                <Route path="employees" element={<Employees />} />
+                <Route path="invoices" element={<Invoices />} />
+                <Route path="products" element={<Products />} />
+                <Route path="shoe-collar" element={<ShoeCollar />} />
+                <Route path="shoe-soles" element={<ShoeSoles />} />
+                <Route path="toe" element={<Toe />} />
+                <Route path="brand" element={<Brand />} />
+                <Route path="material" element={<Material />} />
+                <Route path="suppliers" element={<Suppliers />} />
+                <Route path="categories" element={<Categories />} />
+                <Route path="color" element={<Color />} />
+                <Route path="size" element={<Size />} />
+                <Route path="discounts" element={<Discounts />} />
+                <Route path="coupons" element={<Coupons />} />
+                <Route path="/add-customer" element={<AddCustomers />} />
+                <Route path="/edit-customer/:id" element={<EditCustomer />} />
+                <Route path="/test" element={<DynamicForm />} />
+              </Route>
+            </Routes>
+          </Router>
+          <ToastContainer position="top-right" />
+        </ToastProvider>
+      </LoadingProvider>
+>>>>>>> 8b5989b (UpdateCustomers)
   );
 }
+
 
 export default App;
