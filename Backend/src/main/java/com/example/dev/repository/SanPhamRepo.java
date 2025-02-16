@@ -1,6 +1,9 @@
 package com.example.dev.repository;
 
 import com.example.dev.entity.SanPham;
+import com.example.dev.entity.ChiTietSanPham;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,4 +21,7 @@ public interface SanPhamRepo extends JpaRepository<SanPham, Integer> {
                        @Param("ngaySua") LocalDateTime ngaySua,
                        @Param("idSanPham") Integer id
     );
+
+    Page<SanPham> findByTenSanPhamContaining(String tenSanPham, Pageable pageable);
+
 }

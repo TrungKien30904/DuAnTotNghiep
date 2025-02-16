@@ -15,6 +15,8 @@ import Suppliers from "./pages/Suppliers";
 import Color from "./pages/Color";
 import Size from "./pages/Size";
 import Discounts from "./pages/Discounts";
+import AddDiscounts from "./pages/Discounts/AddDiscounts";
+import EditDiscounts from "./pages/Discounts/EditDiscounts";
 import Coupons from "./pages/Coupons";
 import Categories from "./pages/Categories";
 
@@ -40,6 +42,8 @@ function App() {
           <Route path="color" element={<Color />} />
           <Route path="size" element={<Size />} />
           <Route path="discounts" element={<Discounts />} />
+          <Route path="discounts/add" element={<AddDiscounts />} />
+          <Route path="discounts/edit/:idDGG" element={<EditDiscounts />} />
           <Route path="coupons" element={<Coupons />} />
         </Route>
       </Routes>

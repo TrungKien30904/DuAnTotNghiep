@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 @Table(name = "dot_giam_gia")
 public class DotGiamGia {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idDotGiamGia;
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String idDotGiamGia;
     @NotEmpty
-    private String tenKhuyenMai;
+    private String tenDotGiamGia;
     @NotNull
     private BigDecimal giaTri;
     @NotEmpty
@@ -29,7 +29,7 @@ public class DotGiamGia {
 
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
-    private Boolean trangThai;
+    private Integer trangThai;
     private LocalDateTime ngayTao;
     private LocalDateTime ngaySua;
     private String nguoiTao;
