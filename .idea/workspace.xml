@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d4d003e8-50cd-4246-b05d-c02a318eb069" name="Default Changelist" comment="" />
+    <list default="true" id="d4d003e8-50cd-4246-b05d-c02a318eb069" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/cenndiii-shop/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/cenndiii-shop/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/cenndiii-shop/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/cenndiii-shop/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/node_modules/.package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="2sO7jT4Uxsg83y0YSX9pMuVwGEm" />
   <component name="ProjectViewState">
@@ -17,6 +27,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Backend" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
@@ -31,6 +42,9 @@
       <option name="presentableId" value="Default" />
       <updated>1738314904784</updated>
       <workItem from="1738314906825" duration="50000" />
+      <workItem from="1738594659084" duration="599000" />
+      <workItem from="1738595733294" duration="46000" />
+      <workItem from="1738633491251" duration="26000" />
     </task>
     <servers />
   </component>

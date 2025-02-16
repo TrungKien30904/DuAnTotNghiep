@@ -19,6 +19,11 @@ import Coupons from "./pages/Coupons";
 import Categories from "./pages/Categories";
 import AddCoupon from "./pages/AddCoupon";
 import CouponDetails from "./pages/CouponDetails";
+import AddEmployee from "./pages/AddEmployee";
+import UpdateEmployee from "./pages/UpdateEmployee";
+import DetailEmployee from "./pages/DetailEmployee";
+
+
 function App() {
   return (
     <Router>
@@ -29,6 +34,9 @@ function App() {
           <Route path="orders" element={<Orders />} />
           <Route path="customers" element={<Customers />} />
           <Route path="employees" element={<Employees />} />
+          <Route path="employees/add" element={<AddEmployee />} />
+          <Route path="/employees/edit/:id" element={<UpdateEmployee />} />
+          <Route path="/employees/detail/:id" element={<DetailEmployee />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="products" element={<Products />} />
           <Route path="shoe-collar" element={<ShoeCollar />} />
@@ -47,7 +55,9 @@ function App() {
         </Route>
       </Routes>
     </Router>
+
   );
 }
+
 
 export default App;
