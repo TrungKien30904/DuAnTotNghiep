@@ -19,7 +19,8 @@ import AddDiscounts from "./pages/Discounts/AddDiscounts";
 import EditDiscounts from "./pages/Discounts/EditDiscounts";
 import Coupons from "./pages/Coupons";
 import Categories from "./pages/Categories";
-
+import AddCoupon from "./pages/AddCoupon";
+import CouponDetails from "./pages/CouponDetails";
 function App() {
   return (
     <Router>
@@ -45,6 +46,8 @@ function App() {
           <Route path="discounts/add" element={<AddDiscounts />} />
           <Route path="discounts/edit/:idDGG" element={<EditDiscounts />} />
           <Route path="coupons" element={<Coupons />} />
+          <Route path="add-coupon" element={<AddCoupon />} />
+          <Route path="coupons/:id" element={<CouponDetails />} />
         </Route>
       </Routes>
     </Router>
