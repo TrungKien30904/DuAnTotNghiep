@@ -17,6 +17,8 @@ import Size from "./pages/Size";
 import Discounts from "./pages/Discounts";
 import Coupons from "./pages/Coupons";
 import Categories from "./pages/Categories";
+import AddCoupon from "./pages/AddCoupon";
+import CouponDetails from "./pages/CouponDetails";
 import AddEmployee from "./pages/AddEmployee";
 import UpdateEmployee from "./pages/UpdateEmployee";
 import DetailEmployee from "./pages/DetailEmployee";
@@ -48,6 +50,8 @@ function App() {
           <Route path="size" element={<Size />} />
           <Route path="discounts" element={<Discounts />} />
           <Route path="coupons" element={<Coupons />} />
+          <Route path="add-coupon" element={<AddCoupon />} />
+          <Route path="coupons/:id" element={<CouponDetails />} />
         </Route>
       </Routes>
     </Router>
