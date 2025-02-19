@@ -16,7 +16,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-white p-4 shadow-md flex flex-col">
       <div className="text-center mb-6">
-        <img src="/logo.png" alt="Cennai Logo" className="h-20 mx-auto" />
+        <img src="/logo.png" alt="" className="h-20 mx-auto" />
       </div>
       <nav className="space-y-2">
         <NavLink

@@ -5,7 +5,7 @@ import Navbar from "./Navbar";
 export default function DashboardLayout() {
   return (
       <div className="flex h-screen bg-gray-100">
-        <div className="w-64 fixed inset-y-0 left-0 bg-white shadow-lg flex flex-col z-50">
+        <div className="fixed inset-y-0 left-0 bg-white shadow-lg flex flex-col z-50">
           <Sidebar />
         </div>
         <div className="flex flex-col flex-1 ml-64">
