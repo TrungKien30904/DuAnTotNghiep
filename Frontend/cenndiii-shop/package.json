@@ -8,7 +8,10 @@
     "@headlessui/react": "^2.2.0",
     "@mui/material": "^6.4.5",
     "axios": "^1.7.9",
+    "cenndiii-shop": "file:",
     "cra-template-tailwindcss": "4.0.1",
+    "crypto-random-string": "^5.0.0",
+    "file-saver": "^2.0.5",
     "lucide-react": "^0.474.0",
     "react": "^18.3.1",
     "react-color": "^2.19.3",
@@ -19,7 +22,8 @@
     "react-spinners": "^0.15.0",
     "react-toastify": "^11.0.3",
     "start": "^5.1.0",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -44,5 +48,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "crypto-browserify": "^3.12.1"
   }
 }
