@@ -1,46 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d4d003e8-50cd-4246-b05d-c02a318eb069" name="Default Changelist" comment="" />
+    <list default="true" id="02edd62a-ae2b-445b-9185-c2616d331ae0" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ProjectId" id="2sO7jT4Uxsg83y0YSX9pMuVwGEm" />
+  <component name="ProjectId" id="2tGIESGNZdHSWDVIKWYjH9jfBtD" />
   <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "last_opened_file_path": "D:/DuAnTotNghiep",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src" />
-      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\components\ui" />
-      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\pages" />
-      <recent name="D:\DuAnTotNghiep\Backend\src\main\resources" />
-    </key>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="d4d003e8-50cd-4246-b05d-c02a318eb069" name="Default Changelist" comment="" />
-      <created>1738314904784</created>
+      <changelist id="02edd62a-ae2b-445b-9185-c2616d331ae0" name="Changes" comment="" />
+      <created>1739971872668</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1738314904784</updated>
-      <workItem from="1738314906825" duration="50000" />
-      <workItem from="1739971893962" duration="364000" />
+      <updated>1739971872668</updated>
+      <workItem from="1739971873741" duration="19000" />
     </task>
     <servers />
   </component>

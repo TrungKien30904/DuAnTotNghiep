@@ -22,6 +22,14 @@ import ProductsManager from "./pages/ProductsManager";
 import AddEmployee from "./pages/AddEmployee";
 import UpdateEmployee from "./pages/UpdateEmployee";
 import DetailEmployee from "./pages/DetailEmployee";
+import AddCustomers from "./pages/AddCustomers";
+import EditCustomer from "./pages/EditCustomer";
+import DynamicForm from "./pages/ModelSample";
+import { ToastProvider } from './utils/ToastContext'
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { LoadingProvider, useLoading } from './components/ui/spinner/LoadingContext';
+
 
 
 function App() {
@@ -53,7 +61,9 @@ function App() {
           <Route path="coupons" element={<Coupons />} />
           <Route path="product-details" element={<ProductsDetails />} />
           <Route path="product-details-manager/phan-trang/:id" element={<ProductsManager />} />
-
+          <Route path="/add-customer" element={<AddCustomers />} />
+          <Route path="/edit-customer/:id" element={<EditCustomer />} />
+          <Route path="/test" element={<DynamicForm />} />
         </Route>
       </Routes>
     </Router>
