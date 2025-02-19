@@ -19,6 +19,8 @@ import Coupons from "./pages/Coupons";
 import Categories from "./pages/Categories";
 import ProductsDetails from "./pages/ProductDetails";
 import ProductsManager from "./pages/ProductsManager";
+import AddCoupon from "./pages/AddCoupon";
+import CouponDetails from "./pages/CouponDetails";
 import AddEmployee from "./pages/AddEmployee";
 import UpdateEmployee from "./pages/UpdateEmployee";
 import DetailEmployee from "./pages/DetailEmployee";
@@ -61,6 +63,8 @@ function App() {
           <Route path="coupons" element={<Coupons />} />
           <Route path="product-details" element={<ProductsDetails />} />
           <Route path="product-details-manager/phan-trang/:id" element={<ProductsManager />} />
+          <Route path="add-coupon" element={<AddCoupon />} />
+          <Route path="coupons/:id" element={<CouponDetails />} />
           <Route path="/add-customer" element={<AddCustomers />} />
           <Route path="/edit-customer/:id" element={<EditCustomer />} />
           <Route path="/test" element={<DynamicForm />} />

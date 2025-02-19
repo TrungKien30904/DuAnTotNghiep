@@ -1,4 +1,5 @@
 package com.example.dev.entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,17 +19,23 @@ public class PhieuGiamGiaChiTiet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "id_khuyen_mai")
+    @JsonBackReference
     private PhieuGiamGia phieuGiamGia;
 
-    @ManyToOne
+
+    @ManyToOne(cascade = CascadeType.PERSIST)  // Cascade persist operation to KhachHang
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
-
-    private Boolean trangThai;
+    @Column(name = "trang_thai")
+    private Integer trangThai=2;
+    @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
+    @Column(name = "ngay_sua")
     private LocalDateTime ngaySua;
+    @Column(name = "nguoi_tao")
     private String nguoiTao;
+    @Column(name = "nguoi_sua")
     private String nguoiSua;
 }
