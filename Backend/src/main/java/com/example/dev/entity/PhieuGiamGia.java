@@ -35,36 +35,40 @@ public class PhieuGiamGia {
 
     @Column(name = "ten_khuyen_mai")
     private String tenKhuyenMai;
-
+    @Column(name = "gia_tri")
     private BigDecimal giaTri;
-
+    @Column(name = "gia_tri_toi_da")
     private BigDecimal giaTriToiDa;
 
     @OneToMany(mappedBy = "phieuGiamGia", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<PhieuGiamGiaChiTiet> danhSachKhachHang = new ArrayList<>();
-
+    @Column(name = "so_luong")
     private Integer soLuong;
-
+    @Column(name = "hinh_thuc")
     private String hinhThuc;
 
+    @Column(name = "ngay_bat_dau")
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime ngayBatDau;
-
+    @Column(name = "ngay_ket_thuc")
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime ngayKetThuc;
 
+    @Column(name = "trang_thai")
     private Integer trangThai = 2;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "ngay_tao",nullable = false, updatable = false)
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime ngayTao;
 
+    @Column(name = "ngay_sua")
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
     private LocalDateTime ngaySua;
 
+    @Column(name = "nguoi_tao")
     private String nguoiTao;
-
+    @Column(name = "nguoi_sua")
     private String nguoiSua;
 
     @PrePersist
