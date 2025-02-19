@@ -1,17 +1,16 @@
-package com.example.dev.entity;
+package com.example.dev.entity.nhanvien;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Entity
 @Table(name = "nhan_vien")
 public class NhanVien {
@@ -21,11 +20,15 @@ public class NhanVien {
 
     private String ten;
     private String gioiTinh;
-    private LocalDateTime ngaySinh;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate ngaySinh;
     private String soDienThoai;
     @Email
     private String email;
     private String vaiTro;
     private String matKhau;
     private Boolean trangThai;
+    private String hinh_anh;
+    private String cccd;
+    private String diachi;
 }
