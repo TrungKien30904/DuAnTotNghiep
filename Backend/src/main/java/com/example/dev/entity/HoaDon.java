@@ -1,4 +1,5 @@
 package com.example.dev.entity;
+import com.example.dev.entity.nhanvien.NhanVien;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
