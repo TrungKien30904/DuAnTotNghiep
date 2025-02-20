@@ -6,10 +6,10 @@ import Select from "react-select";
 import { SketchPicker } from "react-color";
 import { Dialog } from "@headlessui/react";
 import { Trash } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import Notification from "../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
-import { PacmanLoader } from "react-spinners";
+import Loading from "../components/Loading";
 import Alert from "../components/Alert";
 
 const removeDiacritics = (str) => {
@@ -79,7 +79,7 @@ export default function ProductDetails() {
   const [selectedVariantIds, setSelectedVariantIds] = useState([]);
   const [commonAll, setCommonAll] = useState({ quantity: "", price: "" });
 
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  // const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   const [description, setDescription] = useState("");
 
@@ -133,7 +133,7 @@ export default function ProductDetails() {
     });
 
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -1110,11 +1110,7 @@ export default function ProductDetails() {
           </div>
         </div>
       </Dialog>
-      {loading && (
-        <div className="mt-0 fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 !m-0" >
-          <PacmanLoader color="#ffffff" size={60} />
-        </div>
-      )}
+      {loading && (<Loading />)}
       <Alert
         message={alertMessage}
         open={alertOpen}

@@ -6,7 +6,7 @@ import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import Notification from "../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
-import Alert from "../components/Alert";
+// import Alert from "../components/Alert";
 
 export default function ProductManagement() {
   const navigate = useNavigate();
@@ -17,8 +17,8 @@ export default function ProductManagement() {
   const [newProductName, setNewProductName] = useState("");
   const [newProductStatus, setNewProductStatus] = useState(false);
 
-  const [alertOpen, setAlertOpen] = useState(false); // mở alert
-  const [alertMessage, setAlertMessage] = useState(''); // thông báo alert
+  // const [alertOpen, setAlertOpen] = useState(false); // mở alert
+  // const [alertMessage, setAlertMessage] = useState(''); // thông báo alert
 
   useEffect(() => {
     fetchSanPhams();

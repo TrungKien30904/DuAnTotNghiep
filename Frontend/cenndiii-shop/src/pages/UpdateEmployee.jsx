@@ -188,11 +188,11 @@ export default function EditEmployee() {
 
         const imageFormData = new FormData();
         imageFormData.append("file", file);
-        imageFormData.append("upload_preset", "cuoilen"); // Thay bằng upload_preset từ Cloudinary
+        imageFormData.append("upload_preset", "upload_images"); // Thay bằng upload_preset từ Cloudinary
 
         try {
             const response = await axios.post(
-                `https://api.cloudinary.com/v1_1/dh5qgrnv6/image/upload`,
+                `https://api.cloudinary.com/v1_1/dabnimezp/image/upload`,
                 imageFormData
             );
             setFormData((prev) => ({
@@ -336,7 +336,7 @@ export default function EditEmployee() {
                     <div className="space-y-4">
                         <div>
                             <label className="block">Ảnh đại diện</label>
-                            <input type="file" name="hinh_anh" onChange={handleFileChange} className="border p-2 w-full" />
+                            <input type="file" accept="image/*" name="hinh_anh" onChange={handleFileChange} className="border p-2 w-full" />
                             {formData.hinh_anh && <img src={formData.hinh_anh} alt="Ảnh đã chọn" className="w-32 h-32 object-cover mt-2" />}
                         </div>
                         <div>

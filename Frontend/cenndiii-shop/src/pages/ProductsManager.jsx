@@ -40,7 +40,6 @@ export default function ProductDetails() {
   const [openAlert, setOpenAlert] = useState(false); // trạng thái cho alert
   const [alertMessage, setAlertMessage] = useState(""); // thông báo cho alert
 
-
   const handleAlertClose = (confirm) => {
     setOpenAlert(false);
     if (confirm) {
@@ -884,7 +883,7 @@ export default function ProductDetails() {
             </button>
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(totalItems / pageSize) - 1))}
-              disabled={currentPage === Math.ceil(totalItems / pageSize) - 1}
+              disabled={totalItems === 0}
               className="p-2 border rounded-md"
             >
               &gt;

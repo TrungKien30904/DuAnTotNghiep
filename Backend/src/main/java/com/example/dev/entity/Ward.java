@@ -11,7 +11,7 @@ public class Ward {
     @Id
     @Column(name = "Id")
     private int id;
-    @Column(name = "DistrictId")
+//    @Column(name = "district_id")
     private int districtId;
     @Column(name = "Code")
     private String code;

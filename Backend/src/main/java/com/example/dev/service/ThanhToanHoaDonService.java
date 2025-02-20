@@ -12,9 +12,9 @@ public class ThanhToanHoaDonService {
     @Autowired
     private ThanhToanHoaDonRepository thanhToanHoaDonRepository;
 
-    public ThanhToanHoaDon findByMaHoaDon(String maHoaDon) {
-        return thanhToanHoaDonRepository.findAll().stream().
-                filter(lichSuHoaDon -> lichSuHoaDon.getHoaDon().getMaHoaDon().equals(maHoaDon))
-                .findFirst().orElse(null);
-    }
+//    public ThanhToanHoaDon findByMaHoaDon(String maHoaDon) {
+//        return thanhToanHoaDonRepository.findAll().stream().
+//                filter(lichSuHoaDon -> lichSuHoaDon.getHoaDon().getMaHoaDon().equals(maHoaDon))
+//                .findFirst().orElse(null);
+//    }
 }

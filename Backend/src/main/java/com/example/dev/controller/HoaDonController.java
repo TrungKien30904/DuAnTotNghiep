@@ -54,11 +54,11 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDon);
     }
 
-    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
-    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
-        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
-        return ResponseEntity.ok(thanhToanHoaDon);
-    }
+//    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
+//    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
+//        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
+//        return ResponseEntity.ok(thanhToanHoaDon);
+//    }
 
     @GetMapping("/thong-ke")
     public ResponseEntity<Object> getInvoiceStatistics() {

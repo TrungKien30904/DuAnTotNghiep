@@ -11,17 +11,13 @@ public class MailLogsEntity {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(name = "toMail")
     private String toMail;
-    @Column(name = "fromMail")
     private String fromMail;
     @Column(name = "content")
     private String content;
     @Column(name = "subject")
     private String subject;
-    @Column(name = "createdBy")
     private  Integer createdBy;
-    @Column(name = "createdDate")
     private Date createdDate;
     @Column(name = "status")
     private Integer status;

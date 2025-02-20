@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface DistrictRepository extends JpaRepository<District, Integer> {
 
-     @Query(value = "SELECT * FROM [dbo].[District] d WHERE d.ProvinceId = ?1", nativeQuery = true)
+     @Query(value = "SELECT * FROM [dbo].[District] d WHERE d.province_id = ?1", nativeQuery = true)
      List<District> findDistrictByProvinceId(int ProvinceId);
 
 }
