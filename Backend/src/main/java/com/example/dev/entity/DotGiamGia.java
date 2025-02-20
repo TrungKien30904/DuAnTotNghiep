@@ -21,7 +21,10 @@ public class DotGiamGia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idDotGiamGia;
     @NotEmpty
-    private String tenKhuyenMai;
+    @Column(unique = true)
+    private String maDotGiamGia;
+    @NotEmpty
+    private String tenDotGiamGia;
     @NotNull
     private BigDecimal giaTri;
     @NotEmpty
