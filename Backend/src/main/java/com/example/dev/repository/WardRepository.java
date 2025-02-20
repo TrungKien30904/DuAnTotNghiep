@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 @Repository
 public interface WardRepository extends JpaRepository<Ward, Integer> {
-     @Query(value = "SELECT * FROM [dbo].[Ward] d WHERE d.DistrictId = ?1", nativeQuery = true)
+     @Query(value = "SELECT * FROM [dbo].[Ward] d WHERE d.district_id = ?1", nativeQuery = true)
      List<Ward> findWardByDistrictId(int DistrictId);
 }

@@ -3,11 +3,13 @@ import { Eye, Plus, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
-import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
+// import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
+// import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
+import Loading from "../components/Loading";
 
 export default function Coupons() {
-  const { setLoadingState, loading } = useLoading();
+  // const { setLoadingState, loading } = useLoading();
+  const [loading, setLoadingState] = useState(false);
   const [filters, setFilters] = useState({
     keyword: "",
     gioiTinh: "all",
@@ -153,7 +155,8 @@ export default function Coupons() {
 
   return (
     <div className="p-6 space-y-4">
-      {loading && <Spinner />} {/* Show the spinner while loading */}
+      {/* {loading && <Spinner />} Show the spinner while loading */}
+      {loading && <Loading />}
       <h1 className="text-lg font-semibold mb-4">Khách hàng</h1>
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-sm font-semibold mb-4">Bộ Lọc</h2>

@@ -11,7 +11,7 @@ public class District {
     @Id
     @Column(name = "Id")
     private int id;
-    @Column(name = "ProvinceId")
+//    @Column(name = "province_id")
     private int provinceId;
     @Column(name = "Code")
     private String code;

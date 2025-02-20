@@ -4,8 +4,9 @@ import {useNavigate, useLocation} from "react-router-dom";
 import moment from "moment";
 import {ChevronLeft, ChevronRight, Search} from "lucide-react";
 import {Dialog} from "@headlessui/react";
-import {toast, ToastContainer} from "react-toastify";
+import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Notification from "../components/Notification";
 
 function AddCoupon() {
     const navigate = useNavigate();
@@ -47,7 +48,7 @@ function AddCoupon() {
             }
         } catch (error) {
             console.error("Error searching data:", error);
-            toast.error("Lỗi khi tìm kiếm khách hàng");
+            Notification("Lỗi khi tìm kiếm dữ liệu","error");
         }
     }, [filters.keyword, currentPage]);
 
@@ -58,7 +59,7 @@ function AddCoupon() {
             setTotalPages(response.data.totalPages);
         } catch (error) {
             console.error('Lỗi khi lấy danh sách khách hàng:', error);
-            toast.error("Lỗi khi lấy danh sách khách hàng");
+            Notification("Lỗi khi lấy danh sách khách hàng","error");
         }
     };
 
@@ -229,7 +230,7 @@ function AddCoupon() {
         e.preventDefault();
 
         if (!validate()) {
-            toast.error("Vui lòng kiểm tra lại thông tin");
+            Notification("Vui lòng kiểm tra lại thông tin","error");
             return;
         }
 
@@ -251,16 +252,16 @@ function AddCoupon() {
 
         try {
             await axios.post('http://localhost:8080/admin/phieu-giam-gia/them', requestData);
-            toast.success("Thêm phiếu giảm giá thành công");
+            Notification.success("Thêm phiếu giảm giá thành công","success");
             navigate('/coupons', {state: {message: 'Thêm phiếu giảm giá thành công'}});
         } catch (error) {
             if (error.response && error.response.data) {
                 setErrors(error.response.data);
                 console.error('Backend Error:', error.response.data);
-                toast.error("Lỗi khi thêm phiếu giảm giá");
+                Notification("Lỗi khi thêm phiếu giảm giá","error");
             } else {
                 console.error('Lỗi khi thêm phiếu giảm giá:', error.message);
-                toast.error("Lỗi khi thêm phiếu giảm giá");
+                Notification("Lỗi khi thêm phiếu giảm giá","error");
             }
         }
     };

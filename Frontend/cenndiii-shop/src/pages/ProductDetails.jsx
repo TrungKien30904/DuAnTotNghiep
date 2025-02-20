@@ -6,9 +6,11 @@ import Select from "react-select";
 import { SketchPicker } from "react-color";
 import { Dialog } from "@headlessui/react";
 import { Trash } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import Notification from "../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
-import { PacmanLoader } from "react-spinners";
+import Loading from "../components/Loading";
+import Alert from "../components/Alert";
 
 const removeDiacritics = (str) => {
   return str
@@ -77,7 +79,7 @@ export default function ProductDetails() {
   const [selectedVariantIds, setSelectedVariantIds] = useState([]);
   const [commonAll, setCommonAll] = useState({ quantity: "", price: "" });
 
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  // const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   const [description, setDescription] = useState("");
 
@@ -85,6 +87,20 @@ export default function ProductDetails() {
 
   const [loading, setLoading] = useState(false); // Trạng thái loading
 
+  const [alertOpen, setAlertOpen] = useState(false); // mở alert
+  const [alertMessage, setAlertMessage] = useState(''); // thông báo alert
+
+  const handleAlertClose = (confirm) => {
+    setAlertOpen(false);
+    if (confirm) {
+      handleSubmit();
+    }
+  };
+
+  const showAlert = () => {
+    setAlertMessage("Bạn có chắc chắn muốn thêm chi tiết sản phẩm này không?");
+    setAlertOpen(true);
+  };
   const handleImageChange = (event, colorName) => {
     const files = Array.from(event.target.files);
 
@@ -106,31 +122,28 @@ export default function ProductDetails() {
       console.warn("Không có ảnh nào để upload!");
       return;
     }
-  
+
     const formData = new FormData();
-  
+
     Object.entries(selectedImages).forEach(([colorName, files]) => {
       files.forEach((file) => {
         formData.append("file", file);
         formData.append("tenMau", colorName); // Gửi mã màu tương ứng
       });
     });
-  
+
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-  
-      console.log("Upload thành công:", response.data);
-      toast.success("Tất cả ảnh đã được tải lên!");
+      Notification("Thêm ảnh thành công", "success");
     } catch (error) {
-      console.error("Lỗi khi tải ảnh:", error);
-      toast.error("Lỗi khi tải ảnh!");
+      Notification("Lỗi khi thêm ảnh", "error");
     }
   };
-  
+
 
 
   const [errors, setErrors] = useState({
@@ -186,18 +199,16 @@ export default function ProductDetails() {
       const newOption = { value: response.data.idMauSac, label: response.data.ten };
       setSelectedColors((prevSelected) => [...prevSelected, newOption]);
       setIsAddingColor(false);
-      toast.success("Thêm màu sắc thành công!");
+      Notification("Thêm màu sắc thành công", "success");
       await fetchData("http://localhost:8080/admin/mau-sac/hien-thi/true", setColors);
     } catch (error) {
-      console.error("Lỗi khi thêm màu mới:", error);
-      toast.error("Lỗi khi thêm màu sắc!");
+      Notification("Lỗi khi thêm màu sắc!", "error");
     }
   };
 
   const handleAddSize = async () => {
     if (!newSize.trim()) return;
     try {
-      // if (true) {
       const response = await axios.post("http://localhost:8080/admin/kich-co/them", {
         ten: newSize,
       });
@@ -205,12 +216,10 @@ export default function ProductDetails() {
       setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
       setIsAddingSize(false);
       setNewSize("");
-      toast.success("Thêm kích cỡ thành công!");
+      Notification("Thêm kích cỡ thành công", "success");
       await fetchData("http://localhost:8080/admin/kich-co/hien-thi/true", setSizes);
-      // }
     } catch (error) {
-      console.error("Lỗi khi thêm kích cỡ:", error);
-      toast.error("Lỗi khi thêm kích cỡ!");
+      Notification("Lỗi khi thêm kích cỡ!", "error");
     }
   };
   useEffect(() => {
@@ -250,59 +259,59 @@ export default function ProductDetails() {
           { idSanPham: response.data.idSanPham, ten: inputValue },
         ]);
         setProductSelected({ value: response.data.idSanPham, label: inputValue });
-        toast.success("Thêm mới sản phẩm thành công!");
+        Notification("Thêm sản phẩm thành công", "success");
       } else if (type === "co-giay") {
         setShoeCollars((prev) => [
           ...prev,
           { idCoGiay: response.data.idCoGiay, ten: inputValue },
         ]);
         setShoeCollarSelected({ value: response.data.idCoGiay, label: inputValue });
-        toast.success("Thêm mới cổ giàygiày thành công!");
+        Notification("Thêm cổ giày thành công", "success");
       } else if (type === "de-giay") {
         setShoeSoles((prev) => [
           ...prev,
           { idDeGiay: response.data.idDeGiay, ten: inputValue },
         ]);
         setShoeSoleSelected({ value: response.data.idDeGiay, label: inputValue });
-        toast.success("Thêm mới đế giày thành công!");
+        Notification("Thêm đế giày thành công", "success");
       } else if (type === "mui-giay") {
         setShoeToes((prev) => [
           ...prev,
           { idMuiGiay: response.data.idMuiGiay, ten: inputValue },
         ]);
         setShoeToeSelected({ value: response.data.idMuiGiay, label: inputValue });
-        toast.success("Thêm mới mũi giày thành công!");
+        Notification("Thêm mũi giày thành công", "success");
       } else if (type === "chat-lieu") {
         setMaterials((prev) => [
           ...prev,
           { idChatLieu: response.data.idChatLieu, ten: inputValue },
         ]);
         setMaterialSelected({ value: response.data.idChatLieu, label: inputValue });
-        toast.success("Thêm mới chất liệu thành công!");
+        Notification("Thêm chất liệu thành công", "success");
       } else if (type === "thuong-hieu") {
         setBrands((prev) => [
           ...prev,
           { idThuongHieu: response.data.idThuongHieu, ten: inputValue },
         ]);
         setBrandSelected({ value: response.data.idThuongHieu, label: inputValue });
-        toast.success("Thêm mới thương hiệu thành công!");
+        Notification("Thêm thương hiệu thành công", "success");
       } else if (type === "nha-cung-cap") {
         setSuppliers((prev) => [
           ...prev,
           { idNhaCungCap: response.data.idNhaCungCap, ten: inputValue },
         ]);
         setSupplierSelected({ value: response.data.idNhaCungCap, label: inputValue });
-        toast.success("Thêm mới nhà cung cấp thành công!");
+        Notification("Thêm nhà cung cấp thành công", "success");
       } else if (type === "danh-muc") {
         setCategories((prev) => [
           ...prev,
           { idDanhMuc: response.data.idDanhMuc, ten: inputValue },
         ]);
         setCategorySelected({ value: response.data.idDanhMuc, label: inputValue });
-        toast.success("Thêm mới danh mục thành công!");
+        Notification("Thêm danh mục thành công", "success");
       }
     } catch (error) {
-      toast.error(`Lỗi khi thêm ${type.replace("-", " ")}!`);
+      Notification(`Lỗi khi thêm ${type.replace("-", " ")}!`, "error");
     }
   };
 
@@ -465,7 +474,7 @@ export default function ProductDetails() {
       )
     );
   };
-  
+
   const handleCommonAllPriceChange = (e) => {
     let newPrice = Number(e.target.value);
     if (newPrice < 1) {
@@ -481,7 +490,7 @@ export default function ProductDetails() {
       )
     );
   };
-  
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -572,13 +581,12 @@ export default function ProductDetails() {
           payload
         );
 
-        
+
         await handleUploadImages(productResponse.data);
-        toast.success("Thêm chi tiết sản phẩm thành công!");
+        Notification("Thêm chi tiết sản phẩm thành công", "success");
         navigate(`/product-details-manager/phan-trang/${productSelected.value}`);
       } catch (error) {
-        console.error("Lỗi khi gửi dữ liệu:", error);
-        toast.error("Lỗi khi thêm chi tiết sản phẩm!");
+        Notification("Lỗi khi thêm chi tiết sản phẩm", "error");
       } finally {
         setLoading(false);
       }
@@ -586,7 +594,7 @@ export default function ProductDetails() {
   };
 
   return (
-    <div className="p-6 space-y-4 text-sm">
+    <div className="p-2 space-y-4 text-sm">
       {/* Breadcrumb */}
       <nav className="text-gray-500 mb-4">
         <span className="cursor-pointer hover:underline" onClick={() => navigate("/dashboard")}>
@@ -772,7 +780,7 @@ export default function ProductDetails() {
                     className="text-sm text-blue-600 hover:underline"
                     onClick={() => {
                       if (!productSelected) {
-                        toast.error("Bạn chưa chọn sản phẩm!");
+                        Notification("Bạn chưa chọn sản phẩm!", "error");
                         return;
                       }
                       setIsAddingColor(true);
@@ -807,7 +815,7 @@ export default function ProductDetails() {
                     className="text-sm text-blue-600 hover:underline"
                     onClick={() => {
                       if (!productSelected) {
-                        toast.error("Bạn chưa chọn sản phẩm!");
+                        Notification("Bạn chưa chọn sản phẩm!", "error");
                         return;
                       }
                       setIsAddingSize(true);
@@ -822,7 +830,7 @@ export default function ProductDetails() {
                   value={selectedSizes}
                   onFocus={() => {
                     if (!productSelected) {
-                      toast.error("Bạn chưa chọn sản phẩm!");
+                      Notification("Bạn chưa chọn sản phẩm!", "error");
                       return;
                     }
                   }}
@@ -890,7 +898,7 @@ export default function ProductDetails() {
 
                   </thead>
                   <tbody>
-                    {Object.values(groupedVariants).map((group,index) => {
+                    {Object.values(groupedVariants).map((group, index) => {
                       const colorName = group.colorName;
                       const variantsGroup = group.variants;
                       return (
@@ -1022,7 +1030,7 @@ export default function ProductDetails() {
             <div className="flex justify-end mt-4">
               <button
                 className="p-2 bg-green-600 text-white rounded-md"
-                onClick={() => setIsConfirmModalOpen(true)}
+                onClick={showAlert}
               >
                 Thêm chi tiết sản phẩm
               </button>
@@ -1030,41 +1038,6 @@ export default function ProductDetails() {
           )}
         </div>
       </div>
-
-      {/* Modal xác nhận thêm chi tiết sản phẩm */}
-      <Dialog
-        open={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        className="fixed inset-0 flex items-start justify-center pt-10 z-50 bg-black bg-opacity-50"
-      >
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold mb-1 text-left">
-              Vui lòng xác nhận
-            </h2>
-            <p className="text-sm text-gray-700 text-left">
-              Xác nhận thêm chi tiết sản phẩm
-            </p>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <button
-              className="px-3 py-1 border border-gray-400 text-gray-600 rounded-md"
-              onClick={() => setIsConfirmModalOpen(false)}
-            >
-              Hủy
-            </button>
-            <button
-              className="px-3 py-1 bg-black text-white rounded-md"
-              onClick={() => {
-                setIsConfirmModalOpen(false);
-                handleSubmit();
-              }}
-            >
-              Xác nhận
-            </button>
-          </div>
-        </div>
-      </Dialog>
 
       {/* Modal thêm màu sắc */}
       <Dialog
@@ -1116,7 +1089,7 @@ export default function ProductDetails() {
               // Kiểm tra định dạng kích cỡ (số nguyên hoặc số thập phân, ví dụ "39", "39.5")
               const regex = /^[0-9]+(\.[0-9]+)?$/;
               if (!regex.test(newSize)) {
-                toast.error("Kích cỡ không hợp lệ! Vui lòng nhập số hoặc số thập phân.");
+                Notification("Kích cỡ không hợp lệ! Vui lòng nhập số hoặc số thập phân.", "error");
                 setNewSize(""); // Clear giá trị khi không hợp lệ
               }
             }}
@@ -1137,12 +1110,13 @@ export default function ProductDetails() {
           </div>
         </div>
       </Dialog>
-      {loading && (
-        <div className="mt-0 fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 !m-0" >
-          <PacmanLoader color="#ffffff" size={60} />
-        </div>
-      )}
-      <ToastContainer position="top-right" autoClose={3000} />
+      {loading && (<Loading />)}
+      <Alert
+        message={alertMessage}
+        open={alertOpen}
+        onClose={handleAlertClose}
+      />
+      <ToastContainer />
     </div>
   );
 }

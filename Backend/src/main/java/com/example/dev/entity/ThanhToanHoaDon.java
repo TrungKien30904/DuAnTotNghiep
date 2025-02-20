@@ -1,7 +1,6 @@
 package com.example.dev.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,18 +23,27 @@ public class ThanhToanHoaDon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_khuyen_mai")
-    private PhieuGiamGia phieuGiamGia;
+    @NotEmpty
+    private String hinhThucThanhToan;
 
     @ManyToOne
-    @JoinColumn(name = "id_khach_hang")
-    private KhachHang khachHang;
+    @JoinColumn(name = "id_hoa_don")
+    private HoaDon hoaDon;
+
+    @NotNull
+    @Size(min = 0)
+    private BigDecimal soTienThanhToan;
+
+    private String ghiChu;
 
     private Boolean trangThai;
+    @NotNull
     private LocalDateTime ngayTao;
+
     private LocalDateTime ngaySua;
+    @NotNull
     private String nguoiTao;
+
     private String nguoiSua;
 
     public Integer getId() {
@@ -46,20 +54,36 @@ public class ThanhToanHoaDon {
         this.id = id;
     }
 
-    public PhieuGiamGia getPhieuGiamGia() {
-        return phieuGiamGia;
+    public String getHinhThucThanhToan() {
+        return hinhThucThanhToan;
     }
 
-    public void setPhieuGiamGia(PhieuGiamGia phieuGiamGia) {
-        this.phieuGiamGia = phieuGiamGia;
+    public void setHinhThucThanhToan(String hinhThucThanhToan) {
+        this.hinhThucThanhToan = hinhThucThanhToan;
     }
 
-    public KhachHang getKhachHang() {
-        return khachHang;
+    public HoaDon getHoaDon() {
+        return hoaDon;
     }
 
-    public void setKhachHang(KhachHang khachHang) {
-        this.khachHang = khachHang;
+    public void setHoaDon(HoaDon hoaDon) {
+        this.hoaDon = hoaDon;
+    }
+
+    public BigDecimal getSoTienThanhToan() {
+        return soTienThanhToan;
+    }
+
+    public void setSoTienThanhToan(BigDecimal soTienThanhToan) {
+        this.soTienThanhToan = soTienThanhToan;
+    }
+
+    public String getGhiChu() {
+        return ghiChu;
+    }
+
+    public void setGhiChu(String ghiChu) {
+        this.ghiChu = ghiChu;
     }
 
     public Boolean getTrangThai() {

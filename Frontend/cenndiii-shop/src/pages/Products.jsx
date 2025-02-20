@@ -1,18 +1,25 @@
 import { useState, useEffect } from "react";
 import { Search, Eye, Edit, Plus } from "lucide-react";
-import { NavLink } from "react-router-dom"; // Import useNavigate
+import { NavLink, useNavigate } from "react-router-dom"; // Import useNavigate
 import { Dialog } from "@headlessui/react";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import Notification from "../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
+// import Alert from "../components/Alert";
 
 export default function ProductManagement() {
+  const navigate = useNavigate();
   // const [filters, setFilters] = useState({ search: "", trangThai: "all", soLuong: "all" });
   const [sanPhams, setSanPhams] = useState([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
   const [newProductName, setNewProductName] = useState("");
   const [newProductStatus, setNewProductStatus] = useState(false);
+
+  // const [alertOpen, setAlertOpen] = useState(false); // mở alert
+  // const [alertMessage, setAlertMessage] = useState(''); // thông báo alert
+
   useEffect(() => {
     fetchSanPhams();
   }, []);
@@ -29,14 +36,14 @@ export default function ProductManagement() {
   const handleSaveChanges = async (id) => {
     // Handle saving the new name and status (this could involve an API call to update the product)
     try {
-      const response = await axios.post(`http://localhost:8080/admin/san-pham/sua/${id}`,{
+      const response = await axios.post(`http://localhost:8080/admin/san-pham/sua/${id}`, {
         ten: newProductName,
         trangThai: newProductStatus,
       });
       setSanPhams(response.data);
-      toast.success("Sửa thành công !")
+      Notification("Sửa sản phẩm thành công", "success");
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
+      Notification("Sửa sản phẩm thất bại", "error");
     }
     setIsEditModalOpen(false);
   };
@@ -62,10 +69,17 @@ export default function ProductManagement() {
     setIsEditModalOpen(true);
   };
 
-  
+
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-lg font-semibold mb-4">Sản phẩm</h1>
+    <div className="p-2 space-y-4 text-sm">
+      {/* Breadcrumb */}
+      <nav className="text-gray-500 mb-4">
+        <span className="cursor-pointer hover:underline" onClick={() => navigate("/dashboard")}>
+          Trang chủ
+        </span>{" "}
+        &gt;{" "}
+        <span className="font-semibold text-black">Sản phẩm</span>
+      </nav>
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-sm font-semibold mb-4">Bộ Lọc</h2>
         <div className="grid grid-cols-3 gap-4">
@@ -194,7 +208,7 @@ export default function ProductManagement() {
           {/* Checkbox for Product Status */}
           <div className="mb-4">
             <label className="flex items-center text-sm">
-            <span>Trạng thái</span>
+              <span>Trạng thái</span>
               <input
                 type="checkbox"
                 checked={newProductStatus}
@@ -221,7 +235,7 @@ export default function ProductManagement() {
           </div>
         </div>
       </Dialog>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer/>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {FileText, ShoppingCart, Home, EyeIcon,} from 'lucide-react';
-import toast, {Toaster} from 'react-hot-toast';
+// import toast, {Toaster} from 'react-hot-toast';
+import { ToastContainer } from 'react-toastify';
 import {useNavigate} from 'react-router-dom';
 import { FileSpreadsheet } from "lucide-react";
-
+import Notification from '../components/Notification';
 
 const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Thanh toán', 'Hoàn thành', 'Hủy'];
 
@@ -63,7 +64,7 @@ export default function Invoices() {
     const handleSearch = () => {
         const {startDate, endDate} = filter;
         if (new Date(endDate) < new Date(startDate)) {
-            toast.error('Ngày kết thúc không được bé hơn ngày bắt đầu!');
+            Notification.error('Ngày kết thúc không thể nhỏ hơn ngày bắt đầu','error');
         } else {
             fetchInvoices(filter);
         }
@@ -278,7 +279,7 @@ export default function Invoices() {
                 </div>
 
             </div>
-            <Toaster position="top-right"/>
+            <ToastContainer />
         </div>
     );
 }

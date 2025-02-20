@@ -95,6 +95,11 @@ public class ChiTietSanPhamService {
 
     public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id) {
         ctsp.setIdChiTietSanPham(id);
+        ChiTietSanPham find = chiTietSanPhamRepo.findById(id).get();
+        if(isEqual(ctsp,find)) {
+            find.setSoLuong(ctsp.getSoLuong() + find.getSoLuong());
+            find.setGia(ctsp.getGia());
+        }
         chiTietSanPhamRepo.save(ctsp);
         return getPage(id, 0, 3);
     }

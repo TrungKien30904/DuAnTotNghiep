@@ -6,9 +6,11 @@ import axios from "axios";
 import CreatableSelect from "react-select/creatable";
 import Select from "react-select";
 import { Dialog, Switch } from "@headlessui/react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import Notification from "../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
-
+import Alert from "../components/Alert";
+import { ImageList, ImageListItem } from "@mui/material";
 export default function ProductDetails() {
   const { id } = useParams(); // Id lấy từ trang khác
   const [currentPage, setCurrentPage] = useState(0);
@@ -33,6 +35,22 @@ export default function ProductDetails() {
   const [sizes, setSizes] = useState([]);
 
   const [selectedImages, setSelectedImages] = useState([]);
+
+
+  const [openAlert, setOpenAlert] = useState(false); // trạng thái cho alert
+  const [alertMessage, setAlertMessage] = useState(""); // thông báo cho alert
+
+  const handleAlertClose = (confirm) => {
+    setOpenAlert(false);
+    if (confirm) {
+      handleSave();
+    }
+  }
+
+  const showAlert = () => {
+    setAlertMessage("Bạn có chắc chắn muốn lưu thay đổi không?");
+    setOpenAlert(true);
+  };
 
   const handleImageChange = (event) => {
     const files = Array.from(event.target.files);
@@ -140,11 +158,10 @@ export default function ProductDetails() {
           return item;
         })
       );
-      toast.success(`Trạng thái đã được cập nhật`);
+      Notification("Thay đổi trạng thái thành công", "success");
       return response;
     } catch (error) {
-      console.error("Lỗi khi thay đổi trạng thái:", error);
-      toast.error("Có lỗi xảy ra khi thay đổi trạng thái!");
+      Notification("Thay đổi trạng thái thất bại", "error");
     }
   };
 
@@ -211,60 +228,59 @@ export default function ProductDetails() {
           { idSanPham: response.data.idSanPham, ten: inputValue },
         ]);
         setProductSelected({ value: response.data.idSanPham, label: inputValue });
-        toast.success(`Thêm mới sản phẩm thành công!`);
+        Notification("Thêm sản phẩm thành công", "success");
       } else if (type === "co-giay") {
         setShoeCollars((prev) => [
           ...prev,
           { idCoGiay: response.data.idCoGiay, ten: inputValue },
         ]);
         setShoeCollarSelected({ value: response.data.idCoGiay, label: inputValue });
-        toast.success(`Thêm mới cổ giày thành công!`);
+        Notification("Thêm cổ giày thành công", "success");
       } else if (type === "de-giay") {
         setShoeSoles((prev) => [
           ...prev,
           { idDeGiay: response.data.idDeGiay, ten: inputValue },
         ]);
         setShoeSoleSelected({ value: response.data.idDeGiay, label: inputValue });
-        toast.success(`Thêm mới đế giày thành công!`);
+        Notification("Thêm đế giày thành công", "success");
       } else if (type === "mui-giay") {
         setShoeToes((prev) => [
           ...prev,
           { idMuiGiay: response.data.idMuiGiay, ten: inputValue },
         ]);
         setShoeToeSelected({ value: response.data.idMuiGiay, label: inputValue });
-        toast.success(`Thêm mới mũi giày thành công!`);
+        Notification("Thêm mũi giày thành công", "success");
       } else if (type === "chat-lieu") {
         setMaterials((prev) => [
           ...prev,
           { idChatLieu: response.data.idChatLieu, ten: inputValue },
         ]);
         setMaterialSelected({ value: response.data.idChatLieu, label: inputValue });
-        toast.success(`Thêm mới chất liệu thành công!`);
+        Notification("Thêm chất liệu thành công", "success");
       } else if (type === "thuong-hieu") {
         setBrands((prev) => [
           ...prev,
           { idThuongHieu: response.data.idThuongHieu, ten: inputValue },
         ]);
         setBrandSelected({ value: response.data.idThuongHieu, label: inputValue });
-        toast.success(`Thêm mới thương hiệu thành công!`);
+        Notification("Thêm thương hiệu thành công", "success");
       } else if (type === "nha-cung-cap") {
         setSuppliers((prev) => [
           ...prev,
           { idNhaCungCap: response.data.idNhaCungCap, ten: inputValue },
         ]);
         setSupplierSelected({ value: response.data.idNhaCungCap, label: inputValue });
-        toast.success(`Thêm mới nhà cung cấp thành công!`);
+        Notification("Thêm nhà cung cấp thành công", "success");
       } else if (type === "danh-muc") {
         setCategories((prev) => [
           ...prev,
           { idDanhMuc: response.data.idDanhMuc, ten: inputValue },
         ]);
         setCategorySelected({ value: response.data.idDanhMuc, label: inputValue });
-        toast.success(`Thêm mới danh mục thành công!`);
+        Notification("Thêm danh mục thành công", "success");
       }
     } catch (error) {
-      console.error(`Lỗi khi thêm mới ${type}:`, error);
-      toast.error(`Lỗi khi thêm ${type.replace("-", " ")}!`);
+      Notification(`Lỗi khi thêm mới thuộc tính`, "error");
     }
   };
 
@@ -322,24 +338,31 @@ export default function ProductDetails() {
 
   const handleUploadImages = async (idSanPham) => {
     const formData = new FormData();
-  
+
     selectedImages.forEach((image) => {
-      formData.append("file", image); 
-      formData.append("tenMau", colorSelected.label); 
+      formData.append("file", image);
+      formData.append("tenMau", colorSelected.label);
     });
     try {
-      const response = await axios.post(
-        `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      toast.success("Tất cả ảnh đã được tải lên!");
+      if (selectedImages.length > 0) {
+        const response = await axios.post(
+          `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        if (response.status === 200200) {
+          Notification("Tải ảnh thành công", "success");
+        } else {
+          Notification("Tải ảnh thất bại", "error");
+        }
+      }
     } catch (error) {
-      console.error("Lỗi khi tải ảnh:", error);
-      toast.error("Lỗi khi tải ảnh!");
+      Notification("Tải ảnh thất bại", "error");
+    } finally {
+
     }
   };
-  
+
   const handleSave = async () => {
     // Tạo payload gồm các dữ liệu từ các combobox và các trường số lượng, giá bán
     const payload = {
@@ -366,13 +389,12 @@ export default function ProductDetails() {
       );
 
       await handleUploadImages(productSelected.value);
-      toast.success("Cập nhật thành công!");
+      Notification("Cập nhật thành công", "success");
       closeModal();
       fetchChiTietSanPham();
       setSelectedImages([]);
     } catch (error) {
-      console.error("Lỗi khi cập nhật:", error);
-      toast.error("Có lỗi xảy ra khi cập nhật!");
+      Notification("Cập nhật thất bại", "error");
     }
   };
 
@@ -404,35 +426,35 @@ export default function ProductDetails() {
           />
         </div>
         <div className="grid grid-cols-5 gap-4">
-  {[
-    { field: "product", options: products, label: "Sản phẩm" },
-    { field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
-    { field: "shoeToe", options: shoeToes, label: "Mũi giày" },
-    { field: "shoeSole", options: shoeSoles, label: "Đế giày" },
-    { field: "material", options: materials, label: "Chất liệu" },
-    { field: "brand", options: brands, label: "Thương hiệu" },
-    { field: "supplier", options: suppliers, label: "Nhà cung cấp" },
-    { field: "category", options: categories, label: "Danh mục" },
-    { field: "color", options: colors, label: "Màu sắc" },
-    { field: "size", options: sizes, label: "Kích cỡ" },
-  ].map(({ field, options, label }) => (
-    <div key={field} className="relative text-sm">
-      <select
-        name={field}
-        value={filters[field] || ""}
-        onChange={(e) => setFilters({ ...filters, [field]: e.target.value })}
-        className="border p-2 rounded-md w-full"
-      >
-        <option value="">Tất cả {label}</option>
-        {options && options.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.ten}
-          </option>
-        ))}
-      </select>
-    </div>
-  ))}
-</div>
+          {[
+            { field: "product", options: products, label: "Sản phẩm" },
+            { field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
+            { field: "shoeToe", options: shoeToes, label: "Mũi giày" },
+            { field: "shoeSole", options: shoeSoles, label: "Đế giày" },
+            { field: "material", options: materials, label: "Chất liệu" },
+            { field: "brand", options: brands, label: "Thương hiệu" },
+            { field: "supplier", options: suppliers, label: "Nhà cung cấp" },
+            { field: "category", options: categories, label: "Danh mục" },
+            { field: "color", options: colors, label: "Màu sắc" },
+            { field: "size", options: sizes, label: "Kích cỡ" },
+          ].map(({ field, options, label }) => (
+            <div key={field} className="relative text-sm">
+              <select
+                name={field}
+                value={filters[field] || ""}
+                onChange={(e) => setFilters({ ...filters, [field]: e.target.value })}
+                className="border p-2 rounded-md w-full"
+              >
+                <option value="">Tất cả {label}</option>
+                {options && options.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.ten}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
 
       </div>
 
@@ -472,13 +494,25 @@ export default function ProductDetails() {
                       <img
                         key={index}
                         src={anh} alt={c.sanPham.ten}
-                        style={{ left: index * 10 + "px" }}
+                        style={{ top: index * 5 + "px", left: index * 5 + "px" }}
                         className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
                       />
                     </div>
                   ))}
                 </td>
-                <td className="p-2">{c.sanPham.ten} &#91;{c.mauSac.ten} - {c.kichCo.ten}&#93;</td>
+
+                {/* <td className="p-2">{c.sanPham.ten} &#91;{c.mauSac.ten} - {c.kichCo.ten}&#93;</td> */}
+                <td className="p-2">
+                  <span className="flex items-center space-x-2">
+                    <span>{c.sanPham.ten} &#91;</span>
+                    <span
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: c.mauSac.ten }}
+                    ></span>
+                    <span>{c.kichCo.ten} &#93;</span>
+                  </span>
+                </td>
+
                 <td className="p-2">{c.coGiay.ten}</td>
                 <td className="p-2">{c.muiGiay.ten}</td>
                 <td className="p-2">{c.deGiay.ten}</td>
@@ -517,9 +551,9 @@ export default function ProductDetails() {
         <Dialog
           open={isModalOpen}
           onClose={closeModal}
-          className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+          className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 "
         >
-          <div className="bg-white p-6 rounded-lg shadow-lg overflow-auto max-w-3xs">
+          <div className="bg-white p-6 rounded-lg shadow-lg overflow-auto">
             <div className="mb-4">
               <h2 className="text-lg font-bold mb-1 text-left">Cập nhật thông tin chi tiết sản phẩm</h2>
             </div>
@@ -675,6 +709,15 @@ export default function ProductDetails() {
                         options={colorOptions}
                         value={colorSelected}
                         onChange={setColorSelected}
+                        formatOptionLabel={(option) => (
+                          <span className="flex items-center space-x-2">
+                            <span
+                              className="w-4 h-4 rounded-full"
+                              style={{ backgroundColor: option.label }}
+                            ></span>
+                            <span>{option.label}</span>
+                          </span>
+                        )}
                         isDisabled={true}
                       />
                       {errors.color && <div className="text-red-600 text-xs">* {errors.color}</div>}
@@ -732,23 +775,27 @@ export default function ProductDetails() {
               <div className="max-w-1/2">
                 <div className="mb-4">
                   <h2>Ảnh Sản phẩm</h2>
-                  <div className="flex flex-wrap">
-                    {chiTietSanPham.map((c) => (
-                      c.idChiTietSanPham === imageById && (
-                        c.listAnh.map((anh, index) => (
-                          <div key={index} className="w-32 h-32 p-2">
-                            <img
-                              src={anh}
-                              alt="err"
-                              className="w-full h-full object-cover rounded-md"
-                            />
-                          </div>
-                        ))
-                      )
-                    ))}
+                  <div className="">
+                    <ImageList sx={{ width: 415, height: 199 }} cols={4} >
+                      {chiTietSanPham.map((c) => (
+                        c.idChiTietSanPham === imageById && (
+                          c.listAnh.map((anh, index) => (
+                            <ImageListItem key={index}>
+                              <div key={index} className="w-24 h-24">
+                                <img
+                                  src={anh}
+                                  alt="err"
+                                  className="w-full h-full object-cover rounded-md"
+                                />
+                              </div>
+                            </ImageListItem>
+                          ))
+                        )
+                      ))}
+                    </ImageList>
                   </div>
                 </div>
-                <div className="w-96">
+                <div className="">
                   <input
                     type="file"
                     accept="image/*"
@@ -756,8 +803,29 @@ export default function ProductDetails() {
                     className="block w-full mb-2"
                     onChange={handleImageChange}
                   />
-                  <div className="flex flex-wrap">
-                    {selectedImages.map((file, index) => (
+                  <div className="">
+                    <ImageList sx={{ width: 415, height: 199 }} cols={4} >
+                      {selectedImages.map((file, index) => (
+                        <ImageListItem key={index}>
+                          <div key={index} className="relative w-24 h-24">
+                            <img
+                              srcSet={`${URL.createObjectURL(file)}`}
+                              src={`${URL.createObjectURL(file)}?`}
+                              alt={"err"}
+                              loading="lazy"
+                              className="w-full h-full object-cover rounded-md border"
+                            />
+                            <button
+                              className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"
+                              onClick={() => handleRemoveImage(index)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </ImageListItem>
+                      ))}
+                    </ImageList>
+                    {/* {selectedImages.map((file, index) => (
                       <div key={index} className="relative w-32 h-32 p-2">
                         <img
                           src={URL.createObjectURL(file)}
@@ -771,7 +839,7 @@ export default function ProductDetails() {
                           ✕
                         </button>
                       </div>
-                    ))}
+                    ))} */}
                   </div>
                 </div>
               </div>
@@ -780,7 +848,7 @@ export default function ProductDetails() {
               <button onClick={closeModal} className="px-3 py-1 border border-gray-400 text-gray-600 rounded-md mr-2">
                 Đóng
               </button>
-              <button className="px-3 py-1 bg-black text-white rounded-md" onClick={handleSave}>
+              <button className="px-3 py-1 bg-black text-white rounded-md" onClick={showAlert}>
                 Lưu
               </button>
             </div>
@@ -815,7 +883,7 @@ export default function ProductDetails() {
             </button>
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(totalItems / pageSize) - 1))}
-              disabled={currentPage === Math.ceil(totalItems / pageSize) - 1}
+              disabled={totalItems === 0}
               className="p-2 border rounded-md"
             >
               &gt;
@@ -823,7 +891,12 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <Alert
+        message={alertMessage}
+        open={openAlert}
+        onClose={handleAlertClose}
+      />
+      <ToastContainer />
     </div>
   );
 }

@@ -4,15 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
 import { useParams } from "react-router-dom";
 import { EyeClosed, Trash2, Star, Eye } from "lucide-react";
-import { useToast } from '../utils/ToastContext';
-import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
-import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
-
-
+// import { useToast } from '../utils/ToastContext';
+import { ToastContainer } from 'react-toastify';
+// import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
+// import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
+import Loading from '../components/Loading';
+import Notification from '../components/Notification';
 function EditCustomer() {
-    const { setLoadingState, loading } = useLoading();
+    // const { setLoadingState, loading } = useLoading();
+    const [loading, setLoadingState] = useState(false);
     const { id } = useParams();
-    const { showToast } = useToast();
+    // const { Notification } = useToast();
     const [formData, setFormData] = useState({
         id: 0,
         maKhachHang: '',
@@ -94,7 +96,7 @@ function EditCustomer() {
             updatedForms[index] = { ...updatedForms[index], [name]: value };
             setAddress(updatedForms);
         } else {
-            showToast("Address already exist", "error");
+            Notification("Address already exist", "error");
         }
     };
     const handleSelectedChange = (e, index, name) => {
@@ -220,18 +222,18 @@ function EditCustomer() {
                     
                     if (data) {
                         if(data.code > 0){
-                            showToast("Update customer successfully", "success");
+                            Notification("Update customer successfully", "success");
                             navigate('/customers');
                         }else{
-                            showToast(data.message, "error");
+                            Notification(data.message, "error");
                         }
                     } else {
-                        showToast("Update customer fail", "error");
+                        Notification("Update customer fail", "error");
                     }
                     setLoadingState(false);
                 })
                 .catch((error) => {
-                    showToast(error, "success");
+                    Notification(error, "success");
                     setLoadingState(false);
                 });
         } catch (error) {
@@ -256,14 +258,14 @@ function EditCustomer() {
                         if (data.code > 0) {
 
                         } else {
-                            showToast("Register customer fail", "error");
+                            Notification("Register customer fail", "error");
                         }
                     } else {
-                        showToast("Update customer fail", "error");
+                        Notification("Update customer fail", "error");
                     }
                 })
                 .catch((error) => {
-                    showToast(error, "success");
+                    Notification(error, "success");
                 });
         } catch (error) {
             console.error('Lỗi khi cập nhật thông tin khách hàng:', error);
@@ -294,7 +296,8 @@ function EditCustomer() {
 
     return (
         <div className="p-6 space-y-4">
-            {loading && <Spinner />} {/* Show the spinner while loading */}
+            {/* {loading && <Spinner />} Show the spinner while loading */}
+            {loading && <Loading />}
             <div className="flex items-center font-semibold mb-4">
                 <h1>Thông tin khách hàng</h1>
             </div>
@@ -559,6 +562,7 @@ function EditCustomer() {
                     </div>
                 </form>
             </div>
+            <ToastContainer/>
         </div>
     );
 }

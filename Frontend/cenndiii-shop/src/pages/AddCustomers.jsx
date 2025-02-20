@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
-import { useToast } from '../utils/ToastContext';
-import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
-import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
+import Notification from '../components/Notification';
+// import { useLoading } from "../components/ui/spinner/LoadingContext";
+// import Spinner from "../components/ui/spinner/Spinner";
+import Loading from '../components/Loading';
+import { ToastContainer } from 'react-toastify';
 function AddCustomers() {
     const [formData, setFormData] = useState({
         maKhachHang: '',
@@ -29,6 +31,8 @@ function AddCustomers() {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
 
+    const [loading, setLoadingState] = useState(false);
+
     const handleFileChange = (e) => {
         
         const selectedFile = e.target.files[0];
@@ -39,7 +43,7 @@ function AddCustomers() {
         }
     };
 
-    const { showToast } = useToast();
+    
     const fetchProvinces = async () => {
         try {
             const response = await axios.get(
@@ -47,7 +51,7 @@ function AddCustomers() {
             );
             setProvince(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
-            showToast(error, "error");
+            Notification(error, "error");
         }
     };
 
@@ -65,7 +69,7 @@ function AddCustomers() {
                 Array.isArray(response.data) ? response.data : []
             );
         } catch (error) {
-            showToast(error, "error");
+            Notification(error, "error");
         }
     }, [formData]);
 
@@ -83,11 +87,11 @@ function AddCustomers() {
                 Array.isArray(response.data) ? response.data : []
             );
         } catch (error) {
-            showToast(error, "error");
+            Notification(error, "error");
         }
     }, [formData]);
 
-  const { setLoadingState, loading } = useLoading();
+    // const { setLoadingState, loading } = useLoading();
     const handleSelectedProvince = (event) => {
         setFormData({ ...formData, provinceId: event.target.value, districtId: 0, wardId: 0 });
     };
@@ -143,7 +147,7 @@ function AddCustomers() {
             const forms = new FormData();
             if(file === null){
                 setLoadingState(false);
-                showToast("Require avatar image", "error");
+                Notification("Please choose image", "error");
                 return;
             }
             forms.append('user', userJson);
@@ -162,29 +166,29 @@ function AddCustomers() {
                 .then((data) => {
                     if (data) {
                         if(data.code > 0){
-                            showToast("Insert customer successfully", "success");
+                            Notification(data.message, "success");
                             navigate('/customers');
                         }else{
-                            showToast(data.message, "error");
+                            Notification(data.message, "error");
                         }
                     } else {
-                        showToast("Insert customer fail", "error");
+                        Notification("Thêm mới khách hàng thất bại", "error");
                     }
                     setLoadingState(false);
                 })
                 .catch((error) => {
-                    showToast(error, "error");
+                    Notification(error, "error");
                     setLoadingState(false);
                 });
         } catch (error) {
-            showToast(error, "error");
+            Notification(error, "error");
             setLoadingState(false);
         }
     };
 
     return (
         <div className="p-6 space-y-4">
-            {loading && <Spinner />} {/* Show the spinner while loading */}
+            {loading && <Loading />} {/* Show the spinner while loading */}
             <div className="flex items-center font-semibold mb-4">
                 <h1>Thêm mới khách hàng</h1>
             </div>
@@ -396,6 +400,7 @@ function AddCustomers() {
                     <button type="submit" className="p-2 border-2 text-yellow-500 text-sm font-bold border-yellow-500 rounded-lg">Thêm Khách Hàng</button>
                 </form>
             </div>
+            <ToastContainer />
         </div>
     );
 }

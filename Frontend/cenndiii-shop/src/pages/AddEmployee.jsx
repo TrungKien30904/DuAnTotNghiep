@@ -147,6 +147,7 @@ export default function AddEmployee() {
   };
 
 
+// địa chỉ 
   const [soNha, setSoNha] = useState("");
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -263,12 +264,11 @@ export default function AddEmployee() {
           <div className="space-y-4">
             <div>
               <label className="block">Ảnh đại diện</label>
-              <input type="file" name="hinh_anh" onChange={handleFileChange} className="border p-2 w-full" />
+              <input type="file" accept="image/*" name="hinh_anh" onChange={handleFileChange} className="border p-2 w-full" />
               {formData.hinh_anh && <img src={formData.hinh_anh} alt="Ảnh đã chọn" className="w-32 h-32 object-cover mt-2" />}
             </div>
             <div>
               <h1 className="font-semibold">Chọn Địa Chỉ</h1>
-
               <div>
                 <label>Tỉnh/Thành Phố:</label>
                 <select value={selectedProvince} onChange={handleProvinceChange} className="border p-2 w-full">
