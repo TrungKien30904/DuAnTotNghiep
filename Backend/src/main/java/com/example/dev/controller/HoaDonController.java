@@ -7,9 +7,12 @@ import com.example.dev.repository.LichSuHoaDonRepository;
 import com.example.dev.service.HoaDonService;
 import com.example.dev.service.LichSuHoaDonService;
 import com.example.dev.service.ThanhToanHoaDonService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.Resource;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -54,11 +57,11 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDon);
     }
 
-//    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
-//    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
-//        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
-//        return ResponseEntity.ok(thanhToanHoaDon);
-//    }
+    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
+    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
+        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
+        return ResponseEntity.ok(thanhToanHoaDon);
+    }
 
     @GetMapping("/thong-ke")
     public ResponseEntity<Object> getInvoiceStatistics() {
@@ -88,5 +91,14 @@ public class HoaDonController {
     public ResponseEntity<Object> lichSuHoaDon(@PathVariable String maHoaDon) {
         List<LichSuHoaDon> lichSuHoaDons = lichSuHoaDonService.findAllByHoaDonId(maHoaDon);
         return ResponseEntity.ok(lichSuHoaDons);
+    }
+    @GetMapping("/export-excel")
+    public ResponseEntity<Resource> exportExcel(HttpServletResponse response) {
+        Resource file = hoaDonService.xuatExcel();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=FileExcel.xlsx")
+                .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(file);
     }
 }
