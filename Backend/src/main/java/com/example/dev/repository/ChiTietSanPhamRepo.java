@@ -1,6 +1,7 @@
 package com.example.dev.repository;
 
 import com.example.dev.entity.ChiTietSanPham;
+import com.example.dev.entity.DotGiamGia;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,4 +37,9 @@ public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Intege
                 OR [nguoi_sua] LIKE %:search%;
             """, nativeQuery = true)
     Page<ChiTietSanPham> searchs(@Param("search") String search, Pageable pageable);
+
+    //    Tìm các sản phẩm có id trong mảng và phân trang
+    Page<ChiTietSanPham> findBySanPhamIdSanPhamIn(List<Integer> idSanPham, Pageable pageable);
+
+    DotGiamGia save(DotGiamGia dotGiamGia);
 }

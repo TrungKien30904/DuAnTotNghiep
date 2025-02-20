@@ -2,6 +2,8 @@ package com.example.dev.repository;
 
 import com.example.dev.DTO.response.product.SanPhamDTO;
 import com.example.dev.entity.attribute.SanPham;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,4 +34,6 @@ public interface SanPhamRepo extends JpaRepository<SanPham, Integer> {
     List<SanPhamDTO> getAll();
 
     List<SanPham> findAllByTrangThaiIsTrue();
+
+    Page<SanPham> findByTenContaining(String tenSanPham, Pageable pageable);
 }
