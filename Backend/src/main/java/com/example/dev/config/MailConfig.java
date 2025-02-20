@@ -1,4 +1,5 @@
-package com.example.dev.service.nhanvien;
+
+package com.example.dev.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
