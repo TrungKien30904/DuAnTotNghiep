@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, Integer>{
 
+
+    //123
     @Query("SELECT hdct FROM HoaDonChiTiet hdct WHERE hdct.hoaDon.maHoaDon = :maHoaDon")
     List<HoaDonChiTiet> findByIdHoaDon(@Param("maHoaDon") String maHoaDon);
 }

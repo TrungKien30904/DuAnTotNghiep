@@ -8,9 +8,14 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.io.ByteArrayOutputStream;
 
@@ -27,10 +33,10 @@ public class HoaDonService {
     @Autowired
     private HoaDonRepository hoaDonRepository;
 
-
     @Autowired
     private LichSuHoaDonRepository lichSuHoaDonRepository;
-
+    private static final String PREFIX = "HD";
+    private static final int RANDOM_LENGTH = 5;
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
         LocalDateTime endDateTime = endDate.map(date -> date.atTime(23, 59, 59)).orElse(null);
@@ -90,6 +96,33 @@ public class HoaDonService {
         lichSuHoaDonRepository.save(lichSuHoaDon);
     }
 
+    //123
+
+    public HoaDon createHoaDon(HoaDon hoaDon) {
+        // Nếu mã hóa đơn chưa có, tự động sinh mã
+        if (hoaDon.getMaHoaDon() == null || hoaDon.getMaHoaDon().trim().isEmpty()) {
+            hoaDon.setMaHoaDon(generateMaHoaDon());
+            hoaDon.setNgayTao(LocalDate.now().atStartOfDay());
+        }
+        return hoaDonRepository.save(hoaDon);
+    }
+
+    public Optional<HoaDon> getHoaDonById(Integer id) {
+        return hoaDonRepository.findById(id);
+    }
+
+    private String generateMaHoaDon() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder(PREFIX);
+        Random random = new Random();
+
+        for (int i = 0; i < RANDOM_LENGTH; i++) {
+            int index = random.nextInt(characters.length());
+            sb.append(characters.charAt(index));
+        }
+        return sb.toString();
+    }
+
     public Resource xuatExcel() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -137,5 +170,19 @@ public class HoaDonService {
         font.setBold(true);
         style.setFont(font);
         return style;
+    }
+
+    public List<HoaDon> findAll() {
+        return hoaDonRepository.findAll();
+    }
+
+
+
+    public void deleteById(Integer idHoaDon) {
+        if (hoaDonRepository.existsById(idHoaDon)) {
+            hoaDonRepository.deleteById(idHoaDon);
+        } else {
+            throw new RuntimeException("Hóa đơn không tồn tại với id: " + idHoaDon);
+        }
     }
 }
