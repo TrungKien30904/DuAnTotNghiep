@@ -101,4 +101,28 @@ public class HoaDonController {
                 .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                 .body(file);
     }
+
+    //l123
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createHoaDon(@RequestBody HoaDon hoaDon) {
+        HoaDon savedHoaDon = hoaDonService.createHoaDon(hoaDon);
+        return ResponseEntity.ok(savedHoaDon);
+    }
+
+    @GetMapping("/listHoaDon")
+    public ResponseEntity<List<HoaDon>> findAllHoaDon() {
+        List<HoaDon> hoaDons = hoaDonService.findAll();
+        return ResponseEntity.ok(hoaDons);
+    }
+
+    @GetMapping("/delete/{idHoaDon}")
+    public ResponseEntity<String> deleteHoaDon(@PathVariable Integer idHoaDon) {
+        try {
+            hoaDonService.deleteById(idHoaDon);
+            return ResponseEntity.ok("Xóa hóa đơn thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
