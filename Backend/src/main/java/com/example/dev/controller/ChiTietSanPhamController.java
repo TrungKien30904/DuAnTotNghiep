@@ -19,7 +19,7 @@ public class ChiTietSanPhamController {
 
     @GetMapping("/hien-thi")
     public ResponseEntity<?> hienThi(){
-        return ResponseEntity.ok(chiTietSanPhamService.getListChiTietSanPham());
+        return ResponseEntity.ok(chiTietSanPhamService.getAllChiTietSanPham());
     }
 
     @GetMapping("/hien-thi/{id}")
@@ -31,6 +31,7 @@ public class ChiTietSanPhamController {
     public ResponseEntity<?> chiTiet(@PathVariable Integer id){
         return ResponseEntity.ok(chiTietSanPhamService.getChiTietSanPham(id));
     }
+
 
     @PostMapping("/them")
     public ResponseEntity<?> themCtsp(@Valid @RequestBody ChiTietSanPhamResponse ctsp){

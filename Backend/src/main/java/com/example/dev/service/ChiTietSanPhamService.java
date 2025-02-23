@@ -42,6 +42,11 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepo.findAll();
     }
 
+    public List<ChiTietSanPhamRequest> getAllChiTietSanPham(){
+        List<ChiTietSanPhamRequest> request = new ArrayList<>();
+        return  getChiTietSanPhamRequests(request,getListChiTietSanPham());
+    }
+
     public List<ChiTietSanPham> getListChiTietSanPham(Integer idSanPham) {
         return chiTietSanPhamRepo.findAll().stream().filter(ctsp -> ctsp.getSanPham().getIdSanPham().equals(idSanPham)).toList();
     }
@@ -49,6 +54,7 @@ public class ChiTietSanPhamService {
     public ChiTietSanPham getChiTietSanPham(Integer id) {
         return chiTietSanPhamRepo.findById(id).get();
     }
+
 
     public Integer themChiTietSanPham(ChiTietSanPhamResponse dto) {
         ChiTietSanPham ctsp = null;
@@ -111,6 +117,7 @@ public class ChiTietSanPhamService {
         return getChiTietSanPhamRequests(request, list);
     }
 
+
     public int totalPage(Integer id) {
         return chiTietSanPhamRepo.findAll().stream().filter(ctsp -> ctsp.getSanPham().getIdSanPham().equals(id)).toList().size();
     }
@@ -171,21 +178,20 @@ public class ChiTietSanPhamService {
         } else {
             System.out.println("File is empty");
         }
-
-
     }
 
-    public List<ChiTietSanPhamRequest> timKiem (String search,int page, int pageSize){
-        Pageable pageable = PageRequest.of(page, pageSize);
-        List<ChiTietSanPhamRequest> request = new ArrayList<>();
-        List<ChiTietSanPham> list = chiTietSanPhamRepo.searchs(search,pageable).getContent();
-        return getChiTietSanPhamRequests(request, list);
-    }
+//    public List<ChiTietSanPhamRequest> timKiem (String search,int page, int pageSize){
+//        Pageable pageable = PageRequest.of(page, pageSize);
+//        List<ChiTietSanPhamRequest> request = new ArrayList<>();
+//        List<ChiTietSanPham> list = chiTietSanPhamRepo.searchs(search,pageable).getContent();
+//        return getChiTietSanPhamRequests(request, list);
+//    }
 
     private List<ChiTietSanPhamRequest> getChiTietSanPhamRequests(List<ChiTietSanPhamRequest> request, List<ChiTietSanPham> list) {
         for(ChiTietSanPham c : list) {
             ChiTietSanPhamRequest r = new ChiTietSanPhamRequest();
             r.setIdChiTietSanPham(c.getIdChiTietSanPham());
+            r.setMa(c.getMa());
             r.setMuiGiay(c.getMuiGiay());
             r.setSanPham(c.getSanPham());
             r.setMauSac(c.getMauSac());

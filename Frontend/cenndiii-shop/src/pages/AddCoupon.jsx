@@ -253,16 +253,12 @@ function AddCoupon() {
         try {
             await axios.post('http://localhost:8080/admin/phieu-giam-gia/them', requestData);
             Notification.success("Thêm phiếu giảm giá thành công","success");
-            navigate('/coupons', {state: {message: 'Thêm phiếu giảm giá thành công'}});
+            navigate('/coupons');
         } catch (error) {
             if (error.response && error.response.data) {
                 setErrors(error.response.data);
-                console.error('Backend Error:', error.response.data);
                 Notification("Lỗi khi thêm phiếu giảm giá","error");
-            } else {
-                console.error('Lỗi khi thêm phiếu giảm giá:', error.message);
-                Notification("Lỗi khi thêm phiếu giảm giá","error");
-            }
+            } 
         }
     };
 
