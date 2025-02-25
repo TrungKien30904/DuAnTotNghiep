@@ -1,8 +1,8 @@
 package com.example.dev.entity;
-import com.example.dev.entity.nhanvien.NhanVien;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,11 +31,9 @@ public class HoaDon {
     @JoinColumn(name = "id_nhan_vien")
     private NhanVien nhanVien;
 
-    @NotNull
     private BigDecimal tongTien;
     private String tenNguoiNhan;
     private String soDienThoai;
-    @Email
     private String email;
     private LocalDateTime ngayGiaoHang;
     private BigDecimal phiVanChuyen;

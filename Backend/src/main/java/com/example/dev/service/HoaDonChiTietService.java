@@ -14,6 +14,7 @@ public class HoaDonChiTietService {
     @Autowired
     public HoaDonChiTietRepository hoaDonChiTiehoRepository;
 
+    //123
     public List<HoaDonChiTiet> findByIdHoaDon(String maHoaDon) {
         return hoaDonChiTiehoRepository.findByIdHoaDon(maHoaDon);
     }

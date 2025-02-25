@@ -18,6 +18,7 @@ public class HoaDonChiTietController {
     @Autowired
     private HoaDonChiTietService hoaDonChiTietService;
 
+    //123
     @GetMapping("/listHoaDonChiTiet")
     public List<HoaDonChiTiet> findByIdHoaDon(@RequestParam("maHoaDon") String maHoaDon) {
         return hoaDonChiTietService.findByIdHoaDon(maHoaDon);

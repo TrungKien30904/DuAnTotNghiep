@@ -1,29 +1,145 @@
-import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Tabs,
-  Tab,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-  Paper,
-  TextField,
-} from "@mui/material";
-import { Edit, Trash } from "lucide-react";
-import Notification from "../components/Notification";
-import { ToastContainer } from "react-toastify";
 
 export default function Orders() {
-  const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
+    const [tabs, setTabs] = useState([]);
+    const [activeTab, setActiveTab] = useState('');
+    const [warning, setWarning] = useState('');
+    const tabsRef = useRef(null);
+
+    useEffect(() => {
+        // Fetch orders data from API
+        const fetchOrders = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/admin/hoa-don/listHoaDon');
+                const ordersData = response.data;
+                setOrders(ordersData);
+
+                // Create tabs from the orders data
+                const newTabs = ordersData.map(order => ({
+                    id: order.idHoaDon,
+                    label: `Order ${order.maHoaDon}`,
+                    maHoaDon: order.maHoaDon
+                }));
+                setTabs(newTabs);
+
+                // Set the default active tab to the first tab
+                if (newTabs.length > 0) {
+                    setActiveTab(newTabs[0].id);
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        };
+
+        fetchOrders();
+    }, []);
+
+    const handleEdit = (id) => {
+        // Handle edit action
+        console.log(`Edit order with id: ${id}`);
+    };
+
+    const handleDelete = (id) => {
+        // Handle delete action
+        console.log(`Delete order with id: ${id}`);
+    };
+
+    const handleAdd = async () => {
+        if (tabs.length >= 10) {
+            setWarning('Bạn chỉ có thể tạo tối đa 10 hóa đơn chờ.');
+            return;
+        }
+
+        try {
+            const newOrder = {
+                maHoaDon: "", // Let the backend generate if needed
+                khachHang: null,
+                nhanVien: null,
+                tongTien: null,
+                tenNguoiNhan: null,
+                soDienThoai: null,
+                email: null,
+                ngayGiaoHang: null,
+                phiVanChuyen: null,
+                trangThai: null,
+                ngayTao: null,
+                ngaySua: null,
+                nguoiTao: null,
+                nguoiSua: null
+            };
+
+            const response = await axios.post(
+                "http://localhost:8080/admin/hoa-don/create",
+                newOrder, // Send JSON body
+                {
+                    headers: {
+                        "Content-Type": "application/json", // Ensure JSON format
+                    },
+                }
+            );
+
+            const createdOrder = response.data;
+            const newTabId = createdOrder.idHoaDon;
+            setTabs([...tabs, { id: newTabId, label: `Order ${createdOrder.maHoaDon}`, maHoaDon: createdOrder.maHoaDon }]);
+            setActiveTab(newTabId);
+            setWarning(''); // Clear any previous warning
+        } catch (error) {
+            console.error("Error creating new order:", error);
+        }
+    };
+
+    const handleRemoveTab = async (tabId) => {
+        const tabToRemove = tabs.find(tab => tab.id === tabId);
+        if (!tabToRemove) return;
+
+        confirmAlert({
+            title: 'Xác nhận xóa',
+            message: `Bạn có muốn Hủy hóa đơn chờ hiện tại ${tabToRemove.maHoaDon}?`,
+            buttons: [
+                {
+                    label: 'Yes',
+                    onClick: async () => {
+                        try {
+                            // Gọi API xóa hóa đơn
+                            await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`);
+                            
+                            // Cập nhật danh sách tabs sau khi xóa thành công
+                            const newTabs = tabs.filter(tab => tab.id !== tabId);
+                            setTabs(newTabs);
+                            
+                            // Nếu tab đang active bị xóa, chuyển active sang tab đầu tiên còn lại
+                            if (activeTab === tabId) {
+                                setActiveTab(newTabs.length > 0 ? newTabs[0].id : '');
+                            }
+
+                            // Hiển thị thông báo thành công bằng toast
+                            toast.success(`Bạn đã xóa thành công Hóa đơn chờ có mã ${tabToRemove.maHoaDon}`, {
+                                position: 'top-right',
+                                autoClose: 3000
+                            });
+                        } catch (error) {
+                            console.error('Error deleting order:', error);
+                            toast.error('Xóa hóa đơn thất bại! Vui lòng thử lại.');
+                        }
+                    }
+                },
+                {
+                    label: 'No',
+                    onClick: () => {}
+                }
+            ]
+        });
+    };
+
+    const scrollTabs = (direction) => {
+        if (tabsRef.current) {
+            const scrollAmount = direction === 'left' ? -200 : 200;
+            tabsRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    };
+
+    const filteredOrders = orders.filter(order => order.idHoaDon === activeTab);
   
   // State cho tabs hóa đơn
   const [orderTabs, setOrderTabs] = useState([]);
@@ -144,13 +260,10 @@ export default function Orders() {
   };
 
   return (
-    <div className="p-2 space-y-4 text-xs">
+    <div className="p-2 space-y-4 text-sm">
       {/* Breadcrumb */}
       <nav className="text-gray-500 mb-4">
-        <span
-          className="cursor-pointer hover:underline"
-          onClick={() => navigate("/dashboard")}
-        >
+        <span className="cursor-pointer hover:underline" onClick={() => navigate("/dashboard")}>
           Trang chủ
         </span>{" "}
         &gt;{" "}
@@ -158,289 +271,20 @@ export default function Orders() {
       </nav>
 
       {/* Orders */}
-      <div className="flex flex-row gap-2 h-dvh">
-        {/* Cột bên trái hiển thị hóa đơn */}
-        <div className="basic-2/3 bg-white p-4 rounded-lg shadow-md w-2/3 h-full">
-          {/* Tabs Hóa đơn */}
-          <div className="flex items-center justify-between">
-            <Tabs
-              value={selectedTab}
-              onChange={handleChangeTab}
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              {orderTabs.map((order, index) => (
-                <Tab
-                  key={order.maHoaDon}
-                  label={`Hóa đơn ${order.maHoaDon}`}
-                />
-              ))}
-            </Tabs>
-            <Button variant="contained" onClick={handleCreateOrder}>
-              Tạo hóa đơn
-            </Button>
+      <div className="flex flex-row gap-2">
+        <div className="basic-2/3 bg-white p-4 rounded-lg shadow-md w-2/3 h-screen">
+          <div>
+            adfadfaadfadfa
+          </div>
+          <div className="text-gray-500 flex justify-center items-center h-full">
+            <h2>Chưa có hóa đơn nào</h2>
           </div>
 
-          <hr />
-          <div className="border rounded-md my-2 h-[700px]">
-            <div className="p-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-left">Danh sách sản phẩm - Hóa đơn</h2>
-                <div className="flex gap-2">
-                  <button className="p-2 bg-green-600 text-white rounded-md">
-                    Quét mã QR
-                  </button>
-                  <button
-                    className="p-2 bg-blue-600 text-white rounded-md"
-                    onClick={handleOpenDialog}
-                  >
-                    Thêm sản phẩm
-                  </button>
-                </div>
-              </div>
-              {/* Bảng hóa đơn */}
-              <div className="my-2">
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell align="center">Sản phẩm</TableCell>
-                        <TableCell align="center">Số lượng</TableCell>
-                        <TableCell align="center">Kho</TableCell>
-                        <TableCell align="center">Giá hiện tại</TableCell>
-                        <TableCell align="center">Giá được tính</TableCell>
-                        <TableCell align="center">Tổng</TableCell>
-                        <TableCell align="center">Hành động</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {orderItems && orderItems.length > 0 ? (
-                        orderItems.map((item) => (
-                          <TableRow key={item.idChiTietSanPham}>
-                            <TableCell align="center">
-                              {item.sanPham.ten}
-                            </TableCell>
-                            <TableCell align="center">
-                              {item.orderQuantity}
-                            </TableCell>
-                            <TableCell align="center">
-                              {item.soLuong}
-                            </TableCell>
-                            <TableCell align="center">
-                              {item.gia} VND
-                            </TableCell>
-                            <TableCell align="center">
-                              {item.gia} VND
-                            </TableCell>
-                            <TableCell align="center">
-                              {item.gia * item.orderQuantity} VND
-                            </TableCell>
-                            <TableCell align="center">
-                              <div className="grid grid-cols-2">
-                                <Button>
-                                  <Edit size={18} stroke="black" />
-                                </Button>
-                                <Button
-                                  onClick={() =>
-                                    handleRemoveOrderItem(
-                                      item.idChiTietSanPham
-                                    )
-                                  }
-                                >
-                                  <Trash size={16} className="text-red-600" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={7} align="center">
-                            Chưa có sản phẩm nào
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            </div>
-          </div>
         </div>
-        {/* Cột bên phải */}
-        <div className="basic-1/3 bg-white p-4 rounded-lg shadow-md w-1/3 h-full">
-          {/* Nội dung cột bên phải */}
+        <div className="basic-1/3 bg-white p-4 rounded-lg shadow-md w-1/3 h-screen">
+
         </div>
       </div>
-
-      {/* Dialog hiển thị danh sách sản phẩm */}
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        maxWidth="xl"
-        fullWidth
-      >
-        <DialogTitle>Danh sách sản phẩm</DialogTitle>
-        <DialogContent>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Ảnh</TableCell>
-                  <TableCell>Sản phẩm</TableCell>
-                  <TableCell>Mã</TableCell>
-                  <TableCell>Cổ giày</TableCell>
-                  <TableCell>Mũi giày</TableCell>
-                  <TableCell>Thương hiệu</TableCell>
-                  <TableCell>Chất liệu</TableCell>
-                  <TableCell>Nhà cung cấp</TableCell>
-                  <TableCell>Danh mục sản phẩm</TableCell>
-                  <TableCell>Giá</TableCell>
-                  <TableCell>Số lượng</TableCell>
-                  <TableCell>Hành động</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {productDetails && productDetails.length > 0 ? (
-                  productDetails.map((item) => (
-                    <TableRow key={item.idChiTietSanPham}>
-                      <TableCell className="relative">
-                        {item.listAnh.map((anh, index) => (
-                          <div key={index}>
-                            <img
-                              src={anh}
-                              alt={item.sanPham.ten}
-                              style={{ left: index * 5 + "px" }}
-                              className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
-                            />
-                          </div>
-                        ))}
-                      </TableCell>
-                      <TableCell>
-                        <span className="flex items-center space-x-2">
-                          <span>{item.sanPham.ten} &#91;</span>
-                          <span
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: item.mauSac.ten }}
-                          ></span>
-                          <span>{item.kichCo.ten} &#93;</span>
-                        </span>
-                      </TableCell>
-                      <TableCell>{item.coGiay.ten}</TableCell>
-                      <TableCell>{item.muiGiay.ten}</TableCell>
-                      <TableCell>{item.deGiay.ten}</TableCell>
-                      <TableCell>{item.thuongHieu.ten}</TableCell>
-                      <TableCell>{item.chatLieu.ten}</TableCell>
-                      <TableCell>{item.nhaCungCap.ten}</TableCell>
-                      <TableCell>{item.danhMucSanPham.ten}</TableCell>
-                      <TableCell>{item.gia}</TableCell>
-                      <TableCell>{item.soLuong}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          onClick={() => {
-                            if (item.soLuong <= 0) {
-                              Notification(
-                                "Hàng đã hết! Xin vui lòng chọn sản phẩm khác !",
-                                "warning"
-                              );
-                            } else {
-                              handleOpenSelectQuantity(item);
-                            }
-                          }}
-                        >
-                          Chọn
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={12} align="center">
-                      Không có dữ liệu
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Đóng</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Dialog chọn số lượng sản phẩm */}
-      <Dialog
-        open={openSelectQuantity}
-        onClose={handleCloseSelectQuantity}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>Chọn số lượng sản phẩm</DialogTitle>
-        <DialogContent>
-          {productDetailSelected && (
-            <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2">
-                <div className="w-2/3 grid grid-cols-2">
-                  <div>
-                    <img
-                      src={
-                        productDetailSelected.listAnh &&
-                        productDetailSelected.listAnh[0]
-                      }
-                      alt={productDetailSelected.sanPham.ten}
-                      className="size-60 object-cover rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <h2 className="font-semibold">
-                      Tên sản phẩm: {productDetailSelected.sanPham.ten}
-                    </h2>
-                    <p>Cổ giày: {productDetailSelected.coGiay.ten}</p>
-                    <p>Mũi giày: {productDetailSelected.muiGiay.ten}</p>
-                    <p>Đế giày: {productDetailSelected.deGiay.ten}</p>
-                    <p>Thương hiệu: {productDetailSelected.thuongHieu.ten}</p>
-                    <p>Chất liệu: {productDetailSelected.chatLieu.ten}</p>
-                    <p>Nhà cung cấp: {productDetailSelected.nhaCungCap.ten}</p>
-                    <p>Danh mục: {productDetailSelected.danhMucSanPham.ten}</p>
-                  </div>
-                </div>
-                <div className="w-1/3">
-                  <p>Giá: {productDetailSelected.gia}đ</p>
-                  <p>Số lượng còn lại: {productDetailSelected.soLuong}</p>
-                </div>
-              </div>
-              <TextField
-                id="outlined-number"
-                label="Số lượng đặt"
-                type="number"
-                value={selectedQuantity}
-                onChange={(e) => {
-                  let value = Number(e.target.value);
-                  if (value < 1) value = 1;
-                  else if (value > productDetailSelected.soLuong)
-                    value = productDetailSelected.soLuong;
-                  setSelectedQuantity(value);
-                }}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
-                fullWidth
-              />
-            </div>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={handleAddProduct}>
-            Thêm
-          </Button>
-          <Button onClick={handleCloseSelectQuantity}>Hủy</Button>
-        </DialogActions>
-      </Dialog>
-      <ToastContainer />
     </div>
   );
 }

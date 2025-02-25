@@ -1,11 +1,10 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {FileText, ShoppingCart, Home, EyeIcon,} from 'lucide-react';
-// import toast, {Toaster} from 'react-hot-toast';
-import { ToastContainer } from 'react-toastify';
-import {useNavigate} from 'react-router-dom';
+import { FileText, ShoppingCart, Home, EyeIcon, } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { FileSpreadsheet } from "lucide-react";
-import Notification from '../components/Notification';
+
 
 const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Thanh toán', 'Hoàn thành', 'Hủy'];
 
@@ -62,11 +61,33 @@ export default function Invoices() {
     }
 
     const handleSearch = () => {
-        const {startDate, endDate} = filter;
+        const { startDate, endDate } = filter;
         if (new Date(endDate) < new Date(startDate)) {
-            Notification.error('Ngày kết thúc không thể nhỏ hơn ngày bắt đầu','error');
+            toast.error('Ngày kết thúc không được bé hơn ngày bắt đầu!');
         } else {
             fetchInvoices(filter);
+        }
+    };
+    // Xuất excel
+
+    const exportExcel = async () => {
+        toast.loading('Đang xuất Excel...');
+        try {
+            const response = await axios.get('http://localhost:8080/admin/hoa-don/export-excel', {
+                responseType: 'blob', // Important for downloading files
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'FileExcel.xlsx'); // or any other extension
+            document.body.appendChild(link);
+            link.click();
+            toast.dismiss();
+            toast.success('Xuất Excel thành công!');
+        } catch (error) {
+            console.error('Error exporting Excel:', error);
+            toast.dismiss();
+            toast.error('Xuất Excel thất bại!');
         }
     };
 
@@ -108,8 +129,8 @@ export default function Invoices() {
         <div className="p-6 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow-md ">
                 <h1 className="my-2 text-lg font-semibold flex items-center">
-                    {}
-                    <Home className="mr-2"/> Quản Lý Hoá đơn
+                    { }
+                    <Home className="mr-2" /> Quản Lý Hoá đơn
                 </h1>
                 <div className='grid grid-cols-3 gap-4'>
                     <div className='flex-1 flex justify-between items-center'>
@@ -119,7 +140,7 @@ export default function Invoices() {
                             placeholder="Nhập"
                             className="p-2 border rounded w-3/4"
                             value={filter.searchQuery}
-                            onChange={(e) => setFilter({...filter, searchQuery: e.target.value})}
+                            onChange={(e) => setFilter({ ...filter, searchQuery: e.target.value })}
                         />
 
                     </div>
@@ -129,7 +150,7 @@ export default function Invoices() {
                             type="date"
                             className="p-2 border rounded w-3/4"
                             value={filter.startDate}
-                            onChange={(e) => setFilter({...filter, startDate: e.target.value})}
+                            onChange={(e) => setFilter({ ...filter, startDate: e.target.value })}
                         />
                     </div>
                     <div className='flex-1 flex justify-between items-center'>
@@ -138,7 +159,7 @@ export default function Invoices() {
                             type="date"
                             className="p-2 border rounded w-3/4"
                             value={filter.endDate}
-                            onChange={(e) => setFilter({...filter, endDate: e.target.value})}
+                            onChange={(e) => setFilter({ ...filter, endDate: e.target.value })}
                         />
                     </div>
                     <div className='flex-1 flex justify-between items-center'>
@@ -146,7 +167,7 @@ export default function Invoices() {
                         <select
                             className="p-2 border rounded w-3/4"
                             value={filter.loaiDon}
-                            onChange={(e) => setFilter({...filter, loaiDon: e.target.value})}
+                            onChange={(e) => setFilter({ ...filter, loaiDon: e.target.value })}
                         >
                             <option value="">Loại đơn</option>
                             <option value="online">Online</option>
@@ -167,7 +188,7 @@ export default function Invoices() {
                         >
                             Làm mới
                         </button>
-                    
+
                     </div>
                 </div>
             </div>
@@ -175,71 +196,77 @@ export default function Invoices() {
             <div className="bg-white p-4 rounded-lg shadow-md">
                 <div className="flex justify-between">
                     <h3 className="text-lg font-semibold flex items-center">
-                        {}
-                        <FileText className="mr-2"/> Danh sách hoá đơn
+                        { }
+                        <FileText className="mr-2" /> Danh sách hoá đơn
                     </h3>
                     <div className='flex justify-end gap-10'>
-                    <button className="p-2 bg-green-500 text-white rounded mb-4">
-                        <div className='flex gap-2'>
-                            <FileSpreadsheet className="mr-2"/>
-                            <span>Xuất Excel</span>
-                        </div>
-                    </button>
-                    <button className="p-2 bg-red-500 text-white rounded mb-4">
-                        <div className='flex gap-2'>
-                            <ShoppingCart className="mr-2"/>
-                            <span>Tạo đơn hàng</span>
-                        </div>
-                    </button>
+                        {/* <button className="p-2 bg-green-500 text-white rounded mb-4">
+                            <div className='flex gap-2'>
+                                <FileSpreadsheet className="mr-2" />
+                                <span>Xuất Excel</span>
+                            </div>
+                        </button> */}
+                        <button className="p-2 bg-green-500 text-white rounded mb-4" onClick={exportExcel}>
+                            <div className='flex gap-2'>
+                                <FileSpreadsheet className="mr-2" />
+                                <span>Xuất Excel</span>
+                            </div>
+                        </button>
+                        <button className="p-2 bg-red-500 text-white rounded mb-4">
+                            <div className='flex gap-2'>
+                                <ShoppingCart className="mr-2" />
+                                <span>Tạo đơn hàng</span>
+                            </div>
+                        </button>
                     </div>
-                  
-                    
+
+
                 </div>
 
                 <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400">
                     {statuses.map(status =>
-                            <li className="me-2 relative inline-flex" onClick={() => changeStatusHandler(status)}>
-                                <a href="#"
-                                   className={`inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-300 dark:hover:bg-gray-400 dark:hover:text-white ${status === selectedStatus && 'active text-blue-600 bg-blue-50'}`}>{status}</a>
-                                <span
-                                    class="absolute  right-0.5 grid min-h-[12px] min-w-[24px] translate-x-1/4 -translate-y-1/8 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
-                {status === 'Tất cả' ? invoices.length : (countByTrangThai[status] || 0)}
-              </span>
-                            </li>
+                        <li className="me-2 relative inline-flex" onClick={() => changeStatusHandler(status)}>
+                            <a href="#"
+                                className={`inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-300 dark:hover:bg-gray-400 dark:hover:text-white ${status === selectedStatus && 'active text-blue-600 bg-blue-50'}`}>{status}</a>
+                            <span
+                                class="absolute  right-0.5 grid min-h-[12px] min-w-[24px] translate-x-1/4 -translate-y-1/8 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
+                                {status === 'Tất cả' ? invoices.length : (countByTrangThai[status] || 0)}
+                            </span>
+                        </li>
                     )}
                 </ul>
 
                 <table className="min-w-full border-collapse">
                     <thead className=''>
-                    <tr className="bg-gray-100 text-left ">
-                        <th className="px-4 py-2 ">STT</th>
-                        <th className="px-4 py-2 ">Mã hoá đơn</th>
-                        <th className="px-4 py-2 ">Tên khách hàng</th>
-                        <th className="px-4 py-2 ">Tên nhân viên</th>
-                        <th className="px-4 py-2 ">Số điện thoại</th>
-                        <th className="px-4 py-2 ">Email</th>
-                        <th className="px-4 py-2 ">Tổng tiền</th>
-                        <th className="px-4 py-2 ">Ngày tạo</th>
-                        <th className="px-4 py-2 ">Loại đơn</th>
-                        <th className="px-4 py-2 "></th>
-                    </tr>
+                        <tr className="bg-gray-100 text-left ">
+                            <th className="px-4 py-2 ">STT</th>
+                            <th className="px-4 py-2 ">Mã hoá đơn</th>
+                            <th className="px-4 py-2 ">Tên khách hàng</th>
+                            <th className="px-4 py-2 ">Tên nhân viên</th>
+                            <th className="px-4 py-2 ">Số điện thoại</th>
+                            <th className="px-4 py-2 ">Email</th>
+                            <th className="px-4 py-2 ">Tổng tiền</th>
+                            <th className="px-4 py-2 ">Ngày tạo</th>
+                            <th className="px-4 py-2 ">Loại đơn</th>
+                            <th className="px-4 py-2 "></th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {filteredInvoices.map((invoice, index) => (
-                        <tr key={invoice.idHoaDon} className="border-b hover:bg-gray-100">
-                            <td className="px-4 py-2">{index + 1}</td>
-                            <td className="px-4 py-2">{invoice.maHoaDon}</td>
-                            <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
-                            <td className="px-4 py-2">{invoice.nhanVien.ten}</td>
-                            <td className="px-4 py-2">{invoice.soDienThoai}</td>
-                            <td className="px-4 py-2">{invoice.email}</td>
-                            <td className="px-4 py-2">{invoice.tongTien}</td>
-                            <td className="px-4 py-2">{invoice.ngayTao}</td>
-                            <td className="px-4 py-2">{invoice.loaiDon}</td>
-                            <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"
-                                                               onClick={() => goToDetail(invoice.maHoaDon)}/></td>
-                        </tr>
-                    ))}
+                        {filteredInvoices.map((invoice, index) => (
+                            <tr key={invoice.idHoaDon} className="border-b hover:bg-gray-100">
+                                <td className="px-4 py-2">{index + 1}</td>
+                                <td className="px-4 py-2">{invoice.maHoaDon}</td>
+                                <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
+                                <td className="px-4 py-2">{invoice.nhanVien.ten}</td>
+                                <td className="px-4 py-2">{invoice.soDienThoai}</td>
+                                <td className="px-4 py-2">{invoice.email}</td>
+                                <td className="px-4 py-2">{invoice.tongTien}</td>
+                                <td className="px-4 py-2">{invoice.ngayTao}</td>
+                                <td className="px-4 py-2">{invoice.loaiDon}</td>
+                                <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"
+                                    onClick={() => goToDetail(invoice.maHoaDon)} /></td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
 
@@ -248,29 +275,29 @@ export default function Invoices() {
                         <ul className="flex items-center -space-x-px h-8 text-sm">
                             <li onClick={() => changePageHandler(currentPage - 1)}>
                                 <a href="#"
-                                   className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-dark bg-gray-300 border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-dark bg-gray-300 border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                     <span className="sr-only">Previous</span>
                                     <svg className="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true"
-                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
-                                              strokeWidth="2" d="M5 1 1 5l4 4"/>
+                                            strokeWidth="2" d="M5 1 1 5l4 4" />
                                     </svg>
                                 </a>
                             </li>
-                            {Array.from({length: totalPage}, (_, i) => i + 1).map((page) =>
+                            {Array.from({ length: totalPage }, (_, i) => i + 1).map((page) =>
                                 <li key={page} onClick={() => changePageHandler(page)}>
                                     <a href="#"
-                                       className={`flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${page === currentPage && 'z-10 leading-tight text-white border-blue-300 bg-blue-500'}`}>{page}</a>
+                                        className={`flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${page === currentPage && 'z-10 leading-tight text-white border-blue-300 bg-blue-500'}`}>{page}</a>
                                 </li>
                             )}
                             <li onClick={() => changePageHandler(currentPage + 1)}>
                                 <a href="#"
-                                   className="flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                     <span className="sr-only">Next</span>
                                     <svg className="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true"
-                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
-                                              strokeWidth="2" d="m1 9 4-4-4-4"/>
+                                            strokeWidth="2" d="m1 9 4-4-4-4" />
                                     </svg>
                                 </a>
                             </li>
@@ -279,7 +306,7 @@ export default function Invoices() {
                 </div>
 
             </div>
-            <ToastContainer />
+            <Toaster position="top-right" />
         </div>
     );
 }
