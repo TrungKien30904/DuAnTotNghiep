@@ -8,6 +8,7 @@ import com.example.dev.entity.DotGiamGia;
 import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.service.DotGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -78,8 +79,14 @@ public class DotGiamGiaController {
                                                     @RequestParam int limit,
                                                     @RequestBody Map<String, List<Integer>> body){
         List<Integer> idSanPham = body.get("idSanPham"); // Lấy danh sách idSanPham từ body
-        List<ChiTietSanPham> chiTietSanPhams = dotGiamGiaService.getSanPhamChiTiet(idSanPham, skip, limit);
-        return ResponseEntity.ok(new GetSanPhamChiTietDTO(chiTietSanPhams, chiTietSanPhams.size()));
+//        List<ChiTietSanPham> chiTietSanPhams = dotGiamGiaService.getSanPhamChiTiet(idSanPham, skip, limit);
+//        return ResponseEntity.ok(new GetSanPhamChiTietDTO(chiTietSanPhams, chiTietSanPhams.size()));
+        Page<ChiTietSanPham> chiTietSanPhamPage = dotGiamGiaService.getSanPhamChiTiet(idSanPham, skip, limit);
+
+        return ResponseEntity.ok(new GetSanPhamChiTietDTO(
+                chiTietSanPhamPage.getContent(),  // Danh sách sản phẩm theo trang
+                chiTietSanPhamPage.getTotalElements() // Tổng số bản ghi trong DB
+        ));
 //        GetSanPhamChiTietDTO response = dotGiamGiaService.getSanPhamChiTiet(idSanPham, skip, limit);
 //        return ResponseEntity.ok(response);
     }
