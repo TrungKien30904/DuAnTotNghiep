@@ -1,24 +1,15 @@
-// export default function Discounts() {
-//     return (
-//       <div className="p-6">
-//         <h1 className="text-2xl font-bold">đợt giảm giá</h1>
-//       </div>
-//     );
-// }
-
 import React, { useState, useEffect } from "react";
-import { Search} from "lucide-react";
+import { Search } from "lucide-react";
 import axios from "axios";
-import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { useParams } from 'react-router-dom';
+import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function EditDiscounts() {
   const { idDGG } = useParams();
-  const [filters, setFilters] = useState({ search: ""});
+  const [filters, setFilters] = useState({ search: "" });
   const [editMaDGG, editDGG] = useState({
     maDotGiamGia: "",
     tenDotGiamGia: "",
@@ -27,23 +18,28 @@ export default function EditDiscounts() {
     ngayBatDau: "",
     ngayKetThuc: "",
     ngayTao: new Date(),
-    ngaySua: new Date()
+    ngaySua: new Date(),
   });
   const navigate = useNavigate(); // Khởi tạo hook điều hướng
   const [sanPhams, setSanPhams] = useState([]);
   const limit = 4; // Số bản ghi trên mỗi trang
   const [skip, setSkip] = useState(0); // Vị trí bắt đầu
+  const limitCt = 5; // Số bản ghi trên mỗi trang
+  const [skipCt, setSkipCt] = useState(0); // Vị trí bắt đầu
   const [totalPages, setTotalPages] = useState(1);
+  const [totalPagesCt, setTotalPagesCt] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentPageCt, setCurrentPageCt] = useState(1);
   const [sanPhamChiTiets, setSanPhamChiTiets] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [selectedIdsChiTiet, setSelectedIdsChiTiet] = useState([]);
+  const [selectedIdsCt, setSelectedIdsCt] = useState([]);
   const [errorName, setErrorName] = useState(false);
   const [errorGiaTri, setErrorGiaTri] = useState(false);
   const [errorNBT, setErrorNBT] = useState(false);
   const [errorNKT, setErrorNKT] = useState(false);
 
   const handleUpdate = async () => {
+    const now = new Date().toISOString().slice(0, 16); // Lấy ngày giờ hiện tại (yyyy-MM-ddTHH:mm)
     // Kiểm tra nếu tên đợt giảm giá trống
     if (!editMaDGG.tenDotGiamGia) {
       setErrorName(true); // Hiển thị lỗi nếu không có tên
@@ -60,12 +56,34 @@ export default function EditDiscounts() {
     // Kiểm tra nếu ngày bắt đầu chưa được chọn
     if (!editMaDGG.ngayBatDau) {
       setErrorNBT(true); // Hiển thị lỗi nếu chưa chọn ngày
+      toast.error("Ngày bắt đầu không được để trống!");
+      return;
+    } else if (editMaDGG.ngayBatDau < now) {
+      setErrorNBT(true);
+      toast.error("Ngày bắt đầu không được là ngày quá khứ!", {
+        position: "top-right",
+      });
       return;
     } else {
       setErrorNBT(false); // Nếu đã chọn ngày, xóa lỗi
     }
     if (!editMaDGG.ngayKetThuc) {
       setErrorNKT(true);
+      toast.error("Ngày kết thúc không được để trống!", {
+        position: "top-right",
+      });
+      return;
+    } else if (editMaDGG.ngayKetThuc < now) {
+      setErrorNKT(true);
+      toast.error("Ngày kết thúc không được là ngày quá khứ!", {
+        position: "top-right",
+      });
+      return;
+    } else if (editMaDGG.ngayKetThuc <= editMaDGG.ngayBatDau) {
+      setErrorNKT(true);
+      toast.error("Ngày kết thúc không thể nhỏ hơn hoặc bằng ngày bắt đầu!", {
+        position: "top-right",
+      });
       return;
     } else {
       setErrorNKT(false);
@@ -74,17 +92,16 @@ export default function EditDiscounts() {
     if (!editMaDGG.tenDotGiamGia || !editMaDGG.giaTri) {
       return;
     }
-
-    const result = await editDotGiamGias();  // Gọi hàm cập nhật
+    const result = await editDotGiamGias(); // Gọi hàm cập nhật
     if (result && result.status === 1) {
       toast.success("Cập nhật thành công!", {
-        position: "top-right",  // Đảm bảo rằng bạn đã sử dụng position đúng
+        position: "top-right", // Đảm bảo rằng bạn đã sử dụng position đúng
         style: {
-          backgroundColor: '#28a745',
-          color: 'white',
-          borderRadius: '8px',
-          pediting: '10px 20px',
-        }
+          backgroundColor: "#28a745",
+          color: "white",
+          borderRadius: "8px",
+          pediting: "10px 20px",
+        },
       });
       setTimeout(() => {
         navigate("/discounts"); // Chuyển hướng sau 1 giây
@@ -93,11 +110,11 @@ export default function EditDiscounts() {
       toast.error("Cập nhật không thành công, vui lòng thử lại!", {
         position: "top-right",
         style: {
-          backgroundColor: '#dc3545',
-          color: 'white',
-          borderRadius: '8px',
-          pediting: '10px 20px',
-        }
+          backgroundColor: "#dc3545",
+          color: "white",
+          borderRadius: "8px",
+          pediting: "10px 20px",
+        },
       });
     }
   };
@@ -116,26 +133,44 @@ export default function EditDiscounts() {
     }
   };
 
-  const handleCheckboxChangeChiTiet = (id) => {
-    setSelectedIdsChiTiet((prev) =>
+  const handleCheckboxChangeCt = (id) => {
+    setSelectedIdsCt((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
-  const handleCheckAllChangeChiTiet = () => {
-    if (selectedIds.length === sanPhams.length) {
-      setSelectedIdsChiTiet([]); // Bỏ chọn tất cả
+  const checkedAllCt = () => {
+    const filteredSanPhamsCt = sanPhamChiTiets.filter((sp) =>
+      selectedIdsCt.includes(sp.idChiTietSanPham)
+    );
+    return filteredSanPhamsCt.length === sanPhamChiTiets.length;
+  };
+
+  const handleCheckAllChangeCt = () => {
+    if (checkedAllCt()) {
+      const filteredSanPhamsCt = sanPhamChiTiets.filter((sp) =>
+        selectedIdsCt.includes(sp.idChiTietSanPham)
+      );
+      const filteredIdSanPhamsCt = filteredSanPhamsCt.map(
+        (i) => i.idChiTietSanPham
+      );
+      const selectedIdsNew = selectedIdsCt.filter(
+        (e) => !filteredIdSanPhamsCt.includes(e)
+      );
+      setSelectedIdsCt(selectedIdsNew);
+      // setSelectedIds([]); // Bỏ chọn tất cả
     } else {
-      setSelectedIdsChiTiet(sanPhams.map((item) => item.idSanPham)); // Chọn tất cả
+      setSelectedIdsCt(sanPhamChiTiets.map((item) => item.idChiTietSanPham)); // Chọn tất cả
     }
   };
 
-  useEffect(() => {
-    if (!sanPhamChiTiets || (sanPhamChiTiets && sanPhamChiTiets.length <= 0)) return setSelectedIdsChiTiet([]);
-    const arrId = sanPhamChiTiets.map(i => i.idChiTietSanPham)
-    const a = arrId.filter(id => selectedIdsChiTiet.includes(id));
-    setSelectedIdsChiTiet(a)
-  }, [sanPhamChiTiets]);
+  // useEffect(() => {
+  //   if (!sanPhamChiTiets || (sanPhamChiTiets && sanPhamChiTiets.length <= 0))
+  //     return setSelectedIdsCt([]);
+  //   const arrId = sanPhamChiTiets.map((i) => i.idChiTietSanPham);
+  //   const a = arrId.filter((id) => selectedIdsCt.includes(id));
+  //   setSelectedIdsCt(a);
+  // }, [sanPhamChiTiets]);
 
   useEffect(() => {
     fetchdotGiamGia();
@@ -143,24 +178,35 @@ export default function EditDiscounts() {
   }, []);
 
   useEffect(() => {
-    if (!filters.search) return;
+    // if (!filters.search) return;
+    if (!filters.search.trim()) {
+      fetchSanPham(0, 4); // Hiển thị dữ liệu gốc thay vì gọi API
+      return;
+    }
     const timeoutId = setTimeout(() => {
       fetchSanPham(0, 4);
     }, 500); // Đợi 1 giây trước khi gọi hàm
-  
-    return () => clearTimeout(timeoutId)
+
+    return () => clearTimeout(timeoutId);
   }, [filters.search]);
 
   useEffect(() => {
-    if (!selectedIds || (selectedIds && selectedIds.length <= 0)) return setSanPhamChiTiets([]);
-    fetchChiTietSanPhams(0, 4);
+    if (!selectedIds || (selectedIds && selectedIds.length <= 0))
+      return setSanPhamChiTiets([]);
+    fetchChiTietSanPhams(0, 5);
+    setCurrentPageCt(1);
+    setSkipCt(0);
   }, [selectedIds]);
 
   const fetchdotGiamGia = async () => {
     try {
       const [response, response2] = await Promise.all([
-        axios.get(`http://localhost:8080/admin/dot-giam-gia/chi-tiet-dgg/${idDGG}`),
-        axios.get(`http://localhost:8080/admin/dot-giam-gia/get-list-id-san-pham-chi-tiet/${idDGG}`),
+        axios.get(
+          `http://localhost:8080/admin/dot-giam-gia/chi-tiet-dgg/${idDGG}`
+        ),
+        axios.get(
+          `http://localhost:8080/admin/dot-giam-gia/get-list-id-san-pham-chi-tiet/${idDGG}`
+        ),
       ]);
       const body = response2.data;
       const response3 = await axios.post(
@@ -169,27 +215,49 @@ export default function EditDiscounts() {
       );
       editDGG(response.data);
       setSelectedIds(response3.data);
-      setSelectedIdsChiTiet(response2.data)
+      setSelectedIdsCt(response2.data);
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
   };
 
-  const handleChange1 = (date) => {
-    // setSelectedDate1(date);
-    editDGG({ ...editMaDGG, ngayBatDau: date });
-  }; 
-  const handleChange2 = (date) => {
-    // setSelectedDate2(date);
-    editDGG({ ...editMaDGG, ngayKetThuc: date });
-  }; 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    editDGG((prev) => ({ ...prev, [name]: value }));
+    const now = new Date().toISOString().slice(0, 16); // Lấy ngày giờ hiện tại (định dạng yyyy-MM-ddTHH:mm)
+    if (name === "ngayBatDau") {
+      if (value < now) {
+        setErrorNBT("Không được chọn ngày trong quá khứ.");
+      } else if (editMaDGG.ngayKetThuc && value > editMaDGG.ngayKetThuc) {
+        setErrorNBT("Ngày bắt đầu không được lớn hơn hoặc bằng ngày kết thúc.");
+        setErrorNKT("");
+      } else {
+        setErrorNBT("");
+      }
+    }
+
+    if (name === "ngayKetThuc") {
+      if (value < now) {
+        setErrorNKT("Không được chọn ngày trong quá khứ.");
+      } else if (editMaDGG.ngayBatDau && value < editMaDGG.ngayBatDau) {
+        setErrorNKT("Ngày kết thúc không được nhỏ hơn hoặc bằng ngày bắt đầu.");
+        setErrorNBT("");
+      } else {
+        setErrorNKT("");
+      }
+    }
+  };
 
   const editDotGiamGias = async () => {
     try {
       // const sanPhamChiTietTrue = sanPhamChiTiets.filter(i => i.isSelected);
       // const idChiTietSanPham = sanPhamChiTietTrue.map(i => i.idChiTietSanPham);
-      const body = {dotGiamGia: {...editMaDGG}, idSanPhamChiTietList: selectedIdsChiTiet}
-      const response = await axios.put("http://localhost:8080/admin/dot-giam-gia/cap-nhat-dgg",
+      const body = {
+        dotGiamGia: { ...editMaDGG },
+        idSanPhamChiTietList: selectedIdsCt,
+      };
+      const response = await axios.put(
+        "http://localhost:8080/admin/dot-giam-gia/cap-nhat-dgg",
         body
       );
       if (response && response.status === 200) {
@@ -203,13 +271,16 @@ export default function EditDiscounts() {
   };
 
   const fetchChiTietSanPhams = async (skip, limit) => {
-    // const sanPhamsTrue = sanPhams.filter(item => item.isSelected)
-    // const idSanPham = sanPhamsTrue.map(i=> i.idSanPham)
     try {
-      const response = await axios.post(`http://localhost:8080/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skip}&limit=${limit}`, {
-        idSanPham: selectedIds // Truyền mảng vào trong body
-        });
-        setSanPhamChiTiets(response.data.data)
+      const response = await axios.post(
+        `http://localhost:8080/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skip}&limit=${limit}`,
+        {
+          idSanPham: selectedIds, // Truyền mảng vào trong body
+        }
+      );
+      setSanPhamChiTiets(response.data.data);
+      const total = Number(response.data.total) / Number(limitCt);
+      setTotalPagesCt(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
@@ -218,9 +289,13 @@ export default function EditDiscounts() {
   const fetchSanPham = async (skip, limit) => {
     let response;
     if (filters.search) {
-      response = await axios.get(`http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}&tenSanPham=${filters.search}`);
+      response = await axios.get(
+        `http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}&tenSanPham=${filters.search}`
+      );
     } else {
-      response = await axios.get(`http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}`);
+      response = await axios.get(
+        `http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}`
+      );
     }
     setSanPhams(response.data.data);
     const total = Number(response.data.total) / Number(limit);
@@ -247,16 +322,44 @@ export default function EditDiscounts() {
     }
   };
 
+  const nextPageCt = () => {
+    if (currentPageCt < totalPagesCt) {
+      const skipNew = skipCt + limitCt;
+      setSkipCt(skipNew);
+      const newPage = currentPageCt + 1;
+      setCurrentPageCt(newPage);
+      fetchChiTietSanPhams(skipNew, limitCt);
+    }
+  };
+
+  const prevPageCt = () => {
+    if (currentPageCt > 1) {
+      const skipNew = skipCt - limitCt;
+      setSkipCt(skipNew);
+      const newPage = currentPageCt - 1;
+      setCurrentPageCt(newPage);
+      fetchChiTietSanPhams(skipNew, limitCt);
+    }
+  };
+
   return (
     <div className="p-6 space-y-4">
       <ToastContainer />
-      <h1 className="text-lg font-semibold mb-4">Đợt giảm giá / Chi tiết đợt giảm giá</h1>
+      <div className="text-lg font-semibold mb-4 inline-flex items-center">
+        <h1>Đợt Giảm Giá /</h1>
+        <h2 className="ml-1 font-normal text-gray-700">
+          Chi Tiết Đợt Giảm Giá
+        </h2>
+      </div>
       <div className="bg-white p-4 rounded-lg shadow-md">
         {/* <h2 className="text-sm font-semibold mb-4"></h2> */}
         <div className="grid grid-cols-5 gap-4">
           <div className="relative text-sm col-span-2">
             {/* Mã đợt giảm giá */}
-            <label htmlFor="maDotGiamGia" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="maDotGiamGia"
+              className="block text-sm font-medium mb-1"
+            >
               Mã đợt giảm giá: <span className="text-red-500">*</span>
             </label>
             <input
@@ -265,11 +368,16 @@ export default function EditDiscounts() {
               name="maDotGiamGia"
               value={editMaDGG.maDotGiamGia}
               readOnly
-              onChange={(e) => editDGG({ ...editMaDGG, maDotGiamGia: e.target.value })}
+              onChange={(e) =>
+                editDGG({ ...editMaDGG, maDotGiamGia: e.target.value })
+              }
               className="w-full p-2 border rounded-md"
             />
             {/* Tên đợt giảm giá */}
-            <label htmlFor="tenDotGiamGia" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="tenDotGiamGia"
+              className="block text-sm font-medium mb-1"
+            >
               Tên đợt giảm giá: <span className="text-red-500">*</span>
             </label>
             <input
@@ -277,20 +385,37 @@ export default function EditDiscounts() {
               type="text"
               name="tenDotGiamGia"
               value={editMaDGG.tenDotGiamGia}
-              onChange={(e) => editDGG({ ...editMaDGG, tenDotGiamGia: e.target.value })}
-              className={`w-full p-2 border rounded-md ${errorName ? 'border-red-500' : ''}`}
+              onChange={(e) =>
+                editDGG({ ...editMaDGG, tenDotGiamGia: e.target.value })
+              }
+              className={`w-full p-2 border rounded-md ${
+                errorName ? "border-red-500" : ""
+              }`}
             />
-            {errorName && <span className="text-red-500 text-sm">Tên đợt giảm giá không được để trống.</span>} {/* Thông báo lỗi */}
+            {errorName && (
+              <span className="text-red-500 text-sm">
+                Tên đợt giảm giá không được để trống.
+              </span>
+            )}{" "}
+            {/* Thông báo lỗi */}
             {/* Hình thức */}
             <div className="grid grid-cols-3 gap-1">
-              <h3 className="block text-sm font-medium mb-1">Hình thức: <span className="text-red-500">*</span></h3>
+              <h3 className="block text-sm font-medium mb-1">
+                Hình thức: <span className="text-red-500">*</span>
+              </h3>
               <label className="flex items-center space-x-2">
                 <input
                   type="radio"
                   name="hinhThuc"
                   value="%"
                   // checked={selectedOption === "option1"}
-                  onChange={(e) => editDGG({ ...editMaDGG, hinhThuc: e.target.value, giaTri: "" }) }
+                  onChange={(e) =>
+                    editDGG({
+                      ...editMaDGG,
+                      hinhThuc: e.target.value,
+                      giaTri: "",
+                    })
+                  }
                   checked={editMaDGG.hinhThuc === "%"}
                   className="h-4 w-4 text-blue-600 border-gray-300"
                 />
@@ -302,7 +427,13 @@ export default function EditDiscounts() {
                   name="hinhThuc"
                   value="VND"
                   // checked={selectedOption === "option2"}
-                  onChange={(e) => editDGG({ ...editMaDGG, hinhThuc: e.target.value, giaTri: "" }) }
+                  onChange={(e) =>
+                    editDGG({
+                      ...editMaDGG,
+                      hinhThuc: e.target.value,
+                      giaTri: "",
+                    })
+                  }
                   checked={editMaDGG.hinhThuc === "VND"}
                   className="h-4 w-4 text-blue-600 border-gray-300"
                 />
@@ -317,13 +448,19 @@ export default function EditDiscounts() {
               id="giaTri"
               type="text"
               name="giaTri"
-              value={editMaDGG.giaTri ? editMaDGG.giaTri.toLocaleString("en-US") : ""}
-              onChange={(e) => { 
+              value={
+                editMaDGG.giaTri ? editMaDGG.giaTri.toLocaleString("en-US") : ""
+              }
+              onChange={(e) => {
                 let rawValue = e.target.value.replace(/,/g, ""); // Xóa dấu phẩy
                 let numberValue = Number(rawValue); // Chuyển thành số nguyên
                 // const value = e.target.value;
                 // const regex = /^[0-9]+$/;
-                if (!isNaN(numberValue) && numberValue > 0 && Number.isInteger(Number(numberValue))) {
+                if (
+                  !isNaN(numberValue) &&
+                  numberValue > 0 &&
+                  Number.isInteger(Number(numberValue))
+                ) {
                   if (editMaDGG.hinhThuc === "%" && numberValue > 100) {
                     editDGG({ ...editMaDGG, giaTri: 100 }); // Giới hạn max là 100 nếu chọn %
                   } else {
@@ -335,61 +472,87 @@ export default function EditDiscounts() {
               }}
               onKeyPress={(e) => {
                 // Ngăn không cho nhập dấu cộng và dấu trừ
-                if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
-                  e.preventDefault();  // Ngừng hành động nhập
+                if (
+                  e.key === "+" ||
+                  e.key === "-" ||
+                  e.key === "*" ||
+                  e.key === "/"
+                ) {
+                  e.preventDefault(); // Ngừng hành động nhập
                 }
               }}
-              className={`w-full p-2 border rounded-md ${errorGiaTri ? 'border-red-500' : ''}`}
+              className={`w-full p-2 border rounded-md ${
+                errorGiaTri ? "border-red-500" : ""
+              }`}
               min="1"
             />
-            {errorGiaTri && <span className="text-red-500 text-sm">Giá trị không được để trống.</span>} {/* Thông báo lỗi */}
+            {errorGiaTri && (
+              <span className="text-red-500 text-sm">
+                Giá trị không được để trống.
+              </span>
+            )}{" "}
+            {/* Thông báo lỗi */}
             {/* Thời gian */}
-            <div className="grid grid-cols-2">
+            <div className="grid grid-cols-2 gap-x-4">
               <div>
-                <label htmlFor="dateTime" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="dateTime"
+                  className="block text-sm font-medium mb-1"
+                >
                   Ngày bắt đầu: <span className="text-red-500">*</span>
                 </label>
-                <DatePicker
-                  selected={editMaDGG.ngayBatDau}
-                  onChange={handleChange1}
-                  showTimeSelect // Hiển thị phần chọn giờ và phút
-                  timeFormat="HH:mm" // Định dạng giờ: phút
-                  dateFormat="dd/MM/yyyy HH:mm" // Định dạng ngày và giờ
-                  timeIntervals={1} // Khoảng cách giữa các phút có thể chọn (15 phút)
-                  className={`w-full p-2 border rounded-md ${errorNBT ? 'border-red-500' : ''}`} // Thêm class cho viền đỏ khi có lỗi
-                  placeholderText="Chọn ngày và giờ"
-              />
-              {errorNBT && <span className="text-red-500 text-sm">Ngày bắt đầu không được để trống.</span>} {/* Hiển thị thông báo lỗi nếu chưa chọn ngày */}
+                <input
+                  id="ngayBatDau"
+                  type="datetime-local"
+                  name="ngayBatDau"
+                  value={editMaDGG.ngayBatDau}
+                  onChange={handleChange}
+                  className={`w-full p-2 border rounded-md ${
+                    errorNBT ? "border-red-500" : ""
+                  }`}
+                  min={new Date().toISOString().slice(0, 16)} // Chặn ngày quá khứ
+                />
+                {errorNBT && (
+                  <span className="text-red-500 text-sm">{errorNBT}</span>
+                )}{" "}
+                {/* Hiển thị thông báo lỗi nếu chưa chọn ngày */}
               </div>
               <div>
-                <label htmlFor="dateTime" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="dateTime"
+                  className="block text-sm font-medium mb-1"
+                >
                   Ngày kết thúc: <span className="text-red-500">*</span>
                 </label>
-                <DatePicker
-                  selected={editMaDGG.ngayKetThuc}
-                  onChange={handleChange2}
-                  showTimeSelect // Hiển thị phần chọn giờ và phút
-                  timeFormat="HH:mm" // Định dạng giờ: phút
-                  dateFormat="dd/MM/yyyy HH:mm" // Định dạng ngày và giờ
-                  timeIntervals={1} // Khoảng cách giữa các phút có thể chọn (15 phút)
-                  className={`w-full p-2 border rounded-md ${errorNKT ? 'border-red-500' : ''}`} // Thêm class cho viền đỏ khi có lỗi
-                  placeholderText="Chọn ngày và giờ"
+                <input
+                  id="ngayKetThuc"
+                  type="datetime-local"
+                  name="ngayKetThuc"
+                  value={editMaDGG.ngayKetThuc}
+                  onChange={handleChange}
+                  className={`w-full p-2 border rounded-md ${
+                    errorNKT ? "border-red-500" : ""
+                  }`}
+                  min={
+                    editMaDGG.ngayBatDau || new Date().toISOString().slice(0, 16)
+                  } // Chặn ngày quá khứ và nhỏ hơn ngày bắt đầu
                 />
-                {errorNKT && <span className="text-red-500 text-sm">Ngày kết thúc không được để trống.</span>} {/* Hiển thị thông báo lỗi nếu chưa chọn ngày */}
+                {errorNKT && (
+                  <span className="text-red-500 text-sm">{errorNKT}</span>
+                )}{" "}
+                {/* Hiển thị thông báo lỗi nếu chưa chọn ngày */}
               </div>
             </div>
-           
             <div className="mt-3">
-              {sanPhamChiTiets.length > 0
-                ? null
-                : <button className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition"
-                    // onClick={() => {editDotGiamGias()}}
-                    onClick={handleUpdate}
-                  >
-                    Cập nhật
-                  </button>
-              }
-              
+              {sanPhamChiTiets.length > 0 ? null : (
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition"
+                  // onClick={() => {editDotGiamGias()}}
+                  onClick={handleUpdate}
+                >
+                  Cập nhật
+                </button>
+              )}
             </div>
           </div>
           <div className="relative text-sm col-span-3">
@@ -398,11 +561,16 @@ export default function EditDiscounts() {
                 type="text"
                 name="search"
                 value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, search: e.target.value })
+                }
                 placeholder="Tìm theo tên..."
                 className="w-full pl-10 p-2 border rounded-md"
               />
-              <Search className="absolute right-3 top-3 text-gray-400" size={16} />
+              <Search
+                className="absolute right-3 top-3 text-gray-400"
+                size={16}
+              />
             </div>
             <div className="relative text-sm col-span-3">
               <div className=" text-sm mt-12 w-full max-h-48 overflow-y-auto border">
@@ -417,17 +585,23 @@ export default function EditDiscounts() {
                           //   const checked = e.target.checked;
                           //   setSanPhams(sanPhams.map((item) => ({ ...item, isSelected: checked })));
                           // }}
-                          checked={selectedIds.length > 0 && selectedIds.length === sanPhams.length}
+                          checked={
+                            selectedIds.length > 0 &&
+                            selectedIds.length === sanPhams.length
+                          }
                           onChange={handleCheckAllChange}
                         />
                       </th>
-                      <th className="p-2">mã sản phẩm</th>
-                      <th className="p-2">tên sản phẩm</th>
+                      <th className="p-2">Mã sản phẩm</th>
+                      <th className="p-2">Tên sản phẩm</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sanPhams.map((sanPham, index) => (
-                      <tr key={sanPham.idSanPham} className="border-t text-center">
+                      <tr
+                        key={sanPham.idSanPham}
+                        className="border-t text-center"
+                      >
                         <td className="p-2">
                           <input
                             type="checkbox"
@@ -442,7 +616,9 @@ export default function EditDiscounts() {
                             //   );
                             // }}
                             checked={selectedIds.includes(sanPham.idSanPham)}
-                        onChange={() => handleCheckboxChange(sanPham.idSanPham)}
+                            onChange={() =>
+                              handleCheckboxChange(sanPham.idSanPham)
+                            }
                           />
                         </td>
                         <td className="p-2">{sanPham.maSanPham}</td>
@@ -454,111 +630,150 @@ export default function EditDiscounts() {
               </div>
             </div>
             <div className="flex justify-center items-center space-x-2 mt-4">
-                  {/* Nút Prev */}
-                  <button
-                    onClick={prevPage}
-                    disabled={currentPage === 1}
-                    className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
-                    }`}
-                  >
-                    ◀
-                  </button>
+              {/* Nút Prev */}
+              <button
+                onClick={prevPage}
+                disabled={currentPage === 1}
+                className={`w-10 h-10 flex items-center justify-center border rounded-full ${
+                  currentPage === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-200"
+                }`}
+              >
+                ◀
+              </button>
 
-                  {/* Hiển thị số trang */}
-                  <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
-                    {currentPage}
-                  </span>
+              {/* Hiển thị số trang */}
+              <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
+                {currentPage}
+              </span>
 
-                  {/* Nút Next */}
-                  <button
-                    onClick={nextPage}
-                    disabled={currentPage === totalPages}
-                    className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                      currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
-                    }`}
-                  >
-                    ▶
-                  </button>
+              {/* Nút Next */}
+              <button
+                onClick={nextPage}
+                disabled={currentPage === totalPages}
+                className={`w-10 h-10 flex items-center justify-center border rounded-full ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-200"
+                }`}
+              >
+                ▶
+              </button>
             </div>
           </div>
         </div>
       </div>
-      {sanPhamChiTiets.length > 0 
-        ? <div className="bg-white p-4 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-semibold">Chi Tiết Sản Phẩm</h2>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition"
-                // onClick={() => {editDotGiamGias()}}
-                onClick={handleUpdate}
-              >
-                Cập nhật
-              </button>
-            </div>
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-100 text-left">
+      {sanPhamChiTiets.length > 0 ? (
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-semibold">Chi Tiết Sản Phẩm</h2>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition"
+              // onClick={() => {editDotGiamGias()}}
+              onClick={handleUpdate}
+            >
+              Cập nhật
+            </button>
+          </div>
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-gray-100 text-left">
                 <th className="p-2">
+                  <input
+                    type="checkbox"
+                    // checked={sanPhamChiTiets.length > 0 && sanPhamChiTiets.every(item => item.isSelected)}
+                    // onChange={(e) => {
+                    //   const checked = e.target.checked;
+                    //   setSanPhamChiTiets(sanPhamChiTiets.map((item) => ({ ...item, isSelected: checked })));
+                    // }}
+                    checked={
+                      selectedIdsCt.length > 0 &&
+                      selectedIdsCt.length === sanPhamChiTiets.length
+                    }
+                    onChange={handleCheckAllChangeCt}
+                  />
+                </th>
+                <th className="p-2">STT</th>
+                <th className="p-2">Mã sản phẩm</th>
+                <th className="p-2">Tên sản phẩm</th>
+                <th className="p-2">Danh mục</th>
+                <th className="p-2">Thương hiệu</th>
+                <th className="p-2">Chất liệu</th>
+                <th className="p-2">Kích cỡ</th>
+                <th className="p-2">Màu sắc</th>
+                <th className="p-2">Đế giày</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sanPhamChiTiets.map((sanPhamChiTiet, index) => (
+                <tr key={sanPhamChiTiet.idChiTietSanPham} className="border-t">
+                  <td className="p-2">
                     <input
                       type="checkbox"
-                      // checked={sanPhamChiTiets.length > 0 && sanPhamChiTiets.every(item => item.isSelected)}
-                      // onChange={(e) => {
-                      //   const checked = e.target.checked;
-                      //   setSanPhamChiTiets(sanPhamChiTiets.map((item) => ({ ...item, isSelected: checked })));
+                      // checked={sanPhamChiTiet.isSelected || false}
+                      // onChange={() => {
+                      //   setSanPhamChiTiets((prevData) =>
+                      //     prevData.map((item) =>
+                      //       item.idChiTietSanPham === sanPhamChiTiet.idChiTietSanPham
+                      //         ? { ...item, isSelected: !item.isSelected }
+                      //         : item
+                      //     )
+                      //   );
                       // }}
-                      checked={selectedIdsChiTiet.length > 0 && selectedIdsChiTiet.length === sanPhamChiTiets.length}
-                      onChange={handleCheckAllChangeChiTiet}
+                      checked={selectedIdsCt.includes(
+                        sanPhamChiTiet.idChiTietSanPham
+                      )}
+                      onChange={() =>
+                        handleCheckboxChangeCt(sanPhamChiTiet.idChiTietSanPham)
+                      }
                     />
-                  </th>
-                  <th className="p-2">STT</th>
-                  <th className="p-2">Mã sản phẩm</th>
-                  <th className="p-2">Tên sản phẩm</th>
-                  <th className="p-2">Danh mục</th>
-                  <th className="p-2">Thương hiệu</th>
-                  <th className="p-2">Chất liệu</th>
-                  <th className="p-2">Kích cỡ</th>
-                  <th className="p-2">Màu sắc</th>
-                  <th className="p-2">Đế giày</th>
+                  </td>
+                  <td className="p-2">{index + skipCt + 1}</td>
+                  <td className="p-2">{sanPhamChiTiet.sanPham.maSanPham}</td>
+                  <td className="p-2">{sanPhamChiTiet.sanPham.tenSanPham}</td>
+                  <td className="p-2">{sanPhamChiTiet.danhMucSanPham.ten}</td>
+                  <td className="p-2">{sanPhamChiTiet.thuongHieu.ten}</td>
+                  <td className="p-2">{sanPhamChiTiet.chatLieu.ten}</td>
+                  <td className="p-2">{sanPhamChiTiet.kichCo.ten}</td>
+                  <td className="p-2">{sanPhamChiTiet.mauSac.ten}</td>
+                  <td className="p-2">{sanPhamChiTiet.deGiay.ten}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {sanPhamChiTiets.map((sanPhamChiTiet, index) => (
-                  <tr key={sanPhamChiTiet.idChiTietSanPham} className="border-t">
-                    <td className="p-2">
-                      <input
-                        type="checkbox"
-                        // checked={sanPhamChiTiet.isSelected || false}
-                        // onChange={() => {
-                        //   setSanPhamChiTiets((prevData) =>
-                        //     prevData.map((item) =>
-                        //       item.idChiTietSanPham === sanPhamChiTiet.idChiTietSanPham
-                        //         ? { ...item, isSelected: !item.isSelected }
-                        //         : item
-                        //     )
-                        //   );
-                        // }}
-                        checked={selectedIdsChiTiet.includes(sanPhamChiTiet.idChiTietSanPham)}
-                        onChange={() => handleCheckboxChangeChiTiet(sanPhamChiTiet.idChiTietSanPham)}
-                      />
-                    </td>
-                    <td className="p-2">{index + 1}</td>
-                    <td className="p-2">{sanPhamChiTiet.sanPham.maSanPham}</td>
-                    <td className="p-2">{sanPhamChiTiet.sanPham.tenSanPham}</td>
-                    <td className="p-2">{sanPhamChiTiet.danhMucSanPham.ten}</td>
-                    <td className="p-2">{sanPhamChiTiet.thuongHieu.ten}</td>
-                    <td className="p-2">{sanPhamChiTiet.chatLieu.ten}</td>
-                    <td className="p-2">{sanPhamChiTiet.kichCo.ten}</td>
-                    <td className="p-2">{sanPhamChiTiet.mauSac.ten}</td>
-                    <td className="p-2">{sanPhamChiTiet.deGiay.ten}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex justify-center items-center space-x-2 mt-4">
+            {/* Nút Prev */}
+            <button
+              onClick={prevPageCt}
+              disabled={currentPageCt === 1}
+              className={`w-10 h-10 flex items-center justify-center border rounded-full ${
+                currentPageCt === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-200"
+              }`}
+            >
+              ◀
+            </button>
+            {/* Hiển thị số trang */}
+            <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
+              {currentPageCt}
+            </span>
+            {/* Nút Next */}
+            <button
+              onClick={nextPageCt}
+              disabled={currentPageCt === totalPagesCt}
+              className={`w-10 h-10 flex items-center justify-center border rounded-full ${
+                currentPageCt === totalPagesCt
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-200"
+              }`}
+            >
+              ▶
+            </button>
           </div>
-        : null
-      }
+        </div>
+      ) : null}
     </div>
   );
 }
-
-  
