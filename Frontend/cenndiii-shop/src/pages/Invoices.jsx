@@ -257,7 +257,7 @@ export default function Invoices() {
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
                                 <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
-                                <td className="px-4 py-2">{invoice.nhanVien.ten}</td>
+                                {/* <td className="px-4 py-2">{invoice.nhanVien.ten}</td> */}
                                 <td className="px-4 py-2">{invoice.soDienThoai}</td>
                                 <td className="px-4 py-2">{invoice.email}</td>
                                 <td className="px-4 py-2">{invoice.tongTien}</td>

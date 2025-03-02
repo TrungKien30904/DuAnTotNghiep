@@ -146,14 +146,33 @@ public class HoaDonService {
             int rowIdx = 1;
             for (HoaDon invoice : invoices) {
                 Row row = sheet.createRow(rowIdx++);
+
                 row.createCell(0).setCellValue(invoice.getIdHoaDon());
-                row.createCell(1).setCellValue(invoice.getMaHoaDon());
-                row.createCell(2).setCellValue(invoice.getKhachHang().getHoTen());
-                row.createCell(3).setCellValue(invoice.getNhanVien().getTen());
-                row.createCell(4).setCellValue(invoice.getKhachHang().getSoDienThoai());
-                row.createCell(5).setCellValue(invoice.getKhachHang().getEmail());
-                row.createCell(6).setCellValue(invoice.getTongTien().doubleValue());
-                row.createCell(7).setCellValue(invoice.getNgayTao().format(formatter));
+                row.createCell(1).setCellValue(invoice.getMaHoaDon() != null ? invoice.getMaHoaDon() : "");
+
+                // Kiểm tra khách hàng có tồn tại hay không
+                if (invoice.getKhachHang() != null) {
+                    row.createCell(2).setCellValue(invoice.getKhachHang().getHoTen() != null ? invoice.getKhachHang().getHoTen() : "");
+                    row.createCell(4).setCellValue(invoice.getKhachHang().getSoDienThoai() != null ? invoice.getKhachHang().getSoDienThoai() : "");
+                    row.createCell(5).setCellValue(invoice.getKhachHang().getEmail() != null ? invoice.getKhachHang().getEmail() : "");
+                } else {
+                    row.createCell(2).setCellValue("");
+                    row.createCell(4).setCellValue("");
+                    row.createCell(5).setCellValue("");
+                }
+
+                // Kiểm tra nhân viên có tồn tại hay không
+                if (invoice.getNhanVien() != null) {
+                    row.createCell(3).setCellValue(invoice.getNhanVien().getTen() != null ? invoice.getNhanVien().getTen() : "");
+                } else {
+                    row.createCell(3).setCellValue("");
+                }
+
+                // Kiểm tra tổng tiền
+                row.createCell(6).setCellValue(invoice.getTongTien() != null ? invoice.getTongTien().doubleValue() : 0.0);
+
+                // Kiểm tra ngày tạo
+                row.createCell(7).setCellValue(invoice.getNgayTao() != null ? invoice.getNgayTao().format(formatter) : "");
             }
 
             workbook.write(out);
