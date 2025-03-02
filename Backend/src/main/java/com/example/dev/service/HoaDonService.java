@@ -2,8 +2,10 @@ package com.example.dev.service;
 
 import com.example.dev.entity.HoaDon;
 import com.example.dev.entity.LichSuHoaDon;
+import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.repository.HoaDonRepository;
 import com.example.dev.repository.LichSuHoaDonRepository;
+import com.example.dev.repository.PhieuGiamGiaRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,8 @@ public class HoaDonService {
 
     @Autowired
     private HoaDonRepository hoaDonRepository;
-
+    @Autowired
+    private PhieuGiamGiaRepository phieuGiamGiaRepository;
     @Autowired
     private LichSuHoaDonRepository lichSuHoaDonRepository;
     private static final String PREFIX = "HD";
@@ -59,6 +62,19 @@ public class HoaDonService {
         hoaDon.setTrangThai("Hủy");
         taoHoaDon(hoaDon, "Hủy", "admin");
         return hoaDonRepository.save(hoaDon);
+    }
+
+    public void updateVoucher(Integer idHoaDon, Integer voucherId) {
+        Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(idHoaDon);
+        if (optionalHoaDon.isPresent()) {
+            HoaDon hoaDon = optionalHoaDon.get();
+            PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(voucherId)
+                    .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
+            hoaDon.setPhieuGiamGia(phieuGiamGia);
+            hoaDonRepository.save(hoaDon);
+        } else {
+            throw new RuntimeException("Hóa đơn không tồn tại");
+        }
     }
 
     public HoaDon xacnhan(String maHoaDon) {

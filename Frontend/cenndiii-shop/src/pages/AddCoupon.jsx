@@ -252,7 +252,6 @@ function AddCoupon() {
 
         try {
             await axios.post('http://localhost:8080/admin/phieu-giam-gia/them', requestData);
-            Notification.success("Thêm phiếu giảm giá thành công","success");
             navigate('/coupons', {state: {message: 'Thêm phiếu giảm giá thành công'}});
         } catch (error) {
             if (error.response && error.response.data) {
@@ -372,7 +371,7 @@ function AddCoupon() {
                         </div>
                         <div className="flex space-x-4 mb-4">
                             <div className="flex-1">
-                                <label className="block text-sm font-semibold mb-2">Kiểu</label>
+                                <label className="block text-sm font-semibold mb-2">Hình Thức</label>
                                 <div>
                                     <label className="inline-flex items-center">
                                         <input

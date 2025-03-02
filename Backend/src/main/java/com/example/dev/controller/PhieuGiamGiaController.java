@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,15 +27,24 @@ import java.util.stream.Collectors;
 public class PhieuGiamGiaController {
     @Autowired
     PhieuGiamGiaService phieuGiamGiaService;
+
     // hiển thị pgg
     @GetMapping("/hien-thi")
     public ResponseEntity<Page<PhieuGiamGia>> hienThi(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        return ResponseEntity.ok(phieuGiamGiaService.hienThi(page,size));
+        return ResponseEntity.ok(phieuGiamGiaService.hienThi(page, size));
     }
-    // hiển thị khách hàng
 
+    // hiển thị bên bán hàng
+    @GetMapping("/hien-thi-voucher")
+    public ResponseEntity<List<PhieuGiamGia>> getPhieuGiamGia(
+            @RequestParam(value = "khachHangId", required = false) Integer khachHangId) {
+        List<PhieuGiamGia> vouchers = phieuGiamGiaService.getPhieuGiamGia(khachHangId);
+        return ResponseEntity.ok(vouchers);
+    }
+
+    // hiển thị khách hàng
     @GetMapping("/hien-thi-khach-hang")
     public ResponseEntity<Page<KhachHang>> hienThiKhachHang(
             @RequestParam(defaultValue = "0") int page,
@@ -125,6 +136,13 @@ public class PhieuGiamGiaController {
             return ResponseEntity.status(e.getStatusCode()).body(null);
         }
     }
+    @GetMapping("/tim-kiem-theo-ma")
+    public ResponseEntity<List<PhieuGiamGia>> timKiemTheoMa(
+            @RequestParam(required = false) Integer idKhachHang,
+            @RequestParam(required = false) String keyword2
+    ) {
+        return ResponseEntity.ok(phieuGiamGiaService.timKiemTheoMa(idKhachHang,keyword2));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -136,4 +154,5 @@ public class PhieuGiamGiaController {
                 ));
         return ResponseEntity.badRequest().body(errors);
     }
+
 }

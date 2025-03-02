@@ -30,5 +30,42 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integ
 
     Page<PhieuGiamGia> findAll(Pageable pageable);
 
+    // khách hành cụ thể
+    @Query("SELECT DISTINCT p FROM PhieuGiamGia p " +
+            "LEFT JOIN p.danhSachKhachHang khpg " +
+            "WHERE p.trangThai = 1 " +
+            "AND (" +
+            "    (p.loai = 'Công Khai') OR " +
+            "    (:khachHangId IS NOT NULL AND p.loai = 'Cá Nhân' AND khpg.khachHang.idKhachHang = :khachHangId)" +
+            ")")
+    List<PhieuGiamGia> findApplicableVouchers(@Param("khachHangId") Integer khachHangId);
+
+    // khách lẻ
+    @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 1 AND p.loai = 'Công Khai'")
+    List<PhieuGiamGia> findPublicVouchers();
+
+    // tìm theo mã
+    @Query("""
+    SELECT DISTINCT p FROM PhieuGiamGia p
+    LEFT JOIN p.danhSachKhachHang khpg
+    WHERE p.trangThai = 1 
+    AND (
+        (p.loai = 'Công Khai' AND p.maKhuyenMai LIKE %:keyword2%) 
+        OR 
+        (p.loai = 'Cá Nhân' AND khpg.khachHang.idKhachHang = :idKhachHang AND p.maKhuyenMai LIKE %:keyword2%)
+    )
+""")
+    List<PhieuGiamGia> timKiemPhieuTheoMa(
+            @Param("idKhachHang") Integer idKhachHang,
+            @Param("keyword2") String keyword2
+    );
+
+    @Query("""
+    SELECT p FROM PhieuGiamGia p 
+    WHERE p.trangThai = 1 
+    AND p.loai = 'Công Khai' 
+    AND p.maKhuyenMai LIKE %:keyword2%
+""")
+    List<PhieuGiamGia> findByMaKhuyenMaiKhachLe(@Param("keyword2") String keyword2);
 
 }
