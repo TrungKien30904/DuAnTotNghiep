@@ -18,4 +18,10 @@ public class HoaDonChiTietService {
     public List<HoaDonChiTiet> findByIdHoaDon(String maHoaDon) {
         return hoaDonChiTiehoRepository.findByIdHoaDon(maHoaDon);
     }
+
+    public void softDelete(Integer id){
+        hoaDonChiTiehoRepository.softDelete(id);
+    }
+
+
 }

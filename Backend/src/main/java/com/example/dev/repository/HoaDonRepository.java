@@ -26,5 +26,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             "OR LOWER(h.email) LIKE LOWER(CONCAT('%', :searchQuery, '%'))) ")
     List<HoaDon> findBySearchCriteria(String loaiDon, LocalDateTime startDate, LocalDateTime endDate, String searchQuery);
 
+//    @Query("SELECT hd FROM HoaDon  hd where  hd.")fsdfds
+
 
 }
