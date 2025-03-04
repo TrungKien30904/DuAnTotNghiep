@@ -16,6 +16,7 @@ import org.springframework.core.io.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -49,6 +50,20 @@ public class HoaDonController {
         List<HoaDon> invoices = hoaDonService.findInvoices(loaiDon, startDate, endDate, searchQuery);
         return ResponseEntity.ok(invoices);
     }
+
+    @PutMapping("/update-voucher/{idHoaDon}")
+    public ResponseEntity<?> updateVoucherForOrder(
+            @PathVariable("idHoaDon") Integer idHoaDon,
+            @RequestBody Map<String, Integer> body) {
+        try {
+            Integer voucherId = body.get("voucherId"); // Lấy voucherId từ body gửi lên
+            hoaDonService.updateVoucher(idHoaDon, voucherId);
+            return ResponseEntity.ok("Cập nhật voucher thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Có lỗi khi cập nhật voucher: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/{maHoaDon}")
     public ResponseEntity<HoaDon> getInvoice(@PathVariable String maHoaDon) {

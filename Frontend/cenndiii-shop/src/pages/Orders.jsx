@@ -145,7 +145,8 @@ export default function Orders() {
         try {
             const newOrder = {
                 maHoaDon: "", // Let the backend generate if needed
-                khachHang: null,
+                khachHang: customers.find(c => c.idKhachHang === 0), // Gán khách hàng mặc định là "Khách lẻ"
+                phieuGiamGia: null,
                 nhanVien: null,
                 tongTien: null,
                 tenNguoiNhan: null,
@@ -160,15 +161,12 @@ export default function Orders() {
                 nguoiSua: null
             };
 
-            const response = await axios.post(
-                "http://localhost:8080/admin/hoa-don/create",
-                newOrder, // Send JSON body
+            const response = await axios.post("http://localhost:8080/admin/hoa-don/create", newOrder, // Send JSON body
                 {
                     headers: {
                         "Content-Type": "application/json", // Ensure JSON format
                     },
-                }
-            );
+                });
 
             const createdOrder = response.data;
             const newTabId = createdOrder.idHoaDon;

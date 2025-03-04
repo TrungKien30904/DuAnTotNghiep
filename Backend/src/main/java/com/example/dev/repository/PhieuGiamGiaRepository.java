@@ -30,13 +30,14 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia,Integ
 
     Page<PhieuGiamGia> findAll(Pageable pageable);
 
+    // khách hành cụ thể
     @Query("SELECT DISTINCT p FROM PhieuGiamGia p " +
-           "LEFT JOIN p.danhSachKhachHang khpg " +
-           "WHERE p.trangThai = 1 " +
-           "AND (" +
-           "    (p.loai = 'Công Khai') OR " +
-           "    (:khachHangId IS NOT NULL AND p.loai = 'Cá Nhân' AND khpg.khachHang.idKhachHang = :khachHangId)" +
-           ")")
+            "LEFT JOIN p.danhSachKhachHang khpg " +
+            "WHERE p.trangThai = 1 " +
+            "AND (" +
+            "    (p.loai = 'Công Khai') OR " +
+            "    (:khachHangId IS NOT NULL AND p.loai = 'Cá Nhân' AND khpg.khachHang.idKhachHang = :khachHangId)" +
+            ")")
     List<PhieuGiamGia> findApplicableVouchers(@Param("khachHangId") Integer khachHangId);
 
     // khách lẻ

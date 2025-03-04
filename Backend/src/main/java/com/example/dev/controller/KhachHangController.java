@@ -31,6 +31,12 @@ public class KhachHangController {
         return ResponseEntity.ok(khachHangService.getAll());
     }
 
+
+    @GetMapping("/hien-thi-customer")
+    public ResponseEntity<List<KhachHang>> hienThiKhachHang() {
+        return ResponseEntity.ok(khachHangService.getAll());
+    }
+
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> detail(@PathVariable Integer id) {
         CustomerMapper khachHang = khachHangService.detailKhachHang(id);

@@ -162,6 +162,7 @@ export default function Coupons() {
 
     // Xử lý xuất Excel
     const handleExportExcel = async () => {
+        toast.loading('Đang xuất Excel...');
         try {
             const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/xuat-excel", {
                 responseType: 'blob'
@@ -172,6 +173,7 @@ export default function Coupons() {
             link.setAttribute('download', 'phieu_giam_gia.xlsx');
             document.body.appendChild(link);
             link.click();
+            toast.dismiss();
             toast.success("Xuất file Excel thành công");
         } catch (error) {
             console.error("Error exporting Excel file:", error);
@@ -315,7 +317,7 @@ export default function Coupons() {
                                 <th className="p-2">STT</th>
                                 <th className="p-2">Mã</th>
                                 <th className="p-2">Tên</th>
-                                <th className="p-2">Hình Thức</th>
+                                <th className="p-2">Loại</th>
                                 <th className="p-2">Giá Trị Giảm</th>
                                 <th className="p-2">Số Lượng</th>
                                 <th className="p-2">Ngày Bắt Đầu</th>
