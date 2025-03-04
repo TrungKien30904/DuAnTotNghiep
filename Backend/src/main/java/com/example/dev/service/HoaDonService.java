@@ -238,7 +238,5 @@ public class HoaDonService {
         HoaDon find = hoaDonRepository.findById(hoaDon.getIdHoaDon()).orElseThrow();
         hoaDon.setNgayTao(find.getNgayTao());
         hoaDonRepository.save(hoaDon);
-        List<HoaDonChiTiet> listCart = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hoaDon.getIdHoaDon());
-        hoaDonChiTietRepository.deleteAll(listCart);
     }
 }

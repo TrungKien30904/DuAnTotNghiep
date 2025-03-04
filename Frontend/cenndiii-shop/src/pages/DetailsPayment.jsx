@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Notification from "../components/Notification";
-import { ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const {
         register,
@@ -48,6 +48,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         "Content-Type": "application/json",
     };
 
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchProvinces = async () => {
             try {
@@ -187,21 +188,18 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     };
 
     const onSubmit = async (data) => {
-        if (!orderItems || orderItems.length === 0) {
-            Notification("Không có sản phẩm nào trong đơn hàng.","errorerror")
-            return;
-        }
+        
 
-        if (deliveryMethod === "giaohang") {
-            // Validate required fields for "Giao hàng"
-            if (!data.hoten || !data.sodienthoai || !data.email || !data.diachi) {
-                alert("Vui lòng nhập đầy đủ thông tin giao hàng.");
-                return;
-            }
-        }
+        // if (deliveryMethod === "giaohang") {
+        //     // Validate required fields for "Giao hàng"
+        //     if (!data.hoten || !data.sodienthoai || !data.email || !data.diachi) {
+        //         alert("Vui lòng nhập đầy đủ thông tin giao hàng.");
+        //         return;
+        //     }
+        // }
 
         if (paymentMethod === "cahai" && (Number(cashAmount) + Number(transferAmount) !== lastTotal)) {
-            setErrorMessage("Tổng tiền mặt và chuyển khoản phải bằng tổng thanh toán.");
+            navigate("/orders", { state: { message: "Tổng tiền chưa đủ", type: "error" } });
             return;
         }
 
@@ -226,26 +224,28 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             chuyenKhoan: paymentMethod === "cahai" ? transferAmount : null,
         };
 
-        console.log(requestData);
-        
+        if(lastTotal <=0 ){
+            navigate("/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
+            return;
+        }        
         try {
-            // const response = await axios.post(
-            //     'http://localhost:8080/admin/hoa-don/thanh-toan',
-            //     requestData,
-            //     {
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //         },
-            //     }
-            // );
+            const response = await axios.post(
+                'http://localhost:8080/admin/hoa-don/thanh-toan',
+                requestData,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-            // if (response.status === 200) {
-            //     alert("Thanh toán thành công!");
-            //     reloadTab(); // Gọi hàm reload tab sau khi thanh toán thành công
-            // }
+            if (response.status === 200) {
+                reloadTab(); // Gọi hàm reload tab sau khi thanh toán thành công
+                navigate("/orders", { state: { message: "Thanh toán thành công", type: "success" } });
+            }
         } catch (error) {
             console.error("Error processing payment:", error);
-            alert("Đã có lỗi xảy ra khi thanh toán, vui lòng thử lại!");
+            navigate("/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
     };
 
@@ -407,7 +407,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             >
                 Thanh Toán
             </button>
-        <ToastContainer/>
+        {/* <ToastContainer/> */}
         </form>
     );
 };

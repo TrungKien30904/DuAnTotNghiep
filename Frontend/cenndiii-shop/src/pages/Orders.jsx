@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Alert from "../components/Alert";
@@ -46,6 +46,14 @@ function TabPanel(props) {
 
 export default function Orders() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state && location.state.message) {
+            Notification(location.state.message,location.state.type)
+            // reloadTab();
+        }
+    }, [location.state]);
 
     const [orders, setOrders] = useState([]);
     const [tabs, setTabs] = useState([]);
@@ -168,6 +176,7 @@ export default function Orders() {
             setActiveTab(tabs.length);
             setOrders([...orders, createdOrder]);
             setOrderId(newTabId)
+            setOrderItems(createdOrder)
             getProductFromDetailsInvoice(createdOrder.idHoaDon)
         } catch (error) {
             console.error("Error creating new order:", error);
@@ -204,7 +213,7 @@ export default function Orders() {
                 content: `Hóa đơn ${order.maHoaDon}`
             }));
             setTabs(newTabs);
-
+            setOrderItems(updatedOrders[0])
             setActiveTab(0);
             setOrderId(updatedOrders[0].idHoaDon);
             getProductFromDetailsInvoice(updatedOrders[0].idHoaDon);
@@ -355,7 +364,8 @@ export default function Orders() {
                 content: `Hóa đơn ${order.maHoaDon}` // Mỗi tab sẽ có một nội dung riêng
             }));
             setTabs(newTabs);
-
+            getProductFromDetailsInvoice(ordersData[0].idHoaDon);
+            setActiveTab(0);
         } catch (error) {
             console.error('Error fetching orders:', error);
         }
