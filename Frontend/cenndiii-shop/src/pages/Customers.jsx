@@ -22,7 +22,7 @@ export default function Coupons() {
 
   const exportToExcel = async () => {
     try {
-      setLoadingState(true);
+      // setLoadingState(true);
       const response = await fetch("http://localhost:8080/admin/khach-hang/export-excel").then((response) => response.json())
         .then((result) => {
           setLoadingState(false);
@@ -36,14 +36,14 @@ export default function Coupons() {
           console.error("Something error when fetch API", error);
         });
     } catch (error) {
-      setLoadingState(false);
+      // setLoadingState(false);
       console.error("Lỗi khi lấy khách hàng", error);
     }
   };
 
   const searchKhachHangs = useCallback(async () => {
     try {
-      setLoadingState(true);
+      // setLoadingState(true);
       const response = await axios.get(
         "http://localhost:8080/admin/khach-hang/tim-kiem",
         {
@@ -65,7 +65,7 @@ export default function Coupons() {
         setTotalPages(response.data.totalCount);
       }
     } catch (error) {
-      setLoadingState(false);
+      // setLoadingState(false);
       console.error("Lỗi khi tìm kiếm khách hàng", error);
     }
   }, [filters]);

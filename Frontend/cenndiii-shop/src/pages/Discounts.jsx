@@ -60,7 +60,7 @@ export default function Discounts() {
       if (filters.trangThai) {
         apiDS = `${apiDS}&trangThai=${filters.trangThai}`;
       }
-      setLoadingState(true);
+      // setLoadingState(true);
       const response = await axios.get(apiDS);
       if (response && response.data && response.data.data) {
         setLoadingState(false);
@@ -73,7 +73,7 @@ export default function Discounts() {
       const total = Number(response.data.total) / Number(limit);
       setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0)); // Tính tổng số trang
     } catch (error) {
-      setLoadingState(false);
+      // setLoadingState(false);
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
   };

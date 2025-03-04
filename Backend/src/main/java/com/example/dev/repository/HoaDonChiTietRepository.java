@@ -1,5 +1,6 @@
 package com.example.dev.repository;
 
+import com.example.dev.DTO.request.HoaDonChiTiet.HoaDonChiTietRequest;
 import com.example.dev.entity.HoaDonChiTiet;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,11 +16,23 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
 
 
     //123
-    @Query("SELECT hdct FROM HoaDonChiTiet hdct WHERE hdct.hoaDon.maHoaDon = :maHoaDon and hdct.deletedAt=false ")
+    @Query(value = "SELECT hdct FROM HoaDonChiTiet hdct WHERE hdct.hoaDon.maHoaDon = :maHoaDon and hdct.deletedAt=false ",nativeQuery = true)
     List<HoaDonChiTiet> findByIdHoaDon(@Param("maHoaDon") String maHoaDon);
 
     @Modifying
     @Transactional
-    @Query("update HoaDonChiTiet  hdct set hdct.deletedAt=true where hdct.idHoaDonChiTiet=:id")
+    @Query(value = "update HoaDonChiTiet  hdct set hdct.deletedAt=true where hdct.idHoaDonChiTiet=:id",nativeQuery = true)
     void softDelete(Integer id);
+
+    // Của kiên
+    List<HoaDonChiTiet> findByHoaDon_MaHoaDon(String maHoaDon);
+
+    List<HoaDonChiTiet> findAllByHoaDon_IdHoaDon(Integer idHoaDon);
+
+    @Query(value = """
+    EXEC sp_LayHoaDonChiTiet @idHoaDon = :idHoaDon
+""",nativeQuery = true)
+    List<HoaDonChiTietRequest> listCart(@Param("idHoaDon") Integer idHoaDon);
+
+    // Của kiên đến đây
 }

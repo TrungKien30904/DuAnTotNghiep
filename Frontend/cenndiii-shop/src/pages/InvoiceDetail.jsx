@@ -2,10 +2,9 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import OrderStatus from '../components/ui/OrderStatus';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Notification from '../components/Notification';
+import { ToastContainer } from 'react-toastify';
+
 
 export default function InvoiceDetail() {
     const { id } = useParams();
@@ -32,7 +31,7 @@ export default function InvoiceDetail() {
 
     const fetchInvoiceDetails = async () => {
         try {
-            const response = await axios.get(`http://localhost:8080/HoaDonChiTiet/listHoaDonChiTiet?maHoaDon=${id}`);
+            const response = await axios.get(`http://localhost:8080/admin/hdct/listHoaDonChiTiet?maHoaDon=${id}`);
             setInvoiceDetails(response.data);
         } catch (error) {
             console.error('Error fetching invoice details:', error);
@@ -88,18 +87,12 @@ export default function InvoiceDetail() {
                     label: 'Yes',
                     onClick: async () => {
                         try {
-                            await axios.get(`http://localhost:8080/HoaDonChiTiet/delete/${id}`);
+                            await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
                             setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
-                            toast.success('Xóa mục thành công!', {
-                                position: 'top-right',
-                                autoClose: 3000
-                            });
+                            Notification("Xóa thành công","success")
                         } catch (error) {
                             console.error('Error deleting item:', error);
-                            toast.error('Xóa mục thất bại! Vui lòng thử lại.', {
-                                position: 'top-right',
-                                autoClose: 3000
-                            });
+                            Notification("Xóa thất bại","error")
                         }
                     }
                 },
@@ -332,6 +325,7 @@ export default function InvoiceDetail() {
                     </tbody>
                 </table>
             </div>
+            <ToastContainer/>
         </div >
     )
 }

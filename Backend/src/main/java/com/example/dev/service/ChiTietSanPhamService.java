@@ -1,45 +1,49 @@
 package com.example.dev.service;
 
 import com.example.dev.DTO.request.ChiTietSanPham.ChiTietSanPhamRequest;
+import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.DTO.response.ChiTietSanPham.BienTheResponse;
 import com.example.dev.DTO.response.ChiTietSanPham.ChiTietSanPhamResponse;
 import com.example.dev.DTO.response.CloudinaryResponse;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.HinhAnh;
-import com.example.dev.repository.ChiTietSanPhamRepo;
-import com.example.dev.repository.HinhAnhRepo;
-import com.example.dev.repository.MauSacRepo;
-import com.example.dev.repository.SanPhamRepo;
+import com.example.dev.entity.HoaDon;
+import com.example.dev.entity.HoaDonChiTiet;
+import com.example.dev.mapper.ChiTietSanPhamMapper;
+import com.example.dev.repository.*;
 import com.example.dev.util.FileUpLoadUtil;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ChiTietSanPhamService {
-    @Autowired
-    ChiTietSanPhamRepo chiTietSanPhamRepo;
 
-    @Autowired
-    CloudinaryService cloudinaryService;
-
-    @Autowired
-    HinhAnhRepo hinhAnhRepo;
-
-    private final List<ChiTietSanPham> listId = new ArrayList<>();
-    @Autowired
-    private SanPhamRepo sanPhamRepo;
-    @Autowired
-    private MauSacRepo mauSacRepo;
+    private final ChiTietSanPhamRepo chiTietSanPhamRepo;
+    private final CloudinaryService cloudinaryService;
+    private final HinhAnhRepo hinhAnhRepo;
+    private final SanPhamRepo sanPhamRepo;
+    private final MauSacRepo mauSacRepo;
+    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
+    private final HoaDonRepository hoaDonRepository;
+    private final HoaDonChiTietRepository hoaDonChiTietRepository;
 
     public List<ChiTietSanPham> getListChiTietSanPham() {
         return chiTietSanPhamRepo.findAll();
+    }
+
+    public List<ChiTietSanPhamRequest> getAllChiTietSanPham() {
+        List<ChiTietSanPhamRequest> request = new ArrayList<>();
+        return getChiTietSanPhamRequests(request, getListChiTietSanPham());
     }
 
     public List<ChiTietSanPham> getListChiTietSanPham(Integer idSanPham) {
@@ -96,7 +100,7 @@ public class ChiTietSanPhamService {
     public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id) {
         ctsp.setIdChiTietSanPham(id);
         ChiTietSanPham find = chiTietSanPhamRepo.findById(id).get();
-        if(isEqual(ctsp,find)) {
+        if (isEqual(ctsp, find)) {
             find.setSoLuong(ctsp.getSoLuong() + find.getSoLuong());
             find.setGia(ctsp.getGia());
         }
@@ -132,7 +136,7 @@ public class ChiTietSanPhamService {
     }
 
     @Transactional
-    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau,Integer idSanPham) {
+    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham) {
         if (!file.isEmpty()) {
 //            for(String publicId : hinhAnhRepo.publicId(idSanPham)) {
 //                this.cloudinaryService.deleteImage(publicId);
@@ -156,8 +160,7 @@ public class ChiTietSanPhamService {
                 // kiem tra dinh dang
                 FileUpLoadUtil.assertAllowed(f, FileUpLoadUtil.IMAGE_PATTERN);
                 // tai anh
-                final CloudinaryResponse response = this.cloudinaryService.uploadFile(f, fileName, tenMau,idSanPham);
-
+                final CloudinaryResponse response = this.cloudinaryService.uploadFile(f, fileName, tenMau, idSanPham);
 
 
                 anh.setMauSac(mauSacRepo.findMauSacByTenEqualsIgnoreCase(tenMau));
@@ -175,17 +178,18 @@ public class ChiTietSanPhamService {
 
     }
 
-    public List<ChiTietSanPhamRequest> timKiem (String search,int page, int pageSize){
+    public List<ChiTietSanPhamRequest> timKiem(String search, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
         List<ChiTietSanPhamRequest> request = new ArrayList<>();
-        List<ChiTietSanPham> list = chiTietSanPhamRepo.searchs(search,pageable).getContent();
+        List<ChiTietSanPham> list = chiTietSanPhamRepo.searchs(search, pageable).getContent();
         return getChiTietSanPhamRequests(request, list);
     }
 
     private List<ChiTietSanPhamRequest> getChiTietSanPhamRequests(List<ChiTietSanPhamRequest> request, List<ChiTietSanPham> list) {
-        for(ChiTietSanPham c : list) {
+        for (ChiTietSanPham c : list) {
             ChiTietSanPhamRequest r = new ChiTietSanPhamRequest();
             r.setIdChiTietSanPham(c.getIdChiTietSanPham());
+            r.setMa(c.getMa());
             r.setMuiGiay(c.getMuiGiay());
             r.setSanPham(c.getSanPham());
             r.setMauSac(c.getMauSac());
@@ -210,7 +214,85 @@ public class ChiTietSanPhamService {
         return request;
     }
 
-    public void xoaAnh(){
+    public void xoaAnh() {
 
     }
+
+    public List<HoaDonChiTiet> themSp(Integer idHoaDon, Integer idChiTietSanPham, int soLuongThem, BigDecimal giaSauGiam) {
+        boolean isUpdate = false;
+        // tim hdct có idhd = ?
+        List<HoaDonChiTiet> listHoaDonChiTiet = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
+
+        // tìm sp đang thao tác
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
+
+        for(HoaDonChiTiet hdct : listHoaDonChiTiet) {
+            if(hdct.getHoaDon().getIdHoaDon().equals(idHoaDon)) {
+                if(hdct.getChiTietSanPham().getIdChiTietSanPham().equals(idChiTietSanPham)) {
+                    hdct.setSoLuong(hdct.getSoLuong() + soLuongThem);
+                    hdct.setThanhTien(giaSauGiam.multiply(BigDecimal.valueOf(hdct.getSoLuong())));
+                    isUpdate = true;
+                    hoaDonChiTietRepository.save(hdct);
+                    break;
+                }
+            }
+        }
+
+        if (!isUpdate) {
+            HoaDonChiTiet hoaDonThem = new HoaDonChiTiet();
+            hoaDonThem.setChiTietSanPham(ctsp);
+            hoaDonThem.setHoaDon(hoaDonRepository.findById(idHoaDon).orElseThrow());
+            hoaDonThem.setSoLuong(soLuongThem);
+            hoaDonThem.setDonGia(giaSauGiam);
+            hoaDonThem.setThanhTien(giaSauGiam.multiply(BigDecimal.valueOf(soLuongThem)));
+            hoaDonThem.setNgayTao(LocalDateTime.now());
+            hoaDonThem.setNguoiTao("admin");
+            hoaDonChiTietRepository.save(hoaDonThem);
+        }
+
+        chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() - soLuongThem);
+
+        return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
+    }
+
+
+    public List<ChiTietSanPhamRequest> suaSp(List<ChiTietSanPhamRequest> listCart, Integer idChiTietSanPham, int soLuongSua) {
+        ChiTietSanPham c = chiTietSanPhamRepo.findById(idChiTietSanPham).orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        for (ChiTietSanPhamRequest cart : listCart) {
+            if (cart.getIdChiTietSanPham().equals(idChiTietSanPham)) {
+                int chenhLech = soLuongSua - cart.getSoLuong(); // Chênh lệch số lượng mới so với cũ
+                chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, c.getSoLuong() - chenhLech);
+                cart.setSoLuong(soLuongSua);
+                break;
+            }
+        }
+        return listCart;
+    }
+
+    public List<HoaDonChiTiet> xoaSp(Integer idHdct, Integer idChiTietSanPham) {
+        // tim sp can xoa
+        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
+
+        // lay sp trong db de cap nhat
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
+        chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
+        hoaDonChiTietRepository.delete(hdct);
+        return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hdct.getHoaDon().getIdHoaDon());
+    }
+
+    public void capNhatSl(Integer idHdct,Integer idCtsp,int slThem){
+        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
+        hdct.setSoLuong(hdct.getSoLuong() + slThem);
+        hoaDonChiTietRepository.save(hdct);
+
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).get();
+        ctsp.setSoLuong(hdct.getSoLuong() - slThem);
+        chiTietSanPhamRepo.save(ctsp);
+    }
+
+    public List<SpGiamGiaRequest> getSpGiamGia(){
+        return chiTietSanPhamRepo.getSanPhamGiamGia();
+    }
+
 }

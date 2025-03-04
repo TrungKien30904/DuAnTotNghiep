@@ -28,5 +28,5 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 
 //    @Query("SELECT hd FROM HoaDon  hd where  hd.")fsdfds
 
-
+    List<HoaDon> findAllByTrangThaiEqualsIgnoreCase(String status);
 }

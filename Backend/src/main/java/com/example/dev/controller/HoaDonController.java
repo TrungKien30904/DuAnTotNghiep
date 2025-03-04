@@ -3,7 +3,6 @@ package com.example.dev.controller;
 import com.example.dev.entity.HoaDon;
 import com.example.dev.entity.LichSuHoaDon;
 import com.example.dev.entity.ThanhToanHoaDon;
-import com.example.dev.repository.LichSuHoaDonRepository;
 import com.example.dev.service.HoaDonService;
 import com.example.dev.service.LichSuHoaDonService;
 import com.example.dev.service.ThanhToanHoaDonService;
@@ -116,10 +115,25 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDons);
     }
 
+    @GetMapping("/hd-ban-hang")
+    public ResponseEntity<?> findAllHoaDonByStatus() {
+        return ResponseEntity.ok(hoaDonService.findAllByStatus());
+    }
+
     @GetMapping("/delete/{idHoaDon}")
     public ResponseEntity<String> deleteHoaDon(@PathVariable Integer idHoaDon) {
         try {
             hoaDonService.deleteById(idHoaDon);
+            return ResponseEntity.ok("Xóa hóa đơn thành công!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/thanh-toan")
+    public ResponseEntity<?> thanhToan(@RequestBody HoaDon hoaDon) {
+        try {
+            hoaDonService.pay(hoaDon);
             return ResponseEntity.ok("Xóa hóa đơn thành công!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

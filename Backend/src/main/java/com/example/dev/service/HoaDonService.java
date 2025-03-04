@@ -1,9 +1,8 @@
 package com.example.dev.service;
 
-import com.example.dev.entity.HoaDon;
-import com.example.dev.entity.LichSuHoaDon;
-import com.example.dev.repository.HoaDonRepository;
-import com.example.dev.repository.LichSuHoaDonRepository;
+import com.example.dev.entity.*;
+import com.example.dev.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 import java.io.ByteArrayOutputStream;
 
 @Service
+@RequiredArgsConstructor
 public class HoaDonService {
 
     @Autowired
@@ -35,6 +35,10 @@ public class HoaDonService {
 
     @Autowired
     private LichSuHoaDonRepository lichSuHoaDonRepository;
+    private final HoaDonChiTietRepository hoaDonChiTietRepository;
+    private final ChiTietSanPhamRepo chiTietSanPhamRepo;
+    @Autowired
+    private PhieuGiamGiaRepository phieuGiamGiaRepository;
     private static final String PREFIX = "HD";
     private static final int RANDOM_LENGTH = 5;
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
@@ -102,7 +106,8 @@ public class HoaDonService {
         // Nếu mã hóa đơn chưa có, tự động sinh mã
         if (hoaDon.getMaHoaDon() == null || hoaDon.getMaHoaDon().trim().isEmpty()) {
             hoaDon.setMaHoaDon(generateMaHoaDon());
-            hoaDon.setNgayTao(LocalDate.now().atStartOfDay());
+            hoaDon.setNgayTao(LocalDateTime.now());
+            hoaDon.setTrangThai("Chờ xử lý");
         }
         return hoaDonRepository.save(hoaDon);
     }
@@ -199,9 +204,41 @@ public class HoaDonService {
 
     public void deleteById(Integer idHoaDon) {
         if (hoaDonRepository.existsById(idHoaDon)) {
+            List<HoaDonChiTiet> listRemove = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
+            for (HoaDonChiTiet removeCart : listRemove) {
+                ChiTietSanPham refundProduct = chiTietSanPhamRepo.findById(removeCart.getChiTietSanPham().getIdChiTietSanPham()).orElseThrow();
+                refundProduct.setSoLuong(refundProduct.getSoLuong() + removeCart.getSoLuong());
+                chiTietSanPhamRepo.save(refundProduct);
+            }
+            hoaDonChiTietRepository.deleteAll(listRemove);
             hoaDonRepository.deleteById(idHoaDon);
         } else {
             throw new RuntimeException("Hóa đơn không tồn tại với id: " + idHoaDon);
         }
+    }
+
+    public List<HoaDon> findAllByStatus() {
+        return hoaDonRepository.findAllByTrangThaiEqualsIgnoreCase("Chờ xử lý");
+    }
+
+    public void updateVoucher(Integer idHoaDon, Integer voucherId) {
+        Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(idHoaDon);
+        if (optionalHoaDon.isPresent()) {
+            HoaDon hoaDon = optionalHoaDon.get();
+            PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(voucherId)
+                    .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
+            hoaDon.setPhieuGiamGia(phieuGiamGia);
+            hoaDonRepository.save(hoaDon);
+        } else {
+            throw new RuntimeException("Hóa đơn không tồn tại");
+        }
+    }
+
+    public void pay(HoaDon hoaDon) {
+        HoaDon find = hoaDonRepository.findById(hoaDon.getIdHoaDon()).orElseThrow();
+        hoaDon.setNgayTao(find.getNgayTao());
+        hoaDonRepository.save(hoaDon);
+        List<HoaDonChiTiet> listCart = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hoaDon.getIdHoaDon());
+        hoaDonChiTietRepository.deleteAll(listCart);
     }
 }

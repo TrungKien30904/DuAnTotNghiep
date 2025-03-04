@@ -8,7 +8,7 @@ export default function Alert({ message, open, onClose }) {
 
     return (
         <Dialog
-            fullWidth="sm"
+            fullWidth
             maxWidth="sm"
             open={open}
             onClose={() => handleClose(false)}

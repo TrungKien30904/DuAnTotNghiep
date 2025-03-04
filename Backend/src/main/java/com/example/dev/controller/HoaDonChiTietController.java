@@ -3,13 +3,13 @@ package com.example.dev.controller;
 import com.example.dev.entity.HoaDonChiTiet;
 import com.example.dev.service.HoaDonChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("HoaDonChiTiet")
+@RequestMapping("/admin/hdct")
 public class HoaDonChiTietController {
 
     @Autowired
@@ -18,11 +18,17 @@ public class HoaDonChiTietController {
     //123
     @GetMapping("/listHoaDonChiTiet")
     public List<HoaDonChiTiet> findByIdHoaDon(@RequestParam("maHoaDon") String maHoaDon) {
-        return hoaDonChiTietService.findByIdHoaDon(maHoaDon);
+        return hoaDonChiTietService.findByMaHoaDon(maHoaDon);
     }
 
     @GetMapping("/delete/{id}")
-    void softDelete(@PathVariable Integer id){
+    public ResponseEntity<?> softDelete(@PathVariable Integer id){
         hoaDonChiTietService.softDelete(id);
+        return ResponseEntity.ok("delete");
+    }
+
+    @GetMapping("/get-cart/{idHoaDon}")
+    public ResponseEntity<?> getCart(@PathVariable Integer idHoaDon){
+        return ResponseEntity.ok(hoaDonChiTietService.getCartByIdInvoice(idHoaDon));
     }
 }

@@ -1,4 +1,5 @@
 package com.example.dev.entity;
+import com.example.dev.entity.nhanvien.NhanVien;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,10 @@ public class HoaDon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idHoaDon;
     private String maHoaDon;
+
+    @ManyToOne
+    @JoinColumn(name = "id_khuyen_mai")
+    private PhieuGiamGia phieuGiamGia;
 
     @ManyToOne
     @JoinColumn(name = "id_khach_hang")

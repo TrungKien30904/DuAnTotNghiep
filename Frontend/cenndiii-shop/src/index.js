@@ -9,8 +9,8 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 // Render ứng dụng
 root.render(
-  <React.StrictMode>
-    <App />
+  <React.StrictMode >
+      <App/>
   </React.StrictMode>
 );
 

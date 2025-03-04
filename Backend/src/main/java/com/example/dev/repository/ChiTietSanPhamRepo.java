@@ -1,10 +1,13 @@
 package com.example.dev.repository;
 
+import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.DotGiamGia;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -42,4 +45,16 @@ public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Intege
     Page<ChiTietSanPham> findBySanPhamIdSanPhamIn(List<Integer> idSanPham, Pageable pageable);
 
     DotGiamGia save(DotGiamGia dotGiamGia);
+
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+        update chi_tiet_san_pham set so_luong = :soLuong where id_chi_tiet_san_pham = :idChiTietSanPham
+    """,nativeQuery = true)
+    void updateQuantity(@Param("idChiTietSanPham") Integer idChiTietSanPham,@Param("soLuong") int soLuong);
+
+    @Query(value = "EXEC sp_TinhGiaSauGiam",nativeQuery = true)
+    List<SpGiamGiaRequest> getSanPhamGiamGia();
+
 }
