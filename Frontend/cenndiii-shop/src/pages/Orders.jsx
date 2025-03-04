@@ -23,7 +23,7 @@ import {
     Badge,
     Box,
 } from "@mui/material";
-import { Trash } from "lucide-react";
+import { Trash,Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
 import DetailsPayment from "./DetailsPayment";
 
@@ -141,11 +141,11 @@ export default function Orders() {
             Notification('Bạn chỉ có thể tạo tối đa 10 hóa đơn chờ.', "error");
             return;
         }
-
+        
         try {
             const newOrder = {
                 maHoaDon: "", // Let the backend generate if needed
-                khachHang: customers.find(c => c.idKhachHang === 0), // Gán khách hàng mặc định là "Khách lẻ"
+                // khachHang: customers.find(c => c.idKhachHang === 0), // Gán khách hàng mặc định là "Khách lẻ"
                 phieuGiamGia: null,
                 nhanVien: null,
                 tongTien: null,
@@ -176,6 +176,7 @@ export default function Orders() {
             setOrderId(newTabId)
             setOrderItems(createdOrder)
             getProductFromDetailsInvoice(createdOrder.idHoaDon)
+
         } catch (error) {
             console.error("Error creating new order:", error);
         }
@@ -349,6 +350,7 @@ export default function Orders() {
     }, [orderItemsByTab]);
 
     const reloadTab = async () => {
+        
         try {
             const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
             const ordersData = response.data;

@@ -108,7 +108,7 @@ public class PhieuGiamGiaService {
                 phieuGiamGia.getDanhSachKhachHang().add(chiTiet);
 
                 // Gửi email cho khách hàng
-                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
+//                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
             }
         } else if ("Cá Nhân".equals(phieuGiamGia.getLoai())) {
             if (phieuGiamGia.getDanhSachKhachHang() != null && !phieuGiamGia.getDanhSachKhachHang().isEmpty()) {
@@ -354,23 +354,6 @@ public class PhieuGiamGiaService {
         }
     }
 
-    public List<PhieuGiamGia> timKiemTheoMa(Integer idKhachHang, String keyword2) {
-        String keyword2Trimmed = keyword2.replaceAll("\\s+", ""); // Xóa toàn bộ khoảng trắng
-        if (idKhachHang == null || idKhachHang == 0) {
-            return giamGiaRepository.findByMaKhuyenMaiKhachLe(keyword2Trimmed);
-        } else {
-            return giamGiaRepository.timKiemPhieuTheoMa(idKhachHang, keyword2Trimmed);
-        }
-    }
-    // hiển thị bên bán hàng
-    public List<PhieuGiamGia> getPhieuGiamGia(Integer khachHangId) {
-        if (khachHangId == null) {
-            // Nếu không có khách hàng cụ thể (khách lẻ), chỉ lấy phiếu Công Khai
-            return giamGiaRepository.findPublicVouchers();
-        }
-        // Nếu có khách hàng, lấy cả Công Khai + Cá Nhân (nếu có)
-        return giamGiaRepository.findApplicableVouchers(khachHangId);
-    }
 
     private void safeSendEmail(Runnable emailTask) {
         try {

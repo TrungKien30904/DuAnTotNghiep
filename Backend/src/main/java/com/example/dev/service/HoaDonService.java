@@ -1,8 +1,8 @@
 package com.example.dev.service;
 
-import com.example.dev.entity.PhieuGiamGia;
+import com.example.dev.entity.*;
+import com.example.dev.repository.*;
 import lombok.RequiredArgsConstructor;
-import com.example.dev.repository.PhieuGiamGiaRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -38,8 +35,8 @@ public class HoaDonService {
     private LichSuHoaDonRepository lichSuHoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final ChiTietSanPhamRepo chiTietSanPhamRepo;
-    @Autowired
-    private PhieuGiamGiaRepository phieuGiamGiaRepository;
+
+
     private static final String PREFIX = "HD";
     private static final int RANDOM_LENGTH = 5;
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
@@ -66,18 +63,6 @@ public class HoaDonService {
         return hoaDonRepository.save(hoaDon);
     }
 
-    public void updateVoucher(Integer idHoaDon, Integer voucherId) {
-        Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(idHoaDon);
-        if (optionalHoaDon.isPresent()) {
-            HoaDon hoaDon = optionalHoaDon.get();
-            PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(voucherId)
-                    .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
-            hoaDon.setPhieuGiamGia(phieuGiamGia);
-            hoaDonRepository.save(hoaDon);
-        } else {
-            throw new RuntimeException("Hóa đơn không tồn tại");
-        }
-    }
 
     public HoaDon xacnhan(String maHoaDon) {
         HoaDon hoaDon = findInvoice(maHoaDon);

@@ -36,10 +36,6 @@ public class HoaDon {
     @JoinColumn(name = "id_nhan_vien")
     private NhanVien nhanVien;
 
-    @ManyToOne
-    @JoinColumn(name = "id_phieu_giam_gia")
-    private PhieuGiamGia phieuGiamGia;
-
     private BigDecimal tongTien;
     private String tenNguoiNhan;
     private String soDienThoai;
