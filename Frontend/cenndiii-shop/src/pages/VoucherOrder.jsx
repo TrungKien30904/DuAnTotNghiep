@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Ticket } from "lucide-react";
 import axios from 'axios';
-// import { confirmAlert } from 'react-confirm-alert';
-// import 'react-confirm-alert/src/react-confirm-alert.css';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -203,8 +203,8 @@ export default function Orders() {
                     idKhachHang: selectedCustomer?.idKhachHang, keyword2: keyword
                 }
             });
-            // const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, vouchers: response.data } : tab);
-            // setTabs(updatedTabs);
+            const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, vouchers: response.data } : tab);
+            setTabs(updatedTabs);
             setFilteredVouchers(response.data);
             if (response.data.length === 1) {
                 const activeOrder = orders.find(o => o.idHoaDon === activeTab);
@@ -331,8 +331,7 @@ export default function Orders() {
 
     const filteredOrders = orders.filter(order => order.idHoaDon === activeTab);
 
-    return (
-    <div className="p-6">
+    return (<div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Bán hàng tại quầy</h1>
         <div className="flex gap-4">
             <div className="w-[70%] bg-white p-4 rounded-lg shadow-md" style={{ height: '1000px' }}>

@@ -4,6 +4,9 @@ import { useParams } from 'react-router-dom';
 import OrderStatus from '../components/ui/OrderStatus';
 import Notification from '../components/Notification';
 import { ToastContainer } from 'react-toastify';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+
 
 
 export default function InvoiceDetail() {
