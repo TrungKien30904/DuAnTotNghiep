@@ -81,6 +81,8 @@ export default function Orders() {
     //  Tong tien
     const [total, setTotal] = useState(0);
 
+    
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {

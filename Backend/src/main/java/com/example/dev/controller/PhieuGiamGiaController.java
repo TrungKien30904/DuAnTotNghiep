@@ -36,6 +36,19 @@ public class PhieuGiamGiaController {
         return ResponseEntity.ok(phieuGiamGiaService.hienThi(page, size));
     }
 
+    @PatchMapping("/tru-so-luong-pgg/{id}")
+    public ResponseEntity<?> giamSoLuongPhieu(@PathVariable Integer id) {
+        try {
+            phieuGiamGiaService.giamSoLuongPhieu(id);
+            return ResponseEntity.ok("Đã cập nhật số lượng phiếu giảm giá.");
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi hệ thống: " + e.getMessage());
+        }
+    }
+
+
     // hiển thị bên bán hàng
     @GetMapping("/hien-thi-voucher")
     public ResponseEntity<List<PhieuGiamGia>> getPhieuGiamGia(
@@ -136,13 +149,7 @@ public class PhieuGiamGiaController {
             return ResponseEntity.status(e.getStatusCode()).body(null);
         }
     }
-    @GetMapping("/tim-kiem-theo-ma")
-    public ResponseEntity<List<PhieuGiamGia>> timKiemTheoMa(
-            @RequestParam(required = false) Integer idKhachHang,
-            @RequestParam(required = false) String keyword2
-    ) {
-        return ResponseEntity.ok(phieuGiamGiaService.timKiemTheoMa(idKhachHang,keyword2));
-    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {

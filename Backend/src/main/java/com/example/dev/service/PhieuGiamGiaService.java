@@ -48,14 +48,7 @@ public class PhieuGiamGiaService {
         return giamGiaRepository.findAll(pageable);
     }
 
-    public List<PhieuGiamGia> timKiemTheoMa(Integer idKhachHang, String keyword2) {
-        String keyword2Trimmed = keyword2.replaceAll("\\s+", ""); // Xóa toàn bộ khoảng trắng
-        if (idKhachHang == null || idKhachHang == 0) {
-            return giamGiaRepository.findByMaKhuyenMaiKhachLe(keyword2Trimmed);
-        } else {
-            return giamGiaRepository.timKiemPhieuTheoMa(idKhachHang, keyword2Trimmed);
-        }
-    }
+
     // hiển thị bên bán hàng
     public List<PhieuGiamGia> getPhieuGiamGia(Integer khachHangId) {
         if (khachHangId == null) {
@@ -65,6 +58,23 @@ public class PhieuGiamGiaService {
         // Nếu có khách hàng, lấy cả Công Khai + Cá Nhân (nếu có)
         return giamGiaRepository.findApplicableVouchers(khachHangId);
     }
+    // trừ số lg
+    @Transactional
+    public void giamSoLuongPhieu(int id) {
+        PhieuGiamGia phieuGiamGia = timPhieuGiamTheoID(id);
+        if (phieuGiamGia.getSoLuong() > 0) {
+            phieuGiamGia.setSoLuong(phieuGiamGia.getSoLuong() - 1);
+            System.out.println("Đã trừ"+phieuGiamGia.getSoLuong());
+            if (phieuGiamGia.getSoLuong()==0){
+                phieuGiamGia.setNgayKetThuc(LocalDateTime.now());
+                phieuGiamGia.setTrangThai(0);
+            }
+            giamGiaRepository.save(phieuGiamGia);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phiếu giảm giá đã hết số lượng");
+        }
+    }
+
 
     // hien thi danh sach khach hang
     public Page<KhachHang> hienThiKhachHang(int page, int size) {

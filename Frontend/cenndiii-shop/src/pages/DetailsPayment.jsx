@@ -1,15 +1,14 @@
 import { useForm } from "react-hook-form";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Notification from "../components/Notification";
 import { Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const DeliveryForm = ({ total, orderItems, reloadTab }) => {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm();
+    const { register, handleSubmit, formState: { errors } } = useForm();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         id: 0,
         maKhachHang: '',
@@ -27,7 +26,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         image: "",
         imageBase64: ""
     });
-
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
@@ -38,12 +36,12 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const [customers, setCustomers] = useState([]);
     const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [lastTotal, setLastTotal] = useState(total);
+    const [totalAmount, setTotalAmount] = useState(0);
     const [deliveryMethod, setDeliveryMethod] = useState("taiquay");
     const [paymentMethod, setPaymentMethod] = useState("tienmat");
     const [cashAmount, setCashAmount] = useState(0);
     const [transferAmount, setTransferAmount] = useState(0);
     const [errorMessage, setErrorMessage] = useState("");
-
     const [orders, setOrders] = useState([]);
     const [tabs, setTabs] = useState([]);
     const [activeTab, setActiveTab] = useState('');
@@ -53,6 +51,11 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const [filteredVouchers, setFilteredVouchers] = useState([]);
     const [bestVoucherApplied, setBestVoucherApplied] = useState(false);
     const [initialBestVoucherId, setInitialBestVoucherId] = useState(null);
+    const [manualVoucherSelected, setManualVoucherSelected] = useState(false);
+    const [originalVouchers, setOriginalVouchers] = useState([]);
+    const [voucherSearched, setVoucherSearched] = useState(false);
+
+
 
 
     const headers = {
@@ -60,7 +63,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         "Content-Type": "application/json",
     };
 
-    const navigate = useNavigate();
     useEffect(() => {
         const fetchProvinces = async () => {
             try {
@@ -80,12 +82,9 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     }, []);
 
     useEffect(() => {
-        if (deliveryMethod === "taiquay") {
-            setLastTotal(total);
-        } else {
-            setLastTotal(total + Number(amount));
-        }
-    }, [total, amount, deliveryMethod]);
+        setLastTotal(calculateLastTotal(total, amount, discountAmount));
+    }, [total, amount, discountAmount]);
+
 
     const handleProvinceChange = async (e) => {
         const provinceId = e.target.value;
@@ -178,37 +177,12 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         }
     }, [selectedWard, selectedDistrict]);
 
-    const fetchCustomers = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/admin/khach-hang');
-            setCustomers(response.data);
-            setShowCustomerModal(true);
-        } catch (error) {
-            console.error("Error fetching customers: ", error);
-        }
-    };
-
-    const handleCustomerSelect = (customer) => {
-        setFormData({
-            ...formData,
-            maKhachHang: customer.maKhachHang,
-            hoTen: customer.hoTen,
-            soDienThoai: customer.soDienThoai,
-            email: customer.email,
-        });
-        setShowCustomerModal(false);
-    };
-
     const onSubmit = async (data) => {
-
         if (!orderItems) {
             navigate("/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
         }
         if (paymentMethod === "cahai" && (Number(cashAmount) + Number(transferAmount) !== lastTotal)) {
-            console.log(Number(cashAmount), Number(transferAmount), Number(discountAmount));
-            console.log(lastTotal);
-
             navigate("/orders", { state: { message: "Tổng tiền chưa đủ", type: "error" } });
             return;
         }
@@ -216,7 +190,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         const requestData = {
             idHoaDon: orderItems.idHoaDon,
             maHoaDon: orderItems.maHoaDon,
-            phieuGiamGia: null,
             khachHang: null,
             nhanVien: null,
             tongTien: lastTotal,
@@ -250,23 +223,27 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             );
 
             if (response.status === 200) {
+                if (selectedVoucher) {
+                    try {
+                        await axios.patch(`http://localhost:8080/admin/phieu-giam-gia/tru-so-luong-pgg/${selectedVoucher}`);
+                    } catch (voucherError) {
+                        console.error("Lỗi khi cập nhật số lượng phiếu giảm giá:", voucherError);
+                    }
+                }
                 const fetchOrders = async () => {
                     try {
                         const response = await axios.get('http://localhost:8080/admin/hoa-don/listHoaDon');
                         const ordersData = response.data;
                         setOrders(ordersData);
-        
                     } catch (error) {
                         console.error('Error fetching orders:', error);
                     }
                 };
-                // gọi danh sách khách hàng
                 const fetchCustomers = async () => {
                     try {
                         const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
                         const customersData = response.data;
                         const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A' };
-                        // Chỉ thêm khách lẻ một lần nếu chưa có trong danh sách
                         const updatedCustomers = [defaultCustomer, ...customersData.filter(c => c.idKhachHang !== 0)];
                         setCustomers(updatedCustomers);
                     } catch (error) {
@@ -275,7 +252,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 };
                 fetchCustomers();
                 fetchOrders();
-                reloadTab(); // Gọi hàm reload tab sau khi thanh toán thành công
+                reloadTab();
                 navigate("/orders", { state: { message: "Thanh toán thành công", type: "success" } });
             }
         } catch (error) {
@@ -284,23 +261,82 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         }
     };
 
+    //tính toán lại khi có sự thay đổi tổng tiền
+    const calculateBestVoucher = (total, vouchers) => {
+        let bestVoucher = null;
+        let maxDiscount = 0;
+
+        vouchers.forEach(voucher => {
+            if (total >= voucher.dieuKien) {
+                let discount = 0;
+                if (voucher.hinhThuc === '%') {
+                    discount = (total * voucher.giaTri) / 100;
+                    if (discount > voucher.giaTriToiDa) discount = voucher.giaTriToiDa;
+                } else if (voucher.hinhThuc === 'VNĐ') {
+                    discount = voucher.giaTri;
+                }
+
+                if (discount > maxDiscount) {
+                    maxDiscount = discount;
+                    bestVoucher = voucher;
+                }
+            }
+        });
+
+        return { bestVoucher, maxDiscount };
+    };
+
     useEffect(() => {
-        // Fetch orders data from API
+        const currentVoucher = filteredVouchers.find(v => v.id === selectedVoucher);
+
+        if (manualVoucherSelected && currentVoucher) {
+            // Đã chọn tay, kiểm tra xem voucher có còn hợp lệ với tổng tiền mới không
+            if (total + Number(amount) < currentVoucher.dieuKien) {
+                // Không còn hợp lệ => bỏ chọn và reset
+                setSelectedVoucher('');
+                setDiscountAmount(0);
+                setManualVoucherSelected(false);
+                setBestVoucherApplied(false);
+            } else {
+                // Còn hợp lệ => tính lại giảm giá theo voucher đang chọn
+                let discount = 0;
+                if (currentVoucher.hinhThuc === '%') {
+                    discount = (total * currentVoucher.giaTri) / 100;
+                    if (discount > currentVoucher.giaTriToiDa) {
+                        discount = currentVoucher.giaTriToiDa;
+                    }
+                } else if (currentVoucher.hinhThuc === 'VNĐ') {
+                    discount = currentVoucher.giaTri;
+                }
+                setDiscountAmount(discount);
+                setLastTotal(total + Number(amount) - discount);
+                setBestVoucherApplied(false); // Không phải tốt nhất do chọn tay
+                return;
+            }
+        }
+
+        // Nếu không chọn tay hoặc phiếu tay không hợp lệ, chọn lại phiếu tốt nhất
+        const { bestVoucher, maxDiscount } = calculateBestVoucher(total + Number(amount), filteredVouchers);
+        setSelectedVoucher(bestVoucher?.id || '');
+        setDiscountAmount(maxDiscount);
+        setLastTotal(total + Number(amount) - maxDiscount);
+        setBestVoucherApplied(true);
+    }, [total, amount, filteredVouchers]);
+
+
+
+
+    useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/admin/hoa-don/listHoaDon');
+                const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
                 const ordersData = response.data;
                 setOrders(ordersData);
                 const newTabs = ordersData.map(order => ({
                     id: order.idHoaDon,
                     label: `Order ${order.maHoaDon}`,
-                    maHoaDon: order.maHoaDon,
-                    khachHang: null,
-                    vouchers: []
                 }));
                 setTabs(newTabs);
-
-                // Set the default active tab to the first tab
                 if (newTabs.length > 0) {
                     setActiveTab(newTabs[0].id);
                 }
@@ -308,13 +344,11 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 console.error('Error fetching orders:', error);
             }
         };
-        // gọi danh sách khách hàng
         const fetchCustomers = async () => {
             try {
                 const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
                 const customersData = response.data;
                 const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A' };
-                // Chỉ thêm khách lẻ một lần nếu chưa có trong danh sách
                 const updatedCustomers = [defaultCustomer, ...customersData.filter(c => c.idKhachHang !== 0)];
                 setCustomers(updatedCustomers);
             } catch (error) {
@@ -324,10 +358,13 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         fetchCustomers();
         fetchOrders();
     }, []);
+
     useEffect(() => {
         const activeOrder = orders.find(o => o.idHoaDon === activeTab);
         if (activeOrder) {
-            const tongTien = total;
+            const tongTien = total || 0;
+            setTotalAmount(tongTien);
+
             let discount = 0;
             if (activeOrder.voucher) {
                 const voucher = activeOrder.voucher;
@@ -339,58 +376,98 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 } else if (voucher.hinhThuc === 'VNĐ') {
                     discount = voucher.giaTri;
                 }
+                setDiscountAmount(discount);
+                setSelectedVoucher(voucher.id ? voucher.id : '');
+            } else {
+                setDiscountAmount(0);
+                setSelectedVoucher('');
             }
-            const finalTotal = Math.max(tongTien + Number(amount) - discount, 0); // Đảm bảo finalTotal không nhỏ hơn 0
+
+            const activeTabData = tabs.find(tab => tab.id === activeTab);
+            if (activeTabData && activeTabData.vouchers) {
+                const filteredVouchers = activeTabData.vouchers.filter(v => tongTien >= v.dieuKien);
+                setFilteredVouchers(filteredVouchers);
+            } else {
+                setFilteredVouchers([]);
+            }
+
+            const finalTotal = Math.max(tongTien + Number(amount) - discount, 0);
             setLastTotal(finalTotal);
-            setDiscountAmount(discount);
-            setSelectedVoucher(activeOrder.voucher ? activeOrder.voucher.id.toString() : '');
         } else {
+            setTotalAmount(0);
             setLastTotal(0);
             setDiscountAmount(0);
             setSelectedVoucher('');
+            setFilteredVouchers([]);
         }
     }, [activeTab, orders, total, amount]);
 
-    // chọn khách hàng và hiển thị voucher của khách hàng đó đang có
+
     const handleSelectCustomer = async (customer) => {
-        const selected = customer || customers.find(c => c.idKhachHang === 0);
-        const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, khachHang: selected } : tab);
+        const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, khachHang: customer } : tab);
         setTabs(updatedTabs);
+        const selected = customer || customers.find(c => c.idKhachHang === 0);
+
+
+        setDiscountAmount(0);
+        setSelectedVoucher('');
+        setFilteredVouchers([]);
+        setBestVoucherApplied(false);
+        setManualVoucherSelected(false);
+        setVoucherSearched(false);
+
+
         try {
             const khachHangId = selected.idKhachHang !== 0 ? selected.idKhachHang : null;
             const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
                 params: { khachHangId }
             });
+            const validVouchers = response.data.filter(v => total >= v.dieuKien);
+
+            setOriginalVouchers(validVouchers);  // Lưu gốc
+            setFilteredVouchers(validVouchers);  // Hiển thị ban đầu
+
             const updatedTabsWithVouchers = updatedTabs.map(tab => tab.id === activeTab ? {
                 ...tab,
                 vouchers: response.data
             } : tab);
             setTabs(updatedTabsWithVouchers);
+
             const activeOrder = orders.find(o => o.idHoaDon === activeTab);
-            applyBestVoucher(activeOrder, response.data);
+            applyBestVoucher(activeOrder, response.data).then((bestDiscount) => {
+                setLastTotal(calculateLastTotal(total, amount, bestDiscount));
+            });
+
         } catch (error) {
             console.error('Lỗi khi lấy phiếu giảm giá:', error);
+            setLastTotal(calculateLastTotal(total, amount, 0));
         }
     };
-    // áp dụng phiếu giảm có giá trị tốt nhất
+
+
+
+    const calculateLastTotal = (totalAmount, deliveryFee, discount) => {
+        return Math.max(totalAmount + Number(deliveryFee) - discount, 0);
+    };
+
+
+
     const applyBestVoucher = async (order, vouchers) => {
-        if (!order || !vouchers?.length) {
-            return;
-        }
-        const lastTotal = order.tongTien || 0;
-        const validVouchers = vouchers.filter(v => lastTotal >= v.dieuKien);
-        if (validVouchers.length === 0) {
-            return;
-        }
+        if (!order || !vouchers?.length) return 0;
+
+        const totalAmount = total || 0;
+        const validVouchers = vouchers.filter(v => totalAmount >= v.dieuKien);
+
+        if (validVouchers.length === 0) return 0;
+
         let bestVoucher = null;
         let maxDiscount = 0;
+
         validVouchers.forEach(voucher => {
             let discount = 0;
             if (voucher.hinhThuc === '%') {
-                discount = (lastTotal * voucher.giaTri) / 100;
-                if (discount > voucher.giaTriToiDa) {
-                    discount = voucher.giaTriToiDa;
-                }
+                discount = (totalAmount * voucher.giaTri) / 100;
+                if (discount > voucher.giaTriToiDa) discount = voucher.giaTriToiDa;
             } else if (voucher.hinhThuc === 'VNĐ') {
                 discount = voucher.giaTri;
             }
@@ -399,6 +476,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 bestVoucher = voucher;
             }
         });
+
         if (bestVoucher) {
             try {
                 await axios.put(`http://localhost:8080/admin/hoa-don/update-voucher/${order.idHoaDon}`, {
@@ -408,77 +486,104 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 const updatedOrders = orders.map(o => o.idHoaDon === order.idHoaDon ? updatedOrder : o);
                 setOrders(updatedOrders);
                 setDiscountAmount(maxDiscount);
-                setSelectedVoucher(bestVoucher.id ? bestVoucher.id.toString() : '');
+                setSelectedVoucher(bestVoucher.id ? bestVoucher.id : '');
                 setBestVoucherApplied(true);
                 setInitialBestVoucherId(bestVoucher.id);
-                console.log('Best voucher applied:', bestVoucher);
+                return maxDiscount; // <-- Trả về giảm giá tốt nhất
             } catch (error) {
                 console.error('Lỗi khi áp dụng voucher:', error);
+                return 0; // Nếu lỗi thì không giảm
             }
         } else {
             toast.warn('Không tìm được voucher phù hợp.');
+            return 0;
         }
     };
-    // Áp dụng phiếu giảm của người dùng chọn
+
+
     const applySelectedVoucher = async (order, voucher) => {
-        if (!order || !voucher) {
-            return;
-        }
+        if (!order || !voucher) return;
+
         let discount = 0;
+        const totalAmount = total || 0;
         if (voucher.hinhThuc === '%') {
-            discount = (order.tongTien * voucher.giaTri) / 100;
-            if (discount > voucher.giaTriToiDa) {
-                discount = voucher.giaTriToiDa;
-            }
+            discount = (totalAmount * voucher.giaTri) / 100;
+            if (discount > voucher.giaTriToiDa) discount = voucher.giaTriToiDa;
         } else if (voucher.hinhThuc === 'VNĐ') {
             discount = voucher.giaTri;
         }
+
         try {
             await axios.put(`http://localhost:8080/admin/hoa-don/update-voucher/${order.idHoaDon}`, {
                 voucherId: voucher.id
             });
-            const updatedOrder = { ...order, voucher: voucher, discountAmount: discount };
+
+            const updatedOrder = { ...order, voucher, discountAmount: discount };
             const updatedOrders = orders.map(o => o.idHoaDon === order.idHoaDon ? updatedOrder : o);
             setOrders(updatedOrders);
             setDiscountAmount(discount);
-            setSelectedVoucher(voucher.id.toString());
-            setBestVoucherApplied(voucher.id === initialBestVoucherId);
+            setLastTotal(calculateLastTotal(total, amount, discount));
+            setSelectedVoucher(voucher.id);
 
-            console.log('Selected voucher applied:', voucher);
+            // Tính lại phiếu tốt nhất hiện tại
+            const { bestVoucher } = calculateBestVoucher(total + Number(amount), filteredVouchers);
+
+            // So sánh phiếu được chọn với phiếu tốt nhất hiện tại
+            if (voucher.id === bestVoucher?.id) {
+                setBestVoucherApplied(true); // Hiện lại dòng chữ
+                setManualVoucherSelected(false); // Vì chọn lại đúng auto voucher
+            } else {
+                setBestVoucherApplied(false); // Ẩn dòng chữ vì chọn tay
+                setManualVoucherSelected(true);  // Xác nhận chọn tay
+            }
+
         } catch (error) {
             console.error('Lỗi khi áp dụng voucher:', error);
         }
     };
+
+
+
     //Tìm pgg
-    const searchVoucher = async (keyword) => {
-        try {
-            const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/tim-kiem-theo-ma', {
-                params: {
-                    idKhachHang: selectedCustomer?.idKhachHang, keyword2: keyword
-                }
-            });
-            // const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, vouchers: response.data } : tab);
-            // setTabs(updatedTabs);
-            setFilteredVouchers(response.data);
-            if (response.data.length === 1) {
-                const activeOrder = orders.find(o => o.idHoaDon === activeTab);
-                if (activeOrder) {
-                    applySelectedVoucher(activeOrder, response.data[0]);
-                }
+
+    const searchVoucher = (keyword) => {
+        const cleanedKeyword = keyword.trim().toLowerCase().replace(/\s+/g, '');
+
+        // Nếu xóa hết, reset về danh sách gốc
+        if (cleanedKeyword === '') {
+            setFilteredVouchers(originalVouchers.filter(v => total >= v.dieuKien));
+            setVoucherSearched(false);  // Không phải đang tìm nữa
+            setManualVoucherSelected(false); // Reset chọn tay vì quay về auto tốt nhất
+            applyBestVoucher(orders.find(o => o.idHoaDon === activeTab), originalVouchers); // Áp lại voucher tốt nhất
+            return;
+        }
+
+        // Nếu đủ 9 ký tự mới thực hiện tìm kiếm theo yêu cầu
+        if (cleanedKeyword.length === 9) {
+            const filtered = originalVouchers.filter(v =>
+                v.maKhuyenMai.toLowerCase().replace(/\s+/g, '').includes(cleanedKeyword) && total >= v.dieuKien
+            );
+
+            setFilteredVouchers(filtered);
+            setVoucherSearched(filtered.length > 0);
+
+            if (filtered.length === 0) {
+                toast.warn("Không có phiếu giảm giá hoặc chưa đủ điều kiện áp dụng");
             }
-        } catch (error) {
-            console.error('Lỗi khi tìm kiếm:', error);
         }
     };
+
 
     const getSelectedCustomer = () => {
         const activeTabData = tabs.find(tab => tab.id === activeTab);
         return activeTabData ? activeTabData.khachHang : null;
     };
 
+
     const getTabVouchers = () => {
         return filteredVouchers;
     };
+
     const selectedCustomer = getSelectedCustomer();
 
     return (
@@ -503,6 +608,12 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         {customer.hoTen} - {customer.soDienThoai}
                     </option>))}
                 </select>
+                {tabs.map(tab => (
+                    <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}>
+                        <h3 className="text-lg font-semibold">{tab.label}</h3>
+                        <p>Khách
+                            hàng: {tab.khachHang ? `${tab.khachHang.hoTen}` : 'Chưa chọn'}</p>
+                    </div>))}
             </div>
             <div className="flex items-center gap-4 mb-4">
                 <label>
@@ -527,10 +638,11 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                     Giao hàng
                 </label>
             </div>
+
             <div className="flex items-center gap-2 mb-4">
                 <input
                     type="text"
-                    placeholder="Tìm theo mã"
+                    placeholder="Hãy nhập mã phiếu có 9 ký tự"
                     className="border p-2 rounded flex-1"
                     value={searchKeyword}
                     onChange={(e) => {
@@ -553,6 +665,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         const selectedVoucher = getTabVouchers().find(v => v.id === selectedVoucherId);
                         const activeOrder = orders.find(o => o.idHoaDon === activeTab);
                         setSelectedVoucher(selectedVoucherId);
+                        setManualVoucherSelected(true); // Đánh dấu là người dùng chọn tay
 
                         if (selectedVoucher && activeOrder) {
                             applySelectedVoucher(activeOrder, selectedVoucher);
@@ -561,19 +674,34 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 >
                     {getTabVouchers()
                         .sort((a, b) => {
-                            const discountA = a.hinhThuc === '%' ? Math.min((lastTotal * a.giaTri) / 100, a.giaTriToiDa) : a.giaTri;
-                            const discountB = b.hinhThuc === '%' ? Math.min((lastTotal * b.giaTri) / 100, b.giaTriToiDa) : b.giaTri;
+                            const calculateDiscount = (voucher, total) => {
+                                if (voucher.hinhThuc === '%') {
+                                    const discount = (total * voucher.giaTri) / 100;
+                                    return Math.min(discount, voucher.giaTriToiDa);
+                                } else if (voucher.hinhThuc === 'VNĐ') {
+                                    return voucher.giaTri;
+                                }
+                                return 0;
+                            };
+
+                            const discountA = calculateDiscount(a, lastTotal);
+                            const discountB = calculateDiscount(b, lastTotal);
                             return discountB - discountA;
                         })
-                        .map((voucher) => (<option key={voucher.id} value={voucher.id}>
-                            {voucher.maKhuyenMai} - {voucher.giaTri} {voucher.hinhThuc}
-                        </option>))}
-                </select>) : (<p className="text-gray-500">Không có phiếu giảm giá.</p>)}
-                {getTabVouchers().length > 0 && bestVoucherApplied && (
+                        .map((voucher) => (
+                            <option key={voucher.id} value={voucher.id}>
+                                {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString()} {voucher.hinhThuc}
+                                {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString()} VNĐ`}
+                            </option>
+                        ))
+                    }
+                </select>) : (<p className="text-gray-500">Không có phiếu giảm giá phù hợp.</p>)}
+                {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && (
                     <p className="text-red-500 italic text-sm mt-2">
                         * Phiếu giảm giá có giá trị tốt nhất.
                     </p>
                 )}
+
             </div>
             <div className="flex items-center justify-between w-full mt-4">
                 <div>Hình thức thanh toán:</div>
@@ -659,7 +787,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         <label>Ghi Chú:</label>
                         <textarea {...register('note')} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
                     </div>
-
                 </>
             )}
             <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
@@ -677,7 +804,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                                 className="w-24 h-12"
                             />
                         </div>
-
                         <div className="text-red-500">
                             <span className=""> + </span>
                             <input
@@ -717,7 +843,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             >
                 Thanh Toán
             </button>
-            {/* <ToastContainer/> */}
         </form>
     );
 };
