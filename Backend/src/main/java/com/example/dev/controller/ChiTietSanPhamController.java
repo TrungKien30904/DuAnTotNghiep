@@ -73,13 +73,11 @@ public class ChiTietSanPhamController {
         return ResponseEntity.ok(chiTietSanPhamService.themSp(sanPhamCartResponse.getIdHoaDon(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(), sanPhamCartResponse.getGiaSauGiam()));
     }
 
-//    @PostMapping("/sua-sp")
-//    public ResponseEntity<?> suaSp(@RequestBody CartRequest request) {
-//        List<ChiTietSanPhamRequest> updatedCart = chiTietSanPhamService.suaSp(
-//                request.getListCart(), request.getIdChiTietSanPham(), request.getSoLuong()
-//        );
-//        return ResponseEntity.ok(updatedCart);
-//    }
+    @PostMapping("/sua-sp")
+    public ResponseEntity<?> suaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
+        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua());
+        return ResponseEntity.ok("ok");
+    }
 
     @PostMapping("/xoa-sp")
     public ResponseEntity<?> xoaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {

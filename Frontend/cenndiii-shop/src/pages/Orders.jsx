@@ -1,4 +1,4 @@
-import { useNavigate,useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Alert from "../components/Alert";
@@ -23,7 +23,7 @@ import {
     Badge,
     Box,
 } from "@mui/material";
-import { Trash,Ticket } from "lucide-react";
+import { Trash, Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
 import DetailsPayment from "./DetailsPayment";
 
@@ -50,7 +50,7 @@ export default function Orders() {
 
     useEffect(() => {
         if (location.state && location.state.message) {
-            Notification(location.state.message,location.state.type)
+            Notification(location.state.message, location.state.type)
             // reloadTab();
         }
     }, [location.state]);
@@ -141,7 +141,7 @@ export default function Orders() {
             Notification('Bạn chỉ có thể tạo tối đa 10 hóa đơn chờ.', "error");
             return;
         }
-        
+
         try {
             const newOrder = {
                 maHoaDon: "", // Let the backend generate if needed
@@ -318,26 +318,44 @@ export default function Orders() {
 
 
     const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity) => {
-        if (newQuantity < 1) return;
+        if (newQuantity == "tru" || newQuantity == "cong") {
+            try {
+                const requestData = {
+                    idHoaDonChiTiet: idHoaDonChiTiet,
+                    idChiTietSanPham: idChiTietSanPham,
+                    soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1)
+                };
+                // console.log(newQuantity);
+                await axios.post(
+                    `http://localhost:8080/admin/chi-tiet-san-pham/cap-nhat-sl`,
+                    requestData
+                );
+                getProductFromDetailsInvoice(orderId);
 
-        try {
-            const requestData = {
-                idHoaDonChiTiet: idHoaDonChiTiet,
-                idChiTietSanPham: idChiTietSanPham,
-                soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1)
-            };
-            console.log(newQuantity);
+            } catch (error) {
+                console.error("Error updating product quantity:", error);
+                Notification("Đã có lỗi xảy ra khi cập nhật số lượng sản phẩm, vui lòng thử lại!", "error");
+            }
+        } else if (typeof (Number(newQuantity)) == "number") {
+            try {
+                const requestData = {
+                    idHoaDonChiTiet: idHoaDonChiTiet,
+                    idChiTietSanPham: idChiTietSanPham,
+                    soLuongMua: Number(newQuantity)
+                };
+                // console.log(newQuantity);
+                await axios.post(
+                    `http://localhost:8080/admin/chi-tiet-san-pham/sua-sp`,
+                    requestData
+                );
+                getProductFromDetailsInvoice(orderId);
 
-            await axios.post(
-                `http://localhost:8080/admin/chi-tiet-san-pham/cap-nhat-sl`,
-                requestData
-            );
-
-            getProductFromDetailsInvoice(orderId);
-        } catch (error) {
-            console.error("Error updating product quantity:", error);
-            Notification("Đã có lỗi xảy ra khi cập nhật số lượng sản phẩm, vui lòng thử lại!", "error");
+            } catch (error) {
+                console.error("Error updating product quantity:", error);
+                Notification("Đã có lỗi xảy ra khi cập nhật số lượng sản phẩm, vui lòng thử lại!", "error");
+            }
         }
+
     };
 
     useEffect(() => {
@@ -350,7 +368,7 @@ export default function Orders() {
     }, [orderItemsByTab]);
 
     const reloadTab = async () => {
-        
+
         try {
             const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
             const ordersData = response.data;
@@ -487,18 +505,40 @@ export default function Orders() {
                                                                     </TableCell>
                                                                     {/* <TableCell align="center">{item.tenSanPham}</TableCell> */}
                                                                     <TableCell align="center">
-                                                                        <button onClick={() => handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru")}>
+                                                                        <button onClick={() => {
+                                                                            if (Number(item.soLuongMua) > 1) {
+                                                                                handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru")
+                                                                            } else {
+                                                                                Notification("Đã là số lượng nhỏ nhất !", "warning")
+                                                                                return;
+                                                                            }
+                                                                        }
+                                                                        }>
                                                                             <Remove sx={{ fontSize: 15 }} />
                                                                         </button>
                                                                         <input
                                                                             type="number"
                                                                             value={item.soLuongMua}
-                                                                            // onChange={(e) => 
-                                                                            //     handleQuantityChange(item.idHoaDonChiTiet, Number(e.target.value))
-                                                                            // }
+                                                                            onChange={(e) => {
+                                                                                if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
+                                                                                    if ((e.target.value - item.soLuongMua) <= item.kho) {
+                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value)
+                                                                                    }
+                                                                                } else {
+                                                                                    Notification("Chọn số lượng hợp lệ", "error")
+                                                                                    return;
+                                                                                }
+                                                                            }}
                                                                             style={{ width: '50px', textAlign: 'center' }}
                                                                         />
-                                                                        <button onClick={() => handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong")}>
+                                                                        <button onClick={() => {
+                                                                            if (item.kho > 0) {
+                                                                                handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong")
+                                                                            } else {
+                                                                                Notification("Đã hết hàng trong kho!", "warning")
+                                                                                return;
+                                                                            }
+                                                                        }}>
                                                                             <Add sx={{ fontSize: 15 }} />
                                                                         </button>
                                                                     </TableCell>

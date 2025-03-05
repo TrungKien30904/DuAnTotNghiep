@@ -251,24 +251,35 @@ public class ChiTietSanPhamService {
         }
 
         chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() - soLuongThem);
-
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
     }
 
+    @Transactional
+    public void suaSoLuongHoaDonChiTiet(Integer idHdct,Integer idCtsp,int slThem){
+        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa đơn chi tiết với id: " + idHdct));
 
-    public List<ChiTietSanPhamRequest> suaSp(List<ChiTietSanPhamRequest> listCart, Integer idChiTietSanPham, int soLuongSua) {
-        ChiTietSanPham c = chiTietSanPhamRepo.findById(idChiTietSanPham).orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Chi tiết sản phẩm với id: " + idCtsp));
 
-        for (ChiTietSanPhamRequest cart : listCart) {
-            if (cart.getIdChiTietSanPham().equals(idChiTietSanPham)) {
-                int chenhLech = soLuongSua - cart.getSoLuong(); // Chênh lệch số lượng mới so với cũ
-                chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, c.getSoLuong() - chenhLech);
-                cart.setSoLuong(soLuongSua);
-                break;
+        if (slThem > 0 && slThem <= hdct.getSoLuong() + ctsp.getSoLuong()) {
+            int chenhLech = slThem - hdct.getSoLuong();
+            if (chenhLech <= ctsp.getSoLuong()) {
+                hdct.setSoLuong(slThem);
+                hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(slThem))); // Fix tính toán
+                hoaDonChiTietRepository.save(hdct);
+
+                if (ctsp.getSoLuong() >= chenhLech) { // Kiểm tra trước khi trừ
+                    chiTietSanPhamRepo.updateQuantity(idCtsp, ctsp.getSoLuong() - chenhLech);
+                } else {
+                    throw new RuntimeException("Không đủ hàng trong kho!");
+                }
             }
+        } else {
+            throw new RuntimeException("Số lượng cập nhật không hợp lệ!");
         }
-        return listCart;
     }
+
 
     public List<HoaDonChiTiet> xoaSp(Integer idHdct, Integer idChiTietSanPham) {
         // tim sp can xoa
@@ -282,13 +293,22 @@ public class ChiTietSanPhamService {
     }
 
     public void capNhatSl(Integer idHdct,Integer idCtsp,int slThem){
+
         HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
-        hdct.setSoLuong(hdct.getSoLuong() + slThem);
-        hoaDonChiTietRepository.save(hdct);
+        if (hdct.getSoLuong() >= 0){
+            hdct.setSoLuong(hdct.getSoLuong() + slThem);
+            hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(hdct.getSoLuong())));
+            hoaDonChiTietRepository.save(hdct);
+        }
 
         ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).get();
-        ctsp.setSoLuong(hdct.getSoLuong() - slThem);
-        chiTietSanPhamRepo.save(ctsp);
+        if (ctsp.getSoLuong() >= 0){
+            ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
+            chiTietSanPhamRepo.save(ctsp);
+        }else{
+            System.out.println("het kho");
+        }
+
     }
 
     public List<SpGiamGiaRequest> getSpGiamGia(){

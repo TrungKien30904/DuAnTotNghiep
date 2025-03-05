@@ -84,7 +84,7 @@ public class ChiTietSanPham {
     private CoGiay coGiay;
 
     @NotNull
-    @Min(value = 1)
+    @Min(value = 0)
     private Integer soLuong;
 
     @NotNull

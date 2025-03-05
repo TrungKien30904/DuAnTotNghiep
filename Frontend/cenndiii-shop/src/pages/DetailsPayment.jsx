@@ -285,10 +285,13 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     };
 
     useEffect(() => {
+        
         // Fetch orders data from API
         const fetchOrders = async () => {
             try {
                 const response = await axios.get('http://localhost:8080/admin/hoa-don/listHoaDon');
+                console.log(response.data);
+                
                 const ordersData = response.data;
                 setOrders(ordersData);
                 const newTabs = ordersData.map(order => ({
@@ -416,7 +419,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 console.error('Lỗi khi áp dụng voucher:', error);
             }
         } else {
-            toast.warn('Không tìm được voucher phù hợp.');
         }
     };
     // Áp dụng phiếu giảm của người dùng chọn
@@ -457,8 +459,8 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                     idKhachHang: selectedCustomer?.idKhachHang, keyword2: keyword
                 }
             });
-            // const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, vouchers: response.data } : tab);
-            // setTabs(updatedTabs);
+            const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, vouchers: response.data } : tab);
+            setTabs(updatedTabs);
             setFilteredVouchers(response.data);
             if (response.data.length === 1) {
                 const activeOrder = orders.find(o => o.idHoaDon === activeTab);
