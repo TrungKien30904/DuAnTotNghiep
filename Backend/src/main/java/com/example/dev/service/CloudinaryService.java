@@ -14,7 +14,24 @@ import java.util.Map;
 public class CloudinaryService {
     @Autowired
     private Cloudinary cloudinary;
+    @Transactional
+    public CloudinaryResponse uploadFileByte(final byte[] file, final String fileName, String colorName,Integer idSanPham) {
+        try {
+            final Map result = this.cloudinary.uploader()
+                    .upload(file,
+                            Map.of("public_id",
+                                    "cenndiii_shop/"+idSanPham+"/"+colorName.substring(1,7)+"/"
+                                    + fileName));
+            final String url      = (String) result.get("secure_url");
+            final String publicId = (String) result.get("public_id");
+            return CloudinaryResponse.builder().publicId(publicId).url(url)
+                    .build();
 
+        } catch (final Exception e) {
+            System.out.println(e.getMessage());
+            throw new FuncErrorException("Không thể thêm ảnh !");
+        }
+    }
     @Transactional
     public CloudinaryResponse uploadFile(final MultipartFile file, final String fileName, String colorName,Integer idSanPham) {
         try {

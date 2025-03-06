@@ -610,7 +610,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 </select>
                 {tabs.map(tab => (
                     <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}>
-                        <h3 className="text-lg font-semibold">{tab.label}</h3>
                         <p>Khách
                             hàng: {tab.khachHang ? `${tab.khachHang.hoTen}` : 'Chưa chọn'}</p>
                     </div>))}
@@ -690,8 +689,8 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         })
                         .map((voucher) => (
                             <option key={voucher.id} value={voucher.id}>
-                                {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString()} {voucher.hinhThuc}
-                                {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString()} VNĐ`}
+                                {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })} {voucher.hinhThuc}
+                                {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })} VNĐ`}
                             </option>
                         ))
                     }
@@ -812,6 +811,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                                 onChange={(e) => setAmount(e.target.value)}
                                 className="p-2 h-4 w-20 text-right border border-gray-300 rounded"
                             />
+                            <span className="text-red-500"> đ </span>
                         </div>
                     </div>
                     <div className="flex justify-between items-center">

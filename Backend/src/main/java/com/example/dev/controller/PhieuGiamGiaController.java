@@ -1,7 +1,7 @@
 
 package com.example.dev.controller;
 
-import com.example.dev.entity.KhachHang;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.service.PhieuGiamGiaService;
 import jakarta.validation.Valid;

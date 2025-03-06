@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Ticket } from "lucide-react";
 import axios from 'axios';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+// import { confirmAlert } from 'react-confirm-alert';
+// import 'react-confirm-alert/src/react-confirm-alert.css';
+// import { toast } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
+import Notification from "../components/Notification"
+import { ToastContainer } from 'react-toastify';
 export default function Orders() {
     const [orders, setOrders] = useState([]);
     const [tabs, setTabs] = useState([]);
@@ -163,7 +164,7 @@ export default function Orders() {
                 console.error('Lỗi khi áp dụng voucher:', error);
             }
         } else {
-            toast.warn('Không tìm được voucher phù hợp.');
+            Notification("Không tìm thấy","error")
         }
     };
     // Áp dụng phiếu giảm của người dùng chọn
@@ -297,12 +298,7 @@ export default function Orders() {
                         }
 
                         // Hiển thị thông báo thành công bằng toast
-                        toast.success(`Bạn đã xóa thành công Hóa đơn chờ có mã ${tabToRemove.maHoaDon}`, {
-                            position: 'top-right', autoClose: 3000
-                        });
                     } catch (error) {
-                        console.error('Error deleting order:', error);
-                        toast.error('Xóa hóa đơn thất bại! Vui lòng thử lại.');
                     }
                 }
             }, {

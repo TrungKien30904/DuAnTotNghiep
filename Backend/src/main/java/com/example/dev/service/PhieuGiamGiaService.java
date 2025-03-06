@@ -1,11 +1,11 @@
 package com.example.dev.service;
 
-import com.example.dev.entity.KhachHang;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.PhieuGiamGiaChiTiet;
-import com.example.dev.repository.KhachHangRepository;
-import com.example.dev.repository.PhieuGiamGiaChiTietRepository;
-import com.example.dev.repository.PhieuGiamGiaRepository;
+import com.example.dev.repository.customer.KhachHangRepository;
+import com.example.dev.repository.voucher.PhieuGiamGiaChiTietRepository;
+import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

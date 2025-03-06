@@ -1,6 +1,6 @@
 package com.example.dev.mapper;
 
-import com.example.dev.entity.KhachHang;
+import com.example.dev.entity.customer.KhachHang;
 
 import java.util.List;
 
@@ -20,8 +20,29 @@ public class CustomerMapper {
     private boolean trangThai;
     private List<AddressMapper> addressMappers;
     private String image;
-    private String addressDetail;
     private String imageBase64;
+    private String provinceName;
+    private String districtName;
+    private String wardName;
+    public String getProvinceName() {
+        return provinceName;
+    }
+    public void setProvinceName(String provinceName) {
+        this.provinceName = provinceName;
+    }
+    public String getDistrictName() {
+        return districtName;
+    }
+    public void setDistrictName(String districtName) {
+        this.districtName = districtName;
+    }
+    public String getWardName() {
+        return wardName;
+    }
+
+    public void setWardName(String wardName) {
+        this.wardName = wardName;
+    }
 
     public String getImageBase64() {
         return imageBase64;
@@ -177,11 +198,10 @@ public class CustomerMapper {
         return cus;
     }
 
-    public String getAddressDetail() {
-        return addressDetail;
-    }
-
-    public void setAddressDetail(String addressDetail) {
-        this.addressDetail = addressDetail;
+    public String getFullInfo(){
+        return ((this.addressDetails == null || this.addressDetails.isEmpty()) ? "" : (this.addressDetails + " - "))
+               + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
+               + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
+               + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
     }
 }

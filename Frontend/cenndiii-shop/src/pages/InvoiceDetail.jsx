@@ -4,8 +4,8 @@ import { useParams } from 'react-router-dom';
 import OrderStatus from '../components/ui/OrderStatus';
 import Notification from '../components/Notification';
 import { ToastContainer } from 'react-toastify';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+// import { confirmAlert } from 'react-confirm-alert';
+// import 'react-confirm-alert/src/react-confirm-alert.css';
 
 
 
@@ -82,29 +82,29 @@ export default function InvoiceDetail() {
     };
 
     const handleDelete = (id) => {
-        confirmAlert({
-            title: 'Xác nhận xóa',
-            message: 'Bạn có chắc chắn muốn xóa mục này?',
-            buttons: [
-                {
-                    label: 'Yes',
-                    onClick: async () => {
-                        try {
-                            await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
-                            setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
-                            Notification("Xóa thành công","success")
-                        } catch (error) {
-                            console.error('Error deleting item:', error);
-                            Notification("Xóa thất bại","error")
-                        }
-                    }
-                },
-                {
-                    label: 'No',
-                    onClick: () => {}
-                }
-            ]
-        });
+        // confirmAlert({
+        //     title: 'Xác nhận xóa',
+        //     message: 'Bạn có chắc chắn muốn xóa mục này?',
+        //     buttons: [
+        //         {
+        //             label: 'Yes',
+        //             onClick: async () => {
+        //                 try {
+        //                     await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
+        //                     setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
+        //                     Notification("Xóa thành công","success")
+        //                 } catch (error) {
+        //                     console.error('Error deleting item:', error);
+        //                     Notification("Xóa thất bại","error")
+        //                 }
+        //             }
+        //         },
+        //         {
+        //             label: 'No',
+        //             onClick: () => {}
+        //         }
+        //     ]
+        // });
     };
 
     const handleAdd = () => {

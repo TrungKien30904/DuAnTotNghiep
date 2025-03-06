@@ -1,5 +1,6 @@
 package com.example.dev.entity;
 
+import com.example.dev.entity.customer.KhachHang;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

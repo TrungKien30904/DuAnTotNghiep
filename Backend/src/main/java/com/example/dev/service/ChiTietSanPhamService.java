@@ -7,13 +7,20 @@ import com.example.dev.DTO.response.ChiTietSanPham.ChiTietSanPhamResponse;
 import com.example.dev.DTO.response.CloudinaryResponse;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.HinhAnh;
-import com.example.dev.entity.HoaDon;
-import com.example.dev.entity.HoaDonChiTiet;
+import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.mapper.ChiTietSanPhamMapper;
 import com.example.dev.repository.*;
+import com.example.dev.repository.attribute.MauSacRepo;
+import com.example.dev.repository.attribute.SanPhamRepo;
+import com.example.dev.repository.history.ChiTietLichSuRepo;
+import com.example.dev.repository.history.LichSuRepo;
+import com.example.dev.repository.invoice.HoaDonChiTietRepository;
+import com.example.dev.repository.invoice.HoaDonRepository;
+import com.example.dev.service.history.HistoryImpl;
 import com.example.dev.util.FileUpLoadUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChiTietSanPhamService {
@@ -36,6 +44,9 @@ public class ChiTietSanPhamService {
     private final ChiTietSanPhamMapper chiTietSanPhamMapper;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
+    private final LichSuRepo lichSuRepo;
+    private final ChiTietLichSuRepo chiTietLichSuRepo;
+    private final HistoryImpl historyImpl;
 
     public List<ChiTietSanPham> getListChiTietSanPham() {
         return chiTietSanPhamRepo.findAll();
@@ -98,13 +109,27 @@ public class ChiTietSanPhamService {
     }
 
     public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id) {
-        ctsp.setIdChiTietSanPham(id);
-        ChiTietSanPham find = chiTietSanPhamRepo.findById(id).get();
-        if (isEqual(ctsp, find)) {
-            find.setSoLuong(ctsp.getSoLuong() + find.getSoLuong());
-            find.setGia(ctsp.getGia());
+        try {
+            ChiTietSanPham find = chiTietSanPhamRepo.findById(id).orElseThrow();
+
+            if (isEqual(ctsp, find)) {
+                ctsp.setIdChiTietSanPham(id);
+                ctsp.setNgaySua(LocalDateTime.now());
+                ctsp.setNguoiTao("Admin");
+                chiTietSanPhamRepo.save(ctsp);
+                log.info("Update ProductDetails > {}", ctsp.toString());
+//                historyImpl.saveHistory(find,ctsp, BaseConstant.Action.UPDATE.getValue(), id,"Admin");
+            }else{
+                ctsp.setNgayTao(LocalDateTime.now());
+                ctsp.setNguoiTao("Admin");
+                chiTietSanPhamRepo.save(ctsp);
+                log.info("Create new ProductDetails > {}", ctsp.toString());
+//                historyImpl.saveHistory(null,ctsp, BaseConstant.Action.CREATE.getValue(), id,"Admin");
+            }
+
+        }catch (Exception e) {
+            log.error(e.getMessage());
         }
-        chiTietSanPhamRepo.save(ctsp);
         return getPage(id, 0, 3);
     }
 
@@ -132,7 +157,17 @@ public class ChiTietSanPhamService {
 
 
     public boolean isEqual(ChiTietSanPham c1, ChiTietSanPham c2) {
-        return c1.getSanPham().getIdSanPham().equals(c2.getSanPham().getIdSanPham()) && c1.getChatLieu().getIdChatLieu().equals(c2.getChatLieu().getIdChatLieu()) && c1.getCoGiay().getIdCoGiay().equals(c2.getCoGiay().getIdCoGiay()) && c1.getDanhMucSanPham().getIdDanhMuc().equals(c2.getDanhMucSanPham().getIdDanhMuc()) && c1.getDeGiay().getIdDeGiay().equals(c2.getDeGiay().getIdDeGiay()) && c1.getKichCo().getIdKichCo().equals(c2.getKichCo().getIdKichCo()) && c1.getMauSac().getIdMauSac().equals(c2.getMauSac().getIdMauSac()) && c1.getMuiGiay().getIdMuiGiay().equals(c2.getMuiGiay().getIdMuiGiay()) && c1.getNhaCungCap().getIdNhaCungCap().equals(c2.getNhaCungCap().getIdNhaCungCap()) && c1.getThuongHieu().getIdThuongHieu().equals(c2.getThuongHieu().getIdThuongHieu());
+        return c1.getSanPham().getIdSanPham().equals(c2.getSanPham().getIdSanPham()) &&
+               c1.getChatLieu().getIdChatLieu().equals(c2.getChatLieu().getIdChatLieu()) &&
+               c1.getCoGiay().getIdCoGiay().equals(c2.getCoGiay().getIdCoGiay()) &&
+               c1.getDanhMucSanPham().getIdDanhMuc().equals(c2.getDanhMucSanPham().getIdDanhMuc()) &&
+               c1.getDeGiay().getIdDeGiay().equals(c2.getDeGiay().getIdDeGiay()) &&
+               c1.getKichCo().getIdKichCo().equals(c2.getKichCo().getIdKichCo()) &&
+               c1.getMauSac().getIdMauSac().equals(c2.getMauSac().getIdMauSac()) &&
+               c1.getMuiGiay().getIdMuiGiay().equals(c2.getMuiGiay().getIdMuiGiay()) &&
+               c1.getNhaCungCap().getIdNhaCungCap().equals(c2.getNhaCungCap().getIdNhaCungCap()) &&
+               c1.getThuongHieu().getIdThuongHieu().equals(c2.getThuongHieu().getIdThuongHieu()) &&
+               c1.getGia().compareTo(c2.getGia()) == 0;
     }
 
     @Transactional
