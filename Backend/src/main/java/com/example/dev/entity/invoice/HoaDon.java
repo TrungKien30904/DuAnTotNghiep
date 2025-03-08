@@ -49,6 +49,8 @@ public class HoaDon {
 
     @Column(name = "loai_don")
     private String loaiDon;
+    private String diaChi;
+    private String ghiChu;
 
     public Integer getIdHoaDon() {
         return idHoaDon;

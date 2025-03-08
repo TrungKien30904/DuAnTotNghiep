@@ -58,11 +58,14 @@ public class KhachHangService {
     public List<KhachHang> getAllCustomerIsStatusTrue(){
         return khachHangRepo.findByTrangThaiIsTrue();
     }
+    public void themKhachHang(KhachHang khachHang){
+        khachHangRepo.save(khachHang);
+    }
+
     public List<KhachHang> getAll() {
         return khachHangRepo.findAll();
     }
 
-    @Transactional
     public BaseResponse<Integer> themKhachHang(String userJson, MultipartFile file) {
         BaseResponse<Integer> response = new BaseResponse<>();
         KhachHang khachHang = new KhachHang();
@@ -137,7 +140,6 @@ public class KhachHangService {
         return response;
     }
 
-    @Transactional
     public BaseResponse<KhachHang> suaKhachHang(CustomerMapper model) {
         BaseResponse<KhachHang> baseResponse = new BaseResponse<>();
 
@@ -257,28 +259,28 @@ public class KhachHangService {
         return customerMapper;
     }
 
-//    public BaseListResponse<CustomerMapper> timKiem(String keyword, Boolean gioiTinh, Boolean trangThai, String soDienThoai, Pageable pageable) {
-//
-//        Page<KhachHang> models = khachHangRepo.timKiem(keyword, gioiTinh, trangThai, soDienThoai, pageable);
-//        BaseListResponse<CustomerMapper> response = new BaseListResponse<>();
-//        List<KhachHang> customerList = models.getContent();
-//        List<Integer> customerIds = customerList.stream().map(KhachHang::getIdKhachHang).toList();
-//        List<CustomerMapper> customerMappers = new ArrayList<>();
-//        List<DiaChi> addressModelCustoms = new ArrayList<>();
-//        try{
-//            addressModelCustoms = diaChiRepo.getByCustomerId(customerIds);
-//        }
-//        catch (Exception e){
-//            e.printStackTrace();
-//        }
-//        for(KhachHang e: customerList){
-//            CustomerMapper customerMapperModel = e.toKhachHang();
-//            addressModelCustoms.stream().filter(address -> Objects.equals(address.getIdKhachHang(), e.getIdKhachHang())).findFirst().
-//                    ifPresent(model -> customerMapperModel.setAddressDetails(model.getDiaChiChiTiet()));
-//            customerMappers.add(customerMapperModel);
-//        }
-//        response.setTotalCount(models.getTotalPages());
-//        response.setSuccessResponse("Success", customerMappers);
-//        return response;
-//    }
+    public BaseListResponse<CustomerMapper> timKiem(String keyword, Boolean gioiTinh, Boolean trangThai, String soDienThoai, Pageable pageable) {
+
+        Page<KhachHang> models = khachHangRepo.timKiem(keyword, gioiTinh, trangThai, soDienThoai, pageable);
+        BaseListResponse<CustomerMapper> response = new BaseListResponse<>();
+        List<KhachHang> customerList = models.getContent();
+        List<Integer> customerIds = customerList.stream().map(KhachHang::getIdKhachHang).toList();
+        List<CustomerMapper> customerMappers = new ArrayList<>();
+        List<DiaChi> addressModelCustoms = new ArrayList<>();
+        try{
+            addressModelCustoms = diaChiRepo.getByCustomerId(customerIds);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        for(KhachHang e: customerList){
+            CustomerMapper customerMapperModel = e.toKhachHang();
+            addressModelCustoms.stream().filter(address -> Objects.equals(address.getIdKhachHang(), e.getIdKhachHang())).findFirst().
+                    ifPresent(model -> customerMapperModel.setAddressDetails(model.getDiaChiChiTiet()));
+            customerMappers.add(customerMapperModel);
+        }
+        response.setTotalCount(models.getTotalPages());
+        response.setSuccessResponse("Success", customerMappers);
+        return response;
+    }
 }

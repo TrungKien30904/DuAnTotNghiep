@@ -29,7 +29,7 @@ public class CloudinaryService {
 
         } catch (final Exception e) {
             System.out.println(e.getMessage());
-            throw new FuncErrorException("Không thể thêm ảnh !");
+            throw new FuncErrorException("Không thêm ảnh được!");
         }
     }
     @Transactional

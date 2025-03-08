@@ -1,13 +1,11 @@
 package com.example.dev.entity.invoice;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,12 +16,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "thanh_toan_hoa_don")
+@Builder
 public class ThanhToanHoaDon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotEmpty
+    @NotNull
     private String hinhThucThanhToan;
 
     @ManyToOne
@@ -31,7 +30,7 @@ public class ThanhToanHoaDon {
     private HoaDon hoaDon;
 
     @NotNull
-    @Size(min = 0)
+    @DecimalMin(value = "0")
     private BigDecimal soTienThanhToan;
 
     private String ghiChu;

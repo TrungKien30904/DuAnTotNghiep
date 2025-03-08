@@ -3,9 +3,11 @@ package com.example.dev.controller.customer;
 import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.mapper.CustomerMapper;
 import com.example.dev.service.customer.KhachHangService;
+import com.example.dev.util.baseModel.BaseListResponse;
 import com.example.dev.util.baseModel.BaseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -59,16 +61,16 @@ public class KhachHangController {
         return ResponseEntity.noContent().build();
     }
 
-//    @GetMapping("/tim-kiem")
-//    public ResponseEntity<BaseListResponse<CustomerMapper>> timKiem(
-//            @RequestParam(required = false) String keyword,
-//            @RequestParam(required = false) Boolean gioiTinh,
-//            @RequestParam(required = false) Boolean trangThai,
-//            @RequestParam(required = false) String soDienThoai,
-//            Pageable pageable
-//    ) {
-//        return ResponseEntity.ok(khachHangService.timKiem(keyword, gioiTinh, trangThai, soDienThoai, pageable));
-//    }
+    @GetMapping("/tim-kiem")
+    public ResponseEntity<BaseListResponse<CustomerMapper>> timKiem(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean gioiTinh,
+            @RequestParam(required = false) Boolean trangThai,
+            @RequestParam(required = false) String soDienThoai,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(khachHangService.timKiem(keyword, gioiTinh, trangThai, soDienThoai, pageable));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {

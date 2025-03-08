@@ -5,6 +5,19 @@ import { Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    TextField,
+    FormControl,
+    Select,
+    InputLabel,
+    MenuItem,
+} from '@mui/material';
 
 const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -55,8 +68,16 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const [originalVouchers, setOriginalVouchers] = useState([]);
     const [voucherSearched, setVoucherSearched] = useState(false);
 
+    // dialog them kh
+    const [openCustomerDialog, setOpenCustomerDialog] = useState(false);
+    const handleOpenCustomerDialog = () => {
+        setOpenCustomerDialog(true);
+    };
 
-
+    const handleCloseCustomerDialog = () => {
+        setOpenCustomerDialog(false);
+    };
+    // >
 
     const headers = {
         token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
@@ -186,26 +207,36 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             navigate("/orders", { state: { message: "Tổng tiền chưa đủ", type: "error" } });
             return;
         }
+        const thanhToanHoaDon = [];
+        if (paymentMethod === "tienmat") {
+            thanhToanHoaDon.push({ hinhThucThanhToan: "tienmat", soTien: lastTotal });
+        } else if (paymentMethod === "chuyenkhoan") {
+            thanhToanHoaDon.push({ hinhThucThanhToan: "chuyenkhoan", soTien: lastTotal });
+        } else if (paymentMethod === "cahai") {
+            thanhToanHoaDon.push({ hinhThucThanhToan: "tienmat", soTien: cashAmount });
+            thanhToanHoaDon.push({ hinhThucThanhToan: "chuyenkhoan", soTien: transferAmount });
+        }
 
         const requestData = {
             idHoaDon: orderItems.idHoaDon,
             maHoaDon: orderItems.maHoaDon,
-            khachHang: null,
-            nhanVien: null,
+            khachHang: customers.id,
             tongTien: lastTotal,
             tenNguoiNhan: deliveryMethod === "giaohang" ? data.hoten : null,
             soDienThoai: deliveryMethod === "giaohang" ? data.sodienthoai : null,
             email: deliveryMethod === "giaohang" ? data.email : null,
             ngayGiaoHang: null,
-            phiVanChuyen: deliveryMethod === "giaohang" ? amount : null,
+            phiVanChuyen: deliveryMethod === "giaohang" ? amount : BigDecimal(0),
             trangThai: "Đã thanh toán",
             ngaySua: new Date().toISOString(),
             nguoiSua: null,
             loaiDon: deliveryMethod,
-            hinhThucThanhToan: paymentMethod,
-            tienMat: paymentMethod === "cahai" ? cashAmount : null,
-            chuyenKhoan: paymentMethod === "cahai" ? transferAmount : null,
+            thanhToanHoaDon: thanhToanHoaDon,
+            diaChi: data.diachi || "",
+            ghiChu: data.ghichu || ""
         };
+
+
 
         if (lastTotal <= 0) {
             navigate("/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
@@ -587,263 +618,338 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const selectedCustomer = getSelectedCustomer();
 
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            style={{
-                maxWidth: "100%",
-                margin: "auto",
-                padding: "20px",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-            }}
-        >
-            <h2 className="font-semibold mb-2">Thông tin khách hàng</h2>
-            <div className='p-5 rounded-lg  border border-gray-300'>
-                <select className="border p-2 rounded mb-4 w-full" onChange={(e) => {
-                    const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
-                    handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
-                }}
-                    value={selectedCustomer ? selectedCustomer.idKhachHang : ''}>
-                    {customers.map(customer => (<option key={customer.idKhachHang} value={customer.idKhachHang}>
-                        {customer.hoTen} - {customer.soDienThoai}
-                    </option>))}
-                </select>
-                {tabs.map(tab => (
-                    <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}>
-                        <p>Khách
-                            hàng: {tab.khachHang ? `${tab.khachHang.hoTen}` : 'Chưa chọn'}</p>
-                    </div>))}
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-                <label>
-                    <input
-                        type="radio"
-                        value="taiquay"
-                        checked={deliveryMethod === "taiquay"}
-                        onChange={() => {
-                            setDeliveryMethod("taiquay")
-                            setAmount(0)
-                        }}
-                    />
-                    Tại quầy
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        value="giaohang"
-                        checked={deliveryMethod === "giaohang"}
-                        onChange={() => setDeliveryMethod("giaohang")}
-                    />
-                    Giao hàng
-                </label>
-            </div>
-
-            <div className="flex items-center gap-2 mb-4">
-                <input
-                    type="text"
-                    placeholder="Hãy nhập mã phiếu có 9 ký tự"
-                    className="border p-2 rounded flex-1"
-                    value={searchKeyword}
-                    onChange={(e) => {
-                        setSearchKeyword(e.target.value);
-                        searchVoucher(e.target.value);
-                    }}
-                />
-            </div>
-
-            <div className="p-5 rounded-lg border border-gray-300 max-h-60 overflow-y-auto">
-                <div className="flex items-center space-x-2 text-gray-700 font-medium">
-                    <Ticket size={18} />
-                    <span>Phiếu giảm giá</span>
-                </div>
-                {getTabVouchers().length > 0 ? (<select
-                    className="border p-2 rounded w-full"
-                    value={selectedVoucher || ''}
-                    onChange={(e) => {
-                        const selectedVoucherId = parseInt(e.target.value);
-                        const selectedVoucher = getTabVouchers().find(v => v.id === selectedVoucherId);
-                        const activeOrder = orders.find(o => o.idHoaDon === activeTab);
-                        setSelectedVoucher(selectedVoucherId);
-                        setManualVoucherSelected(true); // Đánh dấu là người dùng chọn tay
-
-                        if (selectedVoucher && activeOrder) {
-                            applySelectedVoucher(activeOrder, selectedVoucher);
-                        }
-                    }}
-                >
-                    {getTabVouchers()
-                        .sort((a, b) => {
-                            const calculateDiscount = (voucher, total) => {
-                                if (voucher.hinhThuc === '%') {
-                                    const discount = (total * voucher.giaTri) / 100;
-                                    return Math.min(discount, voucher.giaTriToiDa);
-                                } else if (voucher.hinhThuc === 'VNĐ') {
-                                    return voucher.giaTri;
-                                }
-                                return 0;
-                            };
-
-                            const discountA = calculateDiscount(a, lastTotal);
-                            const discountB = calculateDiscount(b, lastTotal);
-                            return discountB - discountA;
-                        })
-                        .map((voucher) => (
-                            <option key={voucher.id} value={voucher.id}>
-                                {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })} {voucher.hinhThuc}
-                                {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })} VNĐ`}
-                            </option>
-                        ))
-                    }
-                </select>) : (<p className="text-gray-500">Không có phiếu giảm giá phù hợp.</p>)}
-                {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && (
-                    <p className="text-red-500 italic text-sm mt-2">
-                        * Phiếu giảm giá có giá trị tốt nhất.
-                    </p>
-                )}
-
-            </div>
-            <div className="flex items-center justify-between w-full mt-4">
-                <div>Hình thức thanh toán:</div>
-                <div className="flex items-center gap-4">
-                    <label>
-                        <input
-                            type="radio"
-                            value="tienmat"
-                            checked={paymentMethod === "tienmat"}
-                            onChange={() => setPaymentMethod("tienmat")}
-                        />
-                        Tiền mặt
-                    </label>
-                    <label>
-                        <input
-                            type="radio"
-                            value="chuyenkhoan"
-                            checked={paymentMethod === "chuyenkhoan"}
-                            onChange={() => setPaymentMethod("chuyenkhoan")}
-                        />
-                        Chuyển khoản
-                    </label>
-                    <label>
-                        <input
-                            type="radio"
-                            value="cahai"
-                            checked={paymentMethod === "cahai"}
-                            onChange={() => setPaymentMethod("cahai")}
-                        />
-                        Cả hai
-                    </label>
-                </div>
-            </div>
-            {paymentMethod === "cahai" && (
-                <div className="flex items-center gap-4 mt-4">
-                    <div>
-                        <label>Tiền mặt:</label>
-                        <input
-                            type="number"
-                            value={cashAmount}
-                            onChange={(e) => setCashAmount(e.target.value)}
-                            style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
-                        />
-                    </div>
-                    <div>
-                        <label>Chuyển khoản:</label>
-                        <input
-                            type="number"
-                            value={transferAmount}
-                            onChange={(e) => setTransferAmount(e.target.value)}
-                            style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
-                        />
-                    </div>
-                </div>
-            )}
-            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-            {deliveryMethod === "giaohang" && (
-                <>
-                    {["hoten", "sodienthoai", "email", "diachi"].map((name) => (
-                        <div key={name}>
-                            <label>{name.charAt(0).toUpperCase() + name.slice(1)}:</label>
-                            <input
-                                {...register(name, { required: `Vui lòng nhập ${name}` })}
-                                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
-                            />
-                            {errors[name] && <p style={{ color: "red" }}>{errors[name].message}</p>}
-                        </div>
-                    ))}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                        {[{ label: "Tỉnh/Thành Phố", value: selectedProvince, onChange: handleProvinceChange, options: provinces, key: "ProvinceID", name: "ProvinceName" }, { label: "Quận/Huyện", value: selectedDistrict, onChange: handleDistrictChange, options: districts, key: "DistrictID", name: "DistrictName", disabled: !selectedProvince }, { label: "Xã/Phường", value: selectedWard, onChange: handleWardChange, options: wards, key: "WardCode", name: "WardName", disabled: !selectedDistrict }].map(({ label, value, onChange, options, key, name, disabled }) => (
-                            <div key={label}>
-                                <label>{label}:</label>
-                                <select value={value} onChange={onChange} disabled={disabled} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
-                                    <option value="">Chọn {label.toLowerCase()}</option>
-                                    {options.map((option) => (
-                                        <option key={option[key]} value={option[key]}>{option[name]}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        ))}
-                    </div>
-                    <div>
-                        <label>Ghi Chú:</label>
-                        <textarea {...register('note')} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
-                    </div>
-                </>
-            )}
-            <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-700">Tổng tiền:</span>
-                        <span className="font-semibold text-gray-900">{total.toLocaleString()} đ</span>
-                    </div>
-                    <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                            <label>Phí vận chuyển:</label>
-                            <img
-                                src="https://product.hstatic.net/1000405368/product/giao_hang_nhanh_toan_quoc_color.b7d18fe5_39425b03ee544ab2966d465756a00f89_small.png"
-                                alt="Giao Hàng Nhanh"
-                                className="w-24 h-12"
-                            />
-                        </div>
-                        <div className="text-red-500">
-                            <span className=""> + </span>
-                            <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                className="p-2 h-4 w-20 text-right border border-gray-300 rounded"
-                            />
-                            <span className="text-red-500"> đ </span>
-                        </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-700">Số tiền giảm:</span>
-                        <span className="text-red-500 font-semibold">-{discountAmount.toLocaleString()} đ</span>
-                    </div>
-                    <hr className="border-t border-dashed border-gray-300" />
-                    <div className="flex justify-between items-center mt-1">
-                        <span className="font-semibold text-lg text-gray-800">Tổng tiền sau giảm:</span>
-                        <span className="text-xl font-bold text-red-600">
-                            {(lastTotal).toLocaleString()} đ
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <button
-                type="submit"
+        <div>
+            <form
+                onSubmit={handleSubmit(onSubmit)}
                 style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    border: "none",
+                    maxWidth: "100%",
+                    margin: "auto",
+                    padding: "20px",
+                    border: "1px solid #ccc",
                     borderRadius: "8px",
-                    cursor: "pointer",
-                    width: "100%",
                 }}
             >
-                Thanh Toán
-            </button>
-        </form>
+                <h2 className="font-semibold mb-2">Thông tin khách hàng</h2>
+                <div className='p-5 rounded-lg  border border-gray-300'>
+                    <div className="flex justify-content-center mb-4 gap-2">
+                        <select className="border p-2 rounded w-full h-8" onChange={(e) => {
+                            const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
+                            handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
+                        }}
+                            value={selectedCustomer ? selectedCustomer.idKhachHang : ''}
+                        >
+                            {customers.map(customer => (
+                                <option key={customer.idKhachHang} value={customer.idKhachHang}>
+                                    {customer.hoTen} - {customer.soDienThoai}
+                                </option>))}
+                        </select>
+
+                        <div className="relative w-48 h-8">
+                            <AddCircleOutlineIcon fontSize="small" className="absolute top-1.5 left-1" />
+                            <button
+                                onClick={handleOpenCustomerDialog}
+                                className="w-full h-8 border border-black rounded-md align-middle ps-4"
+                            >
+                                Thêm khách
+                            </button>
+                        </div>
+                    </div>
+                    {tabs.map(tab => (
+                        <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}>
+                            <p>Khách
+                                hàng: {tab.khachHang ? `${tab.khachHang.hoTen}` : 'Chưa chọn'}</p>
+                        </div>))}
+
+                </div>
+
+                <div className="flex items-center gap-4 mb-4">
+                    <label>
+                        <input
+                            type="radio"
+                            value="taiquay"
+                            checked={deliveryMethod === "taiquay"}
+                            onChange={() => {
+                                setDeliveryMethod("taiquay")
+                                setAmount(0)
+                            }}
+                        />
+                        Tại quầy
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            value="giaohang"
+                            checked={deliveryMethod === "giaohang"}
+                            onChange={() => {
+                                setDeliveryMethod("giaohang");
+                                handleOpenDeliveryDialog();
+                            }}
+                        />
+                        Giao hàng
+                    </label>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                    <input
+                        type="text"
+                        placeholder="Hãy nhập mã phiếu có 9 ký tự"
+                        className="border p-2 rounded flex-1"
+                        value={searchKeyword}
+                        onChange={(e) => {
+                            setSearchKeyword(e.target.value);
+                            searchVoucher(e.target.value);
+                        }}
+                    />
+                </div>
+
+                <div className="p-5 rounded-lg border border-gray-300 max-h-60 overflow-y-auto">
+                    <div className="flex items-center space-x-2 text-gray-700 font-medium">
+                        <Ticket size={18} />
+                        <span>Phiếu giảm giá</span>
+                    </div>
+                    {getTabVouchers().length > 0 ? (<select
+                        className="border p-2 rounded w-full"
+                        value={selectedVoucher || ''}
+                        onChange={(e) => {
+                            const selectedVoucherId = parseInt(e.target.value);
+                            const selectedVoucher = getTabVouchers().find(v => v.id === selectedVoucherId);
+                            const activeOrder = orders.find(o => o.idHoaDon === activeTab);
+                            setSelectedVoucher(selectedVoucherId);
+                            setManualVoucherSelected(true); // Đánh dấu là người dùng chọn tay
+
+                            if (selectedVoucher && activeOrder) {
+                                applySelectedVoucher(activeOrder, selectedVoucher);
+                            }
+                        }}
+                    >
+                        {getTabVouchers()
+                            .sort((a, b) => {
+                                const calculateDiscount = (voucher, total) => {
+                                    if (voucher.hinhThuc === '%') {
+                                        const discount = (total * voucher.giaTri) / 100;
+                                        return Math.min(discount, voucher.giaTriToiDa);
+                                    } else if (voucher.hinhThuc === 'VNĐ') {
+                                        return voucher.giaTri;
+                                    }
+                                    return 0;
+                                };
+
+                                const discountA = calculateDiscount(a, lastTotal);
+                                const discountB = calculateDiscount(b, lastTotal);
+                                return discountB - discountA;
+                            })
+                            .map((voucher) => (
+                                <option key={voucher.id} value={voucher.id}>
+                                    {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString()} {voucher.hinhThuc}
+                                    {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString()} VNĐ`}
+                                </option>
+                            ))
+                        }
+                    </select>) : (<p className="text-gray-500">Không có phiếu giảm giá phù hợp.</p>)}
+                    {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && (
+                        <p className="text-red-500 italic text-sm mt-2">
+                            * Phiếu giảm giá có giá trị tốt nhất.
+                        </p>
+                    )}
+
+                </div>
+                <div className="flex items-center justify-between w-full mt-4">
+                    <div>Hình thức thanh toán:</div>
+                    <div className="flex items-center gap-4">
+                        <label>
+                            <input
+                                type="radio"
+                                value="tienmat"
+                                checked={paymentMethod === "tienmat"}
+                                onChange={() => setPaymentMethod("tienmat")}
+                            />
+                            Tiền mặt
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                value="chuyenkhoan"
+                                checked={paymentMethod === "chuyenkhoan"}
+                                onChange={() => setPaymentMethod("chuyenkhoan")}
+                            />
+                            Chuyển khoản
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                value="cahai"
+                                checked={paymentMethod === "cahai"}
+                                onChange={() => setPaymentMethod("cahai")}
+                            />
+                            Cả hai
+                        </label>
+                    </div>
+                </div>
+                {paymentMethod === "cahai" && (
+                    <div className="flex items-center gap-4 mt-4">
+                        <div>
+                            <label>Tiền mặt:</label>
+                            <input
+                                type="number"
+                                value={cashAmount}
+                                onChange={(e) => setCashAmount(e.target.value)}
+                                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                        <div>
+                            <label>Chuyển khoản:</label>
+                            <input
+                                type="number"
+                                value={transferAmount}
+                                onChange={(e) => setTransferAmount(e.target.value)}
+                                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                            />
+                        </div>
+                    </div>
+                )}
+                {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+                {deliveryMethod === "giaohang" && (
+                    <>
+                        {["hoten", "sodienthoai", "email", "diachi"].map((name) => (
+                            <div key={name}>
+                                <label>{name.charAt(0).toUpperCase() + name.slice(1)}:</label>
+                                <input
+                                    {...register(name, { required: `Vui lòng nhập ${name}` })}
+                                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                                />
+                                {errors[name] && <p style={{ color: "red" }}>{errors[name].message}</p>}
+                            </div>
+                        ))}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                            {[{ label: "Tỉnh/Thành Phố", value: selectedProvince, onChange: handleProvinceChange, options: provinces, key: "ProvinceID", name: "ProvinceName" }, { label: "Quận/Huyện", value: selectedDistrict, onChange: handleDistrictChange, options: districts, key: "DistrictID", name: "DistrictName", disabled: !selectedProvince }, { label: "Xã/Phường", value: selectedWard, onChange: handleWardChange, options: wards, key: "WardCode", name: "WardName", disabled: !selectedDistrict }].map(({ label, value, onChange, options, key, name, disabled }) => (
+                                <div key={label}>
+                                    <label>{label}:</label>
+                                    <select value={value} onChange={onChange} disabled={disabled} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
+                                        <option value="">Chọn {label.toLowerCase()}</option>
+                                        {options.map((option) => (
+                                            <option key={option[key]} value={option[key]}>{option[name]}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ))}
+                        </div>
+                        <div>
+                            <label>Ghi Chú:</label>
+                            <textarea {...register('note')} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
+                        </div>
+                    </>
+                )}
+                <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                            <span className="font-medium text-gray-700">Tổng tiền:</span>
+                            <span className="font-semibold text-gray-900">{total.toLocaleString()} đ</span>
+                        </div>
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                                <label>Phí vận chuyển:</label>
+                                <img
+                                    src="https://product.hstatic.net/1000405368/product/giao_hang_nhanh_toan_quoc_color.b7d18fe5_39425b03ee544ab2966d465756a00f89_small.png"
+                                    alt="Giao Hàng Nhanh"
+                                    className="w-24 h-12"
+                                />
+                            </div>
+                            <div className="text-red-500">
+                                <span className=""> + </span>
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="p-2 h-4 w-20 text-right border border-gray-300 rounded"
+                                />
+                                <span className="text-red-500"> đ </span>
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="font-medium text-gray-700">Số tiền giảm:</span>
+                            <span className="text-red-500 font-semibold">-{discountAmount.toLocaleString()} đ</span>
+                        </div>
+                        <hr className="border-t border-dashed border-gray-300" />
+                        <div className="flex justify-between items-center mt-1">
+                            <span className="font-semibold text-lg text-gray-800">Tổng tiền sau giảm:</span>
+                            <span className="text-xl font-bold text-red-600">
+                                {(lastTotal).toLocaleString()} đ
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    type="submit"
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 20px",
+                        backgroundColor: "#4CAF50",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        width: "100%",
+                    }}
+                >
+                    Thanh Toán
+                </button>
+            </form>
+            <Dialog open={openCustomerDialog} onClose={handleCloseCustomerDialog}>
+                <DialogTitle>Thêm khách hàng</DialogTitle>
+                <DialogContent>
+                    {["hoTen", "soDienThoai", "email", "diaChi"].map((name) => (
+                        <TextField
+                            key={name}
+                            label={name.charAt(0).toUpperCase() + name.slice(1)}
+                            {...register(name, { required: `Vui lòng nhập ${name}` })}
+                            fullWidth
+                            margin="normal"
+                            variant="outlined"
+                            error={!!errors[name]}
+                            helperText={errors[name]?.message}
+                        />
+                    ))}
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+                        {[{
+                            label: "Tỉnh/Thành Phố", value: selectedProvince, onChange: handleProvinceChange, options: provinces, key: "ProvinceID", name: "ProvinceName"
+                        }, {
+                            label: "Quận/Huyện", value: selectedDistrict, onChange: handleDistrictChange, options: districts, key: "DistrictID", name: "DistrictName", disabled: !selectedProvince
+                        }, {
+                            label: "Xã/Phường", value: selectedWard, onChange: handleWardChange, options: wards, key: "WardCode", name: "WardName", disabled: !selectedDistrict
+                        }].map(({ label, value, onChange, options, key, name, disabled }) => (
+                            <FormControl fullWidth margin="normal" key={label} disabled={disabled}>
+                                <InputLabel>{label}</InputLabel>
+                                <Select value={value} onChange={onChange}>
+                                    <MenuItem value="">Chọn {label.toLowerCase()}</MenuItem>
+                                    {options.map((option) => (
+                                        <MenuItem key={option[key]} value={option[key]}>{option[name]}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        ))}
+                    </div>
+
+                    <TextField
+                        label="Ghi Chú"
+                        fullWidth
+                        margin="normal"
+                        variant="outlined"
+                        multiline
+                        rows={4}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseCustomerDialog} color="primary">
+                        Hủy
+                    </Button>
+                    <Button onClick={handleCloseCustomerDialog} color="primary">
+                        Xác nhận
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
     );
 };
 

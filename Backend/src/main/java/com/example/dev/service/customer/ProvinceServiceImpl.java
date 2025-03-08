@@ -19,8 +19,11 @@ import java.util.List;
 @Service
 public class ProvinceServiceImpl implements IProvinceService {
 
-    IRestService restService;
+    private final IRestService restService;
 
+    public ProvinceServiceImpl(IRestService restService){
+        this.restService = restService;
+    }
 
     @Override
     public List<ProvinceMapper> getProvinceModel() {

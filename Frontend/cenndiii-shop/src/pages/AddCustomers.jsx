@@ -2,11 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
-import Notification from '../components/Notification';
-// import { useLoading } from "../components/ui/spinner/LoadingContext";
-// import Spinner from "../components/ui/spinner/Spinner";
-import Loading from '../components/Loading';
-import { ToastContainer } from 'react-toastify';
+// import { useToast } from '../utils/ToastContext';
 function AddCustomers() {
     const [formData, setFormData] = useState({
         maKhachHang: '',
@@ -19,7 +15,10 @@ function AddCustomers() {
         provinceId: 0,
         districtId: 0,
         wardId: 0,
-        addressDetails: ""
+        addressDetails: "", 
+        provinceName: "", 
+        districtName: "", 
+        wardName: ""
     });
     const [successMessage, setSuccessMessage] = useState(null); // For confirmation message
     const [errors, setErrors] = useState({});
@@ -31,8 +30,6 @@ function AddCustomers() {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    const [loading, setLoadingState] = useState(false);
-
     const handleFileChange = (e) => {
         
         const selectedFile = e.target.files[0];
@@ -43,7 +40,7 @@ function AddCustomers() {
         }
     };
 
-    
+    // const { showToast } = useToast();
     const fetchProvinces = async () => {
         try {
             const response = await axios.get(
@@ -51,7 +48,7 @@ function AddCustomers() {
             );
             setProvince(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
-            Notification(error, "error");
+            // showToast(error, "error");
         }
     };
 
@@ -69,7 +66,7 @@ function AddCustomers() {
                 Array.isArray(response.data) ? response.data : []
             );
         } catch (error) {
-            Notification(error, "error");
+            // showToast(error, "error");
         }
     }, [formData]);
 
@@ -87,24 +84,27 @@ function AddCustomers() {
                 Array.isArray(response.data) ? response.data : []
             );
         } catch (error) {
-            Notification(error, "error");
+            // showToast(error, "error");
         }
     }, [formData]);
 
-    // const { setLoadingState, loading } = useLoading();
+//   const { setLoadingState, loading } = useLoading();
     const handleSelectedProvince = (event) => {
-        setFormData({ ...formData, provinceId: event.target.value, districtId: 0, wardId: 0 });
+        var provicneName = provinces.find((e) => e.id == event.target.value).name ?? "";
+        setFormData({ ...formData, provinceId: event.target.value, districtId: 0, wardId: 0, provinceName: provicneName, districtName: "", wardName: "" });
     };
 
     useEffect(() => { fetchDistrict(); }, [formData, fetchDistrict]);
 
     const handleSelectedDistrict = (event) => {
-        setFormData({ ...formData, districtId: event.target.value, wardId: 0 });
+        var name = districts.find((e) => e.id == event.target.value).name ?? "";
+        setFormData({ ...formData, districtId: event.target.value, wardId: 0, districtName: name, wardName: "" });
     };
 
     useEffect(() => { fetchWards(); }, [formData, fetchWards]);
     const handleSelectedWard = (event) => {
-        setFormData({ ...formData, wardId: event.target.value });
+        var name = wards.find((e) => e.id == event.target.value).name ?? "";
+        setFormData({ ...formData, wardId: event.target.value, wardName: name});
     }
 
     useEffect(() => {
@@ -125,70 +125,57 @@ function AddCustomers() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoadingState(true);
         setErrors({});
-
+    
         const newErrors = {};
         if (!formData.maKhachHang) newErrors.maKhachHang = "Mã khách hàng không được để trống";
         if (!formData.hoTen) newErrors.hoTen = "Họ tên không được để trống";
         if (!formData.soDienThoai.match(/^0[0-9]{9}$/)) newErrors.soDienThoai = "Số điện thoại không hợp lệ";
         if (!formData.email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) newErrors.email = "Email không hợp lệ";
         if (!formData.provinceId || formData.provinceId === 0) newErrors.provinceId = "Vui lòng chọn tỉnh/thành phố";
-        if (!formData.districtId || formData.districtId === 0) newErrors.districtId = "Vui lòng chọn tỉnh/thành phố";
-        if (!formData.wardId || formData.wardId === 0) newErrors.wardId = "Vui lòng chọn tỉnh/thành phố";
-
+        if (!formData.districtId || formData.districtId === 0) newErrors.districtId = "Vui lòng chọn quận/huyện";
+        if (!formData.wardId || formData.wardId === 0) newErrors.wardId = "Vui lòng chọn xã/phường";
+    
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
-            setLoadingState(false);
             return;
         }
+    
         try {
-            var userJson = JSON.stringify(formData);
+            const userJson = JSON.stringify(formData);
             const forms = new FormData();
-            if(file === null){
-                setLoadingState(false);
-                Notification("Please choose image", "error");
+            if (file === null) {
+                alert("Require avatar image");
                 return;
             }
             forms.append('user', userJson);
             forms.append('fileImage', file);
-
-            for (let entry of forms.entries()) {
-                console.log(entry);  // Log the name and value of each entry
-              }
-
-            const response = await fetch('http://localhost:8080/admin/khach-hang/them',
-                {
-                    method: "POST",
-                    body: forms
+    
+            const response = await fetch('http://localhost:8080/admin/khach-hang/them', {
+                method: "POST",
+                body: forms
+            });
+            console.log(forms);
+            
+            const data = await response.json();
+            if (data) {
+                if (data.code > 0) {
+                    alert("Insert customer successfully");
+                    navigate('/customers');
+                } else {
+                    console.log(data.message);
                 }
-            ).then((response) => response.json())
-                .then((data) => {
-                    if (data) {
-                        if(data.code > 0){
-                            Notification(data.message, "success");
-                            navigate('/customers');
-                        }else{
-                            Notification(data.message, "error");
-                        }
-                    } else {
-                        Notification("Thêm mới khách hàng thất bại", "error");
-                    }
-                    setLoadingState(false);
-                })
-                .catch((error) => {
-                    Notification(error, "error");
-                    setLoadingState(false);
-                });
+            } else {
+                console.log("Insert customer fail");
+            }
         } catch (error) {
-            Notification(error, "error");
-            setLoadingState(false);
+            console.log(error);
         }
     };
 
     return (
         <div className="p-6 space-y-4">
-            {loading && <Loading />} {/* Show the spinner while loading */}
+            {/* {loading && <Spinner />} Show the spinner while loading */}
             <div className="flex items-center font-semibold mb-4">
                 <h1>Thêm mới khách hàng</h1>
             </div>
@@ -311,7 +298,6 @@ function AddCustomers() {
 
                             </div>
                         </div>
-
                     </div>
 
                     <div className='grid grid-cols-1 gap-4'>
@@ -400,7 +386,6 @@ function AddCustomers() {
                     <button type="submit" className="p-2 border-2 text-yellow-500 text-sm font-bold border-yellow-500 rounded-lg">Thêm Khách Hàng</button>
                 </form>
             </div>
-            <ToastContainer />
         </div>
     );
 }

@@ -419,8 +419,8 @@ export default function ProductDetails() {
           <input
             type="text"
             name="search"
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            // value={filters.search}
+            // onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             placeholder="Tìm theo tên..."
             className="w-full pl-10 p-2 border rounded-md"
           />
@@ -437,8 +437,8 @@ export default function ProductDetails() {
             { field: "category", options: categories, label: "Danh mục" },
             { field: "color", options: colors, label: "Màu sắc" },
             { field: "size", options: sizes, label: "Kích cỡ" },
-          ].map(({ field, options, label }) => (
-            <div key={field} className="relative text-sm">
+          ].map(({ field, options, label,index}) => (
+            <div key={index} className="relative text-sm">
               <select
                 name={field}
                 value={filters[field] || ""}

@@ -1,5 +1,6 @@
 package com.example.dev.controller.invoice;
 
+import com.example.dev.DTO.response.HoaDon.HoaDonResponse;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.LichSuHoaDon;
 import com.example.dev.entity.invoice.ThanhToanHoaDon;
@@ -145,7 +146,7 @@ public class HoaDonController {
     }
 
     @PostMapping("/thanh-toan")
-    public ResponseEntity<?> thanhToan(@RequestBody HoaDon hoaDon) {
+    public ResponseEntity<?> thanhToan(@RequestBody HoaDonResponse hoaDon) {
         try {
             hoaDonService.pay(hoaDon);
             return ResponseEntity.ok("Xóa hóa đơn thành công!");

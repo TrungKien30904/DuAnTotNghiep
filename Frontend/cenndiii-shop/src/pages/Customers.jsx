@@ -3,13 +3,11 @@ import { Eye, Plus, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
-// import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
-// import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
-import Loading from "../components/Loading";
+// import { useLoading } from "../components/ui/spinner/LoadingContext";
+// import Spinner from "../components/ui/spinner/Spinner";
 
 export default function Coupons() {
   // const { setLoadingState, loading } = useLoading();
-  const [loading, setLoadingState] = useState(false);
   const [filters, setFilters] = useState({
     keyword: "",
     gioiTinh: "all",
@@ -25,14 +23,14 @@ export default function Coupons() {
       // setLoadingState(true);
       const response = await fetch("http://localhost:8080/admin/khach-hang/export-excel").then((response) => response.json())
         .then((result) => {
-          setLoadingState(false);
+          // setLoadingState(false);
           const ws = XLSX.utils.json_to_sheet(result);
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, "Khách Hàng");
           XLSX.writeFile(wb, "danh_sach_khach_hang.xlsx");
         })
         .catch((error) => {
-          setLoadingState(false);
+          // setLoadingState(false);
           console.error("Something error when fetch API", error);
         });
     } catch (error) {
@@ -58,7 +56,7 @@ export default function Coupons() {
         }
       );
       if(response.status && response.status == 200){
-        setLoadingState(false);
+        // setLoadingState(false);
         setKhachHangs(
           Array.isArray(response.data.data) ? response.data.data : []
         );
@@ -156,7 +154,6 @@ export default function Coupons() {
   return (
     <div className="p-6 space-y-4">
       {/* {loading && <Spinner />} Show the spinner while loading */}
-      {loading && <Loading />}
       <h1 className="text-lg font-semibold mb-4">Khách hàng</h1>
       <div className="bg-white p-4 rounded-lg shadow-md">
         <h2 className="text-sm font-semibold mb-4">Bộ Lọc</h2>
@@ -254,7 +251,7 @@ export default function Coupons() {
                     <td className="p-2 text-center">{customer.email}</td>
                     <td className="p-2 text-center">{customer.hoTen}</td>
                     <td className="p-2 text-center">{customer.soDienThoai}</td>
-                    <td className="p-2 text-center">{customer.addressDetail ? customer.addressDetail : ""}</td>
+                    <td className="p-2 text-center">{customer.addressDetails ? customer.addressDetails : ""}</td>
                     <td className="p-2 text-center">
                       {customer.gioiTinh ? "Nam" : "Nữ"}
                     </td>

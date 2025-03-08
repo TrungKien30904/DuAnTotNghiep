@@ -81,7 +81,7 @@ export default function Orders() {
     //  Tong tien
     const [total, setTotal] = useState(0);
 
-    
+
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -238,6 +238,7 @@ export default function Orders() {
             .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi")
             .then((response) => {
                 setProductDetails(response.data);
+                console.log(response.data);
             })
             .catch((error) => {
                 console.error("Error fetching product details:", error);
@@ -392,7 +393,7 @@ export default function Orders() {
     };
 
     return (
-        <div className="p-2 text-xs">
+        <div className="p-4 text-xs">
             <nav className="text-gray-500 mb-4">
                 <span className="cursor-pointer hover:underline" onClick={() => navigate("/dashboard")}>Thống kê</span>{" "} &gt;{" "}
                 <span className="font-semibold text-black">Bán hàng</span>
@@ -453,7 +454,7 @@ export default function Orders() {
                 <div>
                     {tabs.length > 0 && tabs.map((tab, index) => (
                         <TabPanel value={activeTab} index={index} key={tab.id}>
-                            <div className='flex justify-content-center'>
+                            <div className='flex justify-content-center gap-2'>
                                 <div className="border rounded-md h-[700px] w-3/5">
                                     <div className="p-2">
                                         <div className="flex justify-between items-center">
@@ -489,9 +490,9 @@ export default function Orders() {
                                                     <TableBody>
                                                         {orderItemsByTab && orderItemsByTab.length > 0 ? (
                                                             orderItemsByTab.map((item, index) => (
-                                                                <TableRow key={item.idHoaDonChiTiet}>
+                                                                <TableRow key={item.idHoaDonChiTiet} className='relative'>
                                                                     <TableCell align="center">
-                                                                        <div className='flex justify-content-center'>
+                                                                        <div className='flex justify-content-center '>
                                                                             <div>
                                                                                 <img
                                                                                     src={item.lienKet}
@@ -502,56 +503,71 @@ export default function Orders() {
                                                                             <div className='ms-1'>
                                                                                 {item.tenSanPham}
                                                                             </div>
+
                                                                         </div>
 
                                                                     </TableCell>
                                                                     {/* <TableCell align="center">{item.tenSanPham}</TableCell> */}
                                                                     <TableCell align="center">
-                                                                        <button onClick={() => {
-                                                                            if (Number(item.soLuongMua) > 1) {
-                                                                                handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru")
-                                                                            } else {
-                                                                                Notification("Đã là số lượng nhỏ nhất !", "warning")
-                                                                                return;
-                                                                            }
-                                                                        }
-                                                                        }>
-                                                                            <Remove sx={{ fontSize: 15 }} />
-                                                                        </button>
-                                                                        <input
-                                                                            type="number"
-                                                                            value={item.soLuongMua}
-                                                                            onChange={(e) => {
-                                                                                if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
-                                                                                    if ((e.target.value - item.soLuongMua) <= item.kho) {
-                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value)
-                                                                                    }
+                                                                        {item.trangThai && (
+                                                                            <button onClick={() => {
+                                                                                if (Number(item.soLuongMua) > 1) {
+                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru")
                                                                                 } else {
-                                                                                    Notification("Chọn số lượng hợp lệ", "error")
+                                                                                    Notification("Đã là số lượng nhỏ nhất !", "warning")
                                                                                     return;
                                                                                 }
-                                                                            }}
-                                                                            style={{ width: '50px', textAlign: 'center' }}
-                                                                        />
-                                                                        <button onClick={() => {
-                                                                            if (item.kho > 0) {
-                                                                                handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong")
-                                                                            } else {
-                                                                                Notification("Đã hết hàng trong kho!", "warning")
-                                                                                return;
                                                                             }
-                                                                        }}>
-                                                                            <Add sx={{ fontSize: 15 }} />
-                                                                        </button>
+                                                                            }>
+                                                                                <Remove sx={{ fontSize: 15 }} />
+                                                                            </button>
+                                                                        )}
+
+                                                                        {item.trangThai ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={item.soLuongMua}
+                                                                                onChange={(e) => {
+                                                                                    if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
+                                                                                        if ((e.target.value - item.soLuongMua) <= item.kho) {
+                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value)
+                                                                                        }
+                                                                                    } else {
+                                                                                        Notification("Chọn số lượng hợp lệ", "error")
+                                                                                        return;
+                                                                                    }
+                                                                                }}
+                                                                                className='text-center w-8'
+                                                                            />
+                                                                        ) : (
+                                                                            <span>{item.soLuongMua}</span>
+                                                                        )}
+                                                                        {item.trangThai && (
+                                                                            <button onClick={() => {
+                                                                                if (item.kho > 0) {
+                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong")
+                                                                                } else {
+                                                                                    Notification("Đã hết hàng trong kho!", "warning")
+                                                                                    return;
+                                                                                }
+                                                                            }}>
+                                                                                <Add sx={{ fontSize: 15 }} />
+                                                                            </button>
+                                                                        )}
                                                                     </TableCell>
                                                                     <TableCell align="center">{item.kho}</TableCell>
-                                                                    <TableCell align="center">{item.donGia} VND</TableCell>
-                                                                    <TableCell align="center">{item.thanhTien} VND</TableCell>
+                                                                    <TableCell align="center">{item.donGia.toLocaleString()} đ</TableCell>
+                                                                    <TableCell align="center">{item.thanhTien.toLocaleString()} đ</TableCell>
                                                                     <TableCell align="center">
-                                                                        <Button onClick={() => handleRemoveOrderItem(item.idHoaDonChiTiet, item.idChiTietSanPham)}>
+                                                                        <Button
+                                                                            onClick={() => handleRemoveOrderItem(item.idHoaDonChiTiet, item.idChiTietSanPham)}
+                                                                        >
                                                                             <Trash size={16} className="text-red-600" />
                                                                         </Button>
                                                                     </TableCell>
+                                                                    {!item.trangThai && (
+                                                                        <p className='text-red-500 absolute bottom-0 left-10 w-[500px]'>*Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán !</p>
+                                                                    )}
                                                                 </TableRow>
                                                             ))) : (
                                                             <TableRow>
@@ -615,61 +631,65 @@ export default function Orders() {
                             <TableBody>
                                 {productDetails && productDetails.length > 0 ? (
                                     productDetails.map((item) => (
-                                        <TableRow key={item.idChiTietSanPham}>
-                                            <TableCell className="relative">
-                                                {/* {item.listAnh.map((anh, index) => (
-                                                    <div key={index}>
+                                        item.trangThai && (
+                                            Number(item.soLuong) > 0 && (
+                                                <TableRow key={item.idChiTietSanPham}>
+                                                    <TableCell className="relative">
+                                                        {/* {item.listAnh.map((anh, index) => (
+                                                <div key={index}>
+                                                    <img
+                                                        src={anh}
+                                                        alt={item.sanPham.ten}
+                                                        style={{ left: index * 5 + "px" }}
+                                                        className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
+                                                    />
+                                                </div>
+                                            ))} */}
                                                         <img
-                                                            src={anh}
+                                                            src={item.lienKet}
                                                             alt={item.sanPham.ten}
-                                                            style={{ left: index * 5 + "px" }}
-                                                            className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
+                                                            className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
                                                         />
-                                                    </div>
-                                                ))} */}
-                                                <img
-                                                    src={item.lienKet}
-                                                    alt={item.sanPham.ten}
-                                                    className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="flex items-center space-x-2">
-                                                    <span>{item.sanPham} &#91;</span>
-                                                    <span
-                                                        className="w-4 h-4 rounded-full"
-                                                        style={{ backgroundColor: item.mauSac }}
-                                                    ></span>
-                                                    <span>{item.kichCo} &#93;</span>
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>{item.coGiay}</TableCell>
-                                            <TableCell>{item.muiGiay}</TableCell>
-                                            <TableCell>{item.deGiay}</TableCell>
-                                            <TableCell>{item.thuongHieu}</TableCell>
-                                            <TableCell>{item.chatLieu}</TableCell>
-                                            <TableCell>{item.nhaCungCap}</TableCell>
-                                            <TableCell>{item.danhMucSanPham}</TableCell>
-                                            <TableCell>{(item.giaSauGiam).toFixed(2)}</TableCell>
-                                            <TableCell>{item.soLuong}</TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={() => {
-                                                        if (item.soLuong <= 0) {
-                                                            Notification(
-                                                                "Hàng đã hết! Xin vui lòng chọn sản phẩm khác !",
-                                                                "warning"
-                                                            );
-                                                        } else {
-                                                            handleOpenSelectQuantity(item);
-                                                        }
-                                                    }}
-                                                >
-                                                    Chọn
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <span className="flex items-center space-x-2">
+                                                            <span>{item.sanPham} &#91;</span>
+                                                            <span
+                                                                className="w-4 h-4 rounded-full"
+                                                                style={{ backgroundColor: item.mauSac }}
+                                                            ></span>
+                                                            <span>{item.kichCo} &#93;</span>
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell>{item.coGiay}</TableCell>
+                                                    <TableCell>{item.muiGiay}</TableCell>
+                                                    <TableCell>{item.deGiay}</TableCell>
+                                                    <TableCell>{item.thuongHieu}</TableCell>
+                                                    <TableCell>{item.chatLieu}</TableCell>
+                                                    <TableCell>{item.nhaCungCap}</TableCell>
+                                                    <TableCell>{item.danhMucSanPham}</TableCell>
+                                                    <TableCell>{item.giaSauGiam.toLocaleString()} đ</TableCell>
+                                                    <TableCell>{item.soLuong}</TableCell>
+                                                    <TableCell>
+                                                        <Button
+                                                            variant="contained"
+                                                            onClick={() => {
+                                                                // if (item.soLuong <= 0) {
+                                                                // Notification(
+                                                                // "Hàng đã hết! Xin vui lòng chọn sản phẩm khác !",
+                                                                // "warning"
+                                                                // );
+                                                                // } else {
+                                                                handleOpenSelectQuantity(item);
+                                                                // }
+                                                            }}
+                                                        >
+                                                            Chọn
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        )
                                     ))
                                 ) : (
                                     <TableRow>

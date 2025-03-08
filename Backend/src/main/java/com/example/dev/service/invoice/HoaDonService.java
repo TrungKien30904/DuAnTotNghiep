@@ -1,10 +1,15 @@
 package com.example.dev.service.invoice;
 
-import com.example.dev.entity.*;
+import com.example.dev.DTO.response.HoaDon.HoaDonResponse;
+import com.example.dev.DTO.response.HoaDon.ThanhToanHoaDonResponse;
+import com.example.dev.constant.BaseConstant;
+import com.example.dev.entity.ChiTietSanPham;
+import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.entity.invoice.LichSuHoaDon;
-import com.example.dev.repository.*;
+import com.example.dev.entity.invoice.ThanhToanHoaDon;
+import com.example.dev.repository.ChiTietSanPhamRepo;
 import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.repository.invoice.LichSuHoaDonRepository;
@@ -14,9 +19,10 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.stereotype.Service;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,24 +32,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
-import java.io.ByteArrayOutputStream;
 
 @Service
 @RequiredArgsConstructor
 public class HoaDonService {
 
-    @Autowired
-    private HoaDonRepository hoaDonRepository;
-    @Autowired
-    private PhieuGiamGiaRepository phieuGiamGiaRepository;
-    @Autowired
-    private LichSuHoaDonRepository lichSuHoaDonRepository;
-    private final HoaDonChiTietRepository hoaDonChiTietRepository;
-    private final ChiTietSanPhamRepo chiTietSanPhamRepo;
-
-
     private static final String PREFIX = "HD";
     private static final int RANDOM_LENGTH = 5;
+    private final HoaDonChiTietRepository hoaDonChiTietRepository;
+    private final ChiTietSanPhamRepo chiTietSanPhamRepo;
+    private final ThanhToanHoaDonService thanhToanHoaDonService;
+    private final LichSuHoaDonService lichSuHoaDonService;
+    private final HoaDonRepository hoaDonRepository;
+    private final PhieuGiamGiaRepository phieuGiamGiaRepository;
+    private final LichSuHoaDonRepository lichSuHoaDonRepository;
+
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
         LocalDateTime endDateTime = endDate.map(date -> date.atTime(23, 59, 59)).orElse(null);
@@ -53,8 +56,7 @@ public class HoaDonService {
 
     public Map<String, Long> getInvoiceStatistics() {
         List<HoaDon> invoices = hoaDonRepository.findAll();
-        return invoices.stream()
-                .collect(Collectors.groupingBy(HoaDon::getTrangThai, Collectors.counting()));
+        return invoices.stream().collect(Collectors.groupingBy(HoaDon::getTrangThai, Collectors.counting()));
     }
 
     public HoaDon findInvoice(String maHoaDon) {
@@ -113,7 +115,18 @@ public class HoaDonService {
             hoaDon.setNgayTao(LocalDateTime.now());
             hoaDon.setTrangThai("Chờ xử lý");
         }
-        return hoaDonRepository.save(hoaDon);
+        HoaDon newInvoice = hoaDonRepository.save(hoaDon);
+        lichSuHoaDonService.themLichSu(
+                LichSuHoaDon.builder()
+                        .hoaDon(newInvoice)
+                        .hanhDong(BaseConstant.Action.CREATE.getValue())
+                        .ngayTao(LocalDateTime.now())
+                        .nguoiTao("admin")
+                        .ghiChu("Thêm hóa đơn mới tại cửa hàng")
+                        .build()
+        );
+        return newInvoice;
+
     }
 
     public Optional<HoaDon> getHoaDonById(Integer id) {
@@ -137,8 +150,7 @@ public class HoaDonService {
 
         List<HoaDon> invoices = hoaDonRepository.findAll();
 
-        try (Workbook workbook = new XSSFWorkbook();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("HoaDon");
 
@@ -205,7 +217,6 @@ public class HoaDonService {
     }
 
 
-
     public void deleteById(Integer idHoaDon) {
         if (hoaDonRepository.existsById(idHoaDon)) {
             List<HoaDonChiTiet> listRemove = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
@@ -229,8 +240,7 @@ public class HoaDonService {
         Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(idHoaDon);
         if (optionalHoaDon.isPresent()) {
             HoaDon hoaDon = optionalHoaDon.get();
-            PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(voucherId)
-                    .orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
+            PhieuGiamGia phieuGiamGia = phieuGiamGiaRepository.findById(voucherId).orElseThrow(() -> new RuntimeException("Voucher không tồn tại"));
             hoaDon.setPhieuGiamGia(phieuGiamGia);
             hoaDonRepository.save(hoaDon);
         } else {
@@ -238,9 +248,22 @@ public class HoaDonService {
         }
     }
 
-    public void pay(HoaDon hoaDon) {
-        HoaDon find = hoaDonRepository.findById(hoaDon.getIdHoaDon()).orElseThrow();
-        hoaDon.setNgayTao(find.getNgayTao());
-        hoaDonRepository.save(hoaDon);
+    public void pay(HoaDonResponse hoaDonResponse) {
+        HoaDon find = hoaDonRepository.findById(hoaDonResponse.getIdHoaDon()).orElseThrow();
+        find.setNgaySua(LocalDateTime.now());
+        find.setTrangThai("Đã thanh toán");
+        find.setDiaChi(hoaDonResponse.getDiaChi());
+        find.setGhiChu(hoaDonResponse.getGhiChu());
+        hoaDonRepository.save(find);
+        
+        lichSuHoaDonService.themLichSu(
+                LichSuHoaDon.builder()
+                        .hoaDon(find)
+                        .hanhDong(BaseConstant.Action.UPDATE.getValue())
+                        .ngayTao(LocalDateTime.now())
+                        .nguoiTao("admin")
+                        .ghiChu("Thanh toán hóa đơn")
+                        .build()
+        );
     }
 }

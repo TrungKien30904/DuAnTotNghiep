@@ -15,4 +15,8 @@ public class LichSuHoaDonService {
     public List<LichSuHoaDon> findAllByHoaDonId(String hoaDonId) {
         return lichSuHoaDonRepository.findAll().stream().filter(lichSuHoaDon -> lichSuHoaDon.getHoaDon().getMaHoaDon().equals(hoaDonId)).toList();
     }
+
+    public void themLichSu(LichSuHoaDon lichSuHoaDon) {
+        lichSuHoaDonRepository.save(lichSuHoaDon);
+    }
 }
