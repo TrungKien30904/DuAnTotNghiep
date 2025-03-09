@@ -106,6 +106,10 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         setLastTotal(calculateLastTotal(total, amount, discountAmount));
     }, [total, amount, discountAmount]);
 
+    useEffect(() => {
+        setFilteredVouchers(total > 0 ? originalVouchers.filter(v => total >= v.dieuKien) : originalVouchers);
+    }, [total]);
+
 
     const handleProvinceChange = async (e) => {
         const provinceId = e.target.value;
@@ -453,7 +457,9 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
                 params: { khachHangId }
             });
-            const validVouchers = response.data.filter(v => total >= v.dieuKien);
+
+
+            const validVouchers = total > 0 ? response.data.filter(v => total >= v.dieuKien) : response.data;
 
             setOriginalVouchers(validVouchers);  // Lưu gốc
             setFilteredVouchers(validVouchers);  // Hiển thị ban đầu
@@ -485,6 +491,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
     const applyBestVoucher = async (order, vouchers) => {
         if (!order || !vouchers?.length) return 0;
+        if (total <= 0) return 0;
 
         const totalAmount = total || 0;
         const validVouchers = vouchers.filter(v => totalAmount >= v.dieuKien);
@@ -526,7 +533,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 return 0; // Nếu lỗi thì không giảm
             }
         } else {
-            toast.warn('Không tìm được voucher phù hợp.');
+          
             return 0;
         }
     };
@@ -536,6 +543,9 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         if (!order || !voucher) return;
 
         let discount = 0;
+        if (total === 0) {
+            return;
+        }
         const totalAmount = total || 0;
         if (voucher.hinhThuc === '%') {
             discount = (totalAmount * voucher.giaTri) / 100;
@@ -599,7 +609,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             setVoucherSearched(filtered.length > 0);
 
             if (filtered.length === 0) {
-                toast.warn("Không có phiếu giảm giá hoặc chưa đủ điều kiện áp dụng");
+                 toast.warn("Không có phiếu giảm giá hoặc chưa đủ điều kiện áp dụng");
             }
         }
     };
@@ -734,23 +744,23 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                                     return 0;
                                 };
 
-                                const discountA = calculateDiscount(a, lastTotal);
-                                const discountB = calculateDiscount(b, lastTotal);
-                                return discountB - discountA;
-                            })
-                            .map((voucher) => (
-                                <option key={voucher.id} value={voucher.id}>
-                                    {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString()} {voucher.hinhThuc}
-                                    {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString()} VNĐ`}
-                                </option>
-                            ))
-                        }
-                    </select>) : (<p className="text-gray-500">Không có phiếu giảm giá phù hợp.</p>)}
-                    {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && (
-                        <p className="text-red-500 italic text-sm mt-2">
-                            * Phiếu giảm giá có giá trị tốt nhất.
-                        </p>
-                    )}
+                            const discountA = calculateDiscount(a, lastTotal);
+                            const discountB = calculateDiscount(b, lastTotal);
+                            return discountB - discountA;
+                        })
+                        .map((voucher) => (
+                            <option key={voucher.id} value={voucher.id}>
+                                {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString({ style: 'currency', currency: 'VND' })} {voucher.hinhThuc}
+                                {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString({ style: 'currency', currency: 'VND' })} VNĐ`}
+                            </option>
+                        ))
+                    }
+                </select>) : (<p className="text-red-500">Không có phiếu giảm giá phù hợp.</p>)}
+                {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && total > 0 && (
+                    <p className="text-red-500 italic text-sm mt-2">
+                        * Phiếu giảm giá có giá trị tốt nhất.
+                    </p>
+                )}
 
                 </div>
                 <div className="flex items-center justify-between w-full mt-4">
