@@ -56,10 +56,20 @@ public class KhachHangService {
 
 
     public List<KhachHang> getAllCustomerIsStatusTrue(){
+        List<KhachHang> khachHang = khachHangRepo.findByTrangThaiIsTrue();
+        for (KhachHang kh : khachHang){
+            String[] address = kh.getDiaChi().split(", ");
+            String thanhPho = address[0];
+            String quan = address[1];
+            String xa   = address[2];
+        }
         return khachHangRepo.findByTrangThaiIsTrue();
     }
-    public void themKhachHang(KhachHang khachHang){
-        khachHangRepo.save(khachHang);
+
+    public KhachHang themKhachHang(KhachHang khachHang){
+        String password = iUtil.generatePassword();
+        khachHang.setMatKhau(password);
+        return khachHangRepo.save(khachHang);
     }
 
     public List<KhachHang> getAll() {

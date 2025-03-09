@@ -226,7 +226,10 @@ public class HoaDonService {
                 chiTietSanPhamRepo.save(refundProduct);
             }
             hoaDonChiTietRepository.deleteAll(listRemove);
-            hoaDonRepository.deleteById(idHoaDon);
+            HoaDon invoiceRemove = hoaDonRepository.findById(idHoaDon).orElseThrow();
+            invoiceRemove.setTrangThai("Đã xóa");
+            hoaDonRepository.save(invoiceRemove);
+//            hoaDonRepository.deleteById(idHoaDon);
         } else {
             throw new RuntimeException("Hóa đơn không tồn tại với id: " + idHoaDon);
         }

@@ -5,7 +5,7 @@ import { Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { AddCircleOutline, EditLocationAlt } from '@mui/icons-material';
 import {
     Dialog,
     DialogTitle,
@@ -18,7 +18,7 @@ import {
     InputLabel,
     MenuItem,
 } from '@mui/material';
-
+import CustomerDialog from "./AddCustomerDialog";
 const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
@@ -79,28 +79,12 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     };
     // >
 
+
     const headers = {
         token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
         "Content-Type": "application/json",
     };
 
-    useEffect(() => {
-        const fetchProvinces = async () => {
-            try {
-                const response = await axios.get(
-                    "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
-                    { headers }
-                );
-                if (Array.isArray(response.data.data)) {
-                    setProvinces(response.data.data);
-                }
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách tỉnh:", error);
-            }
-        };
-
-        fetchProvinces();
-    }, []);
 
     useEffect(() => {
         setLastTotal(calculateLastTotal(total, amount, discountAmount));
@@ -111,96 +95,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     }, [total]);
 
 
-    const handleProvinceChange = async (e) => {
-        const provinceId = e.target.value;
-        setSelectedProvince(provinceId);
-        setDistricts([]);
-        setSelectedDistrict("");
-        setWards([]);
-        setSelectedWard("");
-        setAmount("");
-        try {
-            const response = await axios.get(
-                "https://online-gateway.ghn.vn/shiip/public-api/master-data/district",
-                {
-                    headers,
-                    params: { province_id: provinceId },
-                }
-            );
 
-            if (Array.isArray(response.data.data)) {
-                setDistricts(response.data.data);
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách district:", error);
-        }
-    };
-
-    const handleDistrictChange = async (e) => {
-        const districtId = e.target.value;
-        setSelectedDistrict(districtId);
-        setWards([]);
-        setSelectedWard("");
-        setAmount("");
-        try {
-            const response = await axios.get(
-                "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward",
-                {
-                    headers,
-                    params: { district_id: districtId },
-                }
-            );
-
-            if (Array.isArray(response.data.data)) {
-                setWards(response.data.data);
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách ward:", error);
-        }
-    };
-
-    const handleWardChange = (e) => {
-        setSelectedWard(e.target.value);
-    };
-
-    useEffect(() => {
-        if (selectedWard && selectedDistrict) {
-            const requestData = {
-                "service_id": 53321,
-                "insurance_value": 500000,
-                "coupon": null,
-                "from_district_id": 1542,
-                "to_district_id": Number(selectedDistrict),
-                "to_ward_code": selectedWard,
-                "height": 15,
-                "length": 15,
-                "weight": 1000,
-                "width": 15
-            };
-
-            axios.post(
-                "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
-                requestData,
-                {
-                    headers: {
-                        token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
-                        "shop_id": "5652920",
-                        "Content-Type": "application/json"
-                    }
-                }
-            )
-                .then(response => {
-                    if (response.data.data) {
-                        setAmount(response.data.data.total);
-                    } else {
-                        setAmount(31000);
-                    }
-                })
-                .catch(error => {
-                    setAmount(31000);
-                });
-        }
-    }, [selectedWard, selectedDistrict]);
 
     const onSubmit = async (data) => {
         if (!orderItems) {
@@ -222,22 +117,22 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         }
 
         const requestData = {
-            idHoaDon: orderItems.idHoaDon,
-            maHoaDon: orderItems.maHoaDon,
-            khachHang: customers.id,
-            tongTien: lastTotal,
-            tenNguoiNhan: deliveryMethod === "giaohang" ? data.hoten : null,
-            soDienThoai: deliveryMethod === "giaohang" ? data.sodienthoai : null,
-            email: deliveryMethod === "giaohang" ? data.email : null,
-            ngayGiaoHang: null,
-            phiVanChuyen: deliveryMethod === "giaohang" ? amount : BigDecimal(0),
-            trangThai: "Đã thanh toán",
-            ngaySua: new Date().toISOString(),
-            nguoiSua: null,
-            loaiDon: deliveryMethod,
-            thanhToanHoaDon: thanhToanHoaDon,
-            diaChi: data.diachi || "",
-            ghiChu: data.ghichu || ""
+            // idHoaDon: orderItems.idHoaDon,
+            // maHoaDon: orderItems.maHoaDon,
+            // khachHang: customers.id,
+            // tongTien: lastTotal,
+            // tenNguoiNhan: deliveryMethod === "giaohang" ? data.hoten : null,
+            // soDienThoai: deliveryMethod === "giaohang" ? data.sodienthoai : null,
+            // email: deliveryMethod === "giaohang" ? data.email : null,
+            // ngayGiaoHang: null,
+            // phiVanChuyen: deliveryMethod === "giaohang" ? amount : BigDecimal(0),
+            // trangThai: "Đã thanh toán",
+            // ngaySua: new Date().toISOString(),
+            // nguoiSua: null,
+            // loaiDon: deliveryMethod,
+            // thanhToanHoaDon: thanhToanHoaDon,
+            // diaChi: data.diachi || "",
+            // ghiChu: data.ghichu || ""
         };
 
 
@@ -274,18 +169,18 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         console.error('Error fetching orders:', error);
                     }
                 };
-                const fetchCustomers = async () => {
-                    try {
-                        const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
-                        const customersData = response.data;
-                        const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A' };
-                        const updatedCustomers = [defaultCustomer, ...customersData.filter(c => c.idKhachHang !== 0)];
-                        setCustomers(updatedCustomers);
-                    } catch (error) {
-                        console.error('Lỗi khi lấy danh sách khách hàng:', error);
-                    }
-                };
-                fetchCustomers();
+                // const fetchCustomers = async () => {
+                //     try {
+                //         const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
+                //         const customersData = response.data;
+                //         const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A' };
+                //         const updatedCustomers = [defaultCustomer, ...customersData.filter(c => c.idKhachHang !== 0)];
+                //         setCustomers(updatedCustomers);
+                //     } catch (error) {
+                //         console.error('Lỗi khi lấy danh sách khách hàng:', error);
+                //     }
+                // };
+                // fetchCustomers();
                 fetchOrders();
                 reloadTab();
                 navigate("/orders", { state: { message: "Thanh toán thành công", type: "success" } });
@@ -295,6 +190,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             navigate("/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
     };
+
 
     //tính toán lại khi có sự thay đổi tổng tiền
     const calculateBestVoucher = (total, vouchers) => {
@@ -360,6 +256,105 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
 
 
+    const getProvinceName = async (provinceId) => {
+        try {
+            const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/province", { headers });
+            const provinces = response.data.data || [];  // Nếu null thì trả về mảng rỗng
+            const province = provinces.find(p => p.ProvinceID === Number(provinceId));  // Ép kiểu số
+            return province ? province.ProvinceName : 'Không tìm thấy';
+        } catch (error) {
+            console.error("Lỗi khi lấy tỉnh:", error);
+            return 'Lỗi API';
+        }
+    };
+
+
+    const getDistrictName = async (districtId, provinceId) => {
+        try {
+            const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/district", {
+                headers,
+                params: { province_id: Number(provinceId) }  // Ép kiểu số
+            });
+            const districts = response.data.data || [];
+            const district = districts.find(d => d.DistrictID === Number(districtId));
+            return district ? district.DistrictName : 'Không tìm thấy';
+        } catch (error) {
+            console.error("Lỗi khi lấy quận/huyện:", error);
+            return 'Lỗi API';
+        }
+    };
+
+
+    const getWardName = async (wardId, districtId) => {
+        try {
+            const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/ward", {
+                headers,
+                params: { district_id: Number(districtId) }  // Ép kiểu số
+            });
+
+            const wards = response.data.data || [];
+
+            const ward = wards.find(w => w.WardCode == wardId);
+
+            return ward ? ward.WardName : 'Không tìm thấy';
+        } catch (error) {
+            console.error("Lỗi khi lấy xã:", error);
+            return 'Lỗi API';
+        }
+    };
+
+    const calculateShippingFee = async () => {
+        if (!selectedWard || !selectedDistrict) return;  // Kiểm tra địa chỉ đã chọn chưa
+
+        const requestData = {
+            "service_type_id": 2, // cái này 
+            "from_district_id": 1542,
+            "from_ward_code": "1A0607",
+            "to_district_id": Number(selectedDistrict),
+            "to_ward_code": selectedWard,
+            "length": 40,
+            "width": 20,
+            "height": 20,
+            "weight": 2000,
+            "insurance_value": 0,
+            "coupon": null,
+            "items": [
+                {
+                    "name": "TEST1",
+                    "quantity": 1,
+                    "length": 200,
+                    "width": 200,
+                    "height": 200,
+                    "weight": 1000
+                }
+            ]
+        }
+
+        try {
+            const response = await axios.post(
+                "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
+                requestData,
+                {
+                    headers: {
+                        "token": "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
+                        "shop_id": 5652920,
+                        "Content-Type": "application/json",
+                    }
+                }
+            );
+            if (response.status === 200) {
+                setAmount(response.data.data.total);
+            } else {
+                setAmount(31000);  // Nếu API không trả về dữ liệu, mặc định 31k
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error("Phản hồi lỗi từ API:", error.response.data);
+            }
+            setAmount(32000);
+        }
+    };
+
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -383,9 +378,21 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             try {
                 const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
                 const customersData = response.data;
-                const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A' };
-                const updatedCustomers = [defaultCustomer, ...customersData.filter(c => c.idKhachHang !== 0)];
-                setCustomers(updatedCustomers);
+                const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
+
+                const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
+                    if (customer.diaChi) {
+                        const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => id.trim());
+                        const provinceName = await getProvinceName(provinceId);
+                        const districtName = await getDistrictName(districtId, provinceId);
+                        const wardName = await getWardName(wardId, districtId);
+                        const diaChi = `${wardName}, ${districtName}, ${provinceName}`;
+                        const idDiaChi = customer.diaChi;
+                        return { ...customer, diaChi, idDiaChi };
+                    }
+                }));
+
+                setCustomers([defaultCustomer, ...updatedCustomers]);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách khách hàng:', error);
             }
@@ -393,6 +400,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         fetchCustomers();
         fetchOrders();
     }, []);
+
 
     useEffect(() => {
         const activeOrder = orders.find(o => o.idHoaDon === activeTab);
@@ -443,7 +451,9 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         setTabs(updatedTabs);
         const selected = customer || customers.find(c => c.idKhachHang === 0);
 
-
+        const [province, district, ward] = selected.idDiaChi.split(',').map(id => id.trim());
+        setSelectedDistrict(district);
+        setSelectedWard(ward);
         setDiscountAmount(0);
         setSelectedVoucher('');
         setFilteredVouchers([]);
@@ -451,13 +461,11 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         setManualVoucherSelected(false);
         setVoucherSearched(false);
 
-
         try {
             const khachHangId = selected.idKhachHang !== 0 ? selected.idKhachHang : null;
             const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
                 params: { khachHangId }
             });
-
 
             const validVouchers = total > 0 ? response.data.filter(v => total >= v.dieuKien) : response.data;
 
@@ -481,7 +489,27 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         }
     };
 
+    const reload = async (newCustomer = null) => {
+        try {
+            const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
+            const customersData = response.data;
+            const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
 
+            const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
+                if (customer.diaChi) {
+                    const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => Number(id.trim()));
+                    const provinceName = await getProvinceName(provinceId);
+                    const districtName = await getDistrictName(districtId, provinceId);
+                    const wardName = await getWardName(wardId, districtId);
+                    const diaChi = `${wardName}, ${districtName}, ${provinceName}`;
+                    return { ...customer, diaChi };
+                }
+            }));
+            setCustomers([defaultCustomer, ...updatedCustomers]);
+        } catch (error) {
+            console.error('Lỗi khi lấy danh sách khách hàng:', error);
+        }
+    };
 
     const calculateLastTotal = (totalAmount, deliveryFee, discount) => {
         return Math.max(totalAmount + Number(deliveryFee) - discount, 0);
@@ -533,7 +561,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 return 0; // Nếu lỗi thì không giảm
             }
         } else {
-          
+
             return 0;
         }
     };
@@ -609,7 +637,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             setVoucherSearched(filtered.length > 0);
 
             if (filtered.length === 0) {
-                 toast.warn("Không có phiếu giảm giá hoặc chưa đủ điều kiện áp dụng");
+                toast.warn("Không có phiếu giảm giá hoặc chưa đủ điều kiện áp dụng");
             }
         }
     };
@@ -629,7 +657,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
     return (
         <div>
-            <form
+            <div
                 onSubmit={handleSubmit(onSubmit)}
                 style={{
                     maxWidth: "100%",
@@ -655,7 +683,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         </select>
 
                         <div className="relative w-48 h-8">
-                            <AddCircleOutlineIcon fontSize="small" className="absolute top-1.5 left-1" />
+                            <AddCircleOutline fontSize="small" className="absolute top-1.5 left-1" />
                             <button
                                 onClick={handleOpenCustomerDialog}
                                 className="w-full h-8 border border-black rounded-md align-middle ps-4"
@@ -664,40 +692,45 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                             </button>
                         </div>
                     </div>
-                    {tabs.map(tab => (
-                        <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}>
-                            <p>Khách
-                                hàng: {tab.khachHang ? `${tab.khachHang.hoTen}` : 'Chưa chọn'}</p>
-                        </div>))}
-
+                    {selectedCustomer && selectedCustomer.diaChi && (
+                        <div className="relative">
+                            <input className="mt-2 text-gray-600 w-full p-2 border rounded "
+                                readOnly
+                                value={selectedCustomer.diaChi}
+                            />
+                            <button className="absolute right-2 bottom-1.5">
+                                <EditLocationAlt />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-4 mb-4">
-                    <label>
-                        <input
-                            type="radio"
-                            value="taiquay"
-                            checked={deliveryMethod === "taiquay"}
-                            onChange={() => {
-                                setDeliveryMethod("taiquay")
-                                setAmount(0)
-                            }}
-                        />
-                        Tại quầy
-                    </label>
-                    <label>
-                        <input
-                            type="radio"
-                            value="giaohang"
-                            checked={deliveryMethod === "giaohang"}
-                            onChange={() => {
-                                setDeliveryMethod("giaohang");
-                                handleOpenDeliveryDialog();
-                            }}
-                        />
-                        Giao hàng
-                    </label>
-                </div>
+                <label>
+                    <input
+                        type="radio"
+                        value="taiquay"
+                        checked={deliveryMethod === "taiquay"}
+                        onChange={() => {
+                            setDeliveryMethod("taiquay");
+                            setAmount(0);  // Tại quầy thì không có phí ship
+                        }}
+                    />
+                    Tại quầy
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        value="giaohang"
+                        checked={deliveryMethod === "giaohang"}
+                        onChange={() => {
+                            setDeliveryMethod("giaohang");
+                            calculateShippingFee();  // Gọi API tính phí ship khi chọn "Giao hàng"
+                        }}
+                    />
+                    Giao hàng
+                </label>
+
 
                 <div className="flex items-center gap-2 mb-4">
                     <input
@@ -744,23 +777,23 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                                     return 0;
                                 };
 
-                            const discountA = calculateDiscount(a, lastTotal);
-                            const discountB = calculateDiscount(b, lastTotal);
-                            return discountB - discountA;
-                        })
-                        .map((voucher) => (
-                            <option key={voucher.id} value={voucher.id}>
-                                {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString({ style: 'currency', currency: 'VND' })} {voucher.hinhThuc}
-                                {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString({ style: 'currency', currency: 'VND' })} VNĐ`}
-                            </option>
-                        ))
-                    }
-                </select>) : (<p className="text-red-500">Không có phiếu giảm giá phù hợp.</p>)}
-                {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && total > 0 && (
-                    <p className="text-red-500 italic text-sm mt-2">
-                        * Phiếu giảm giá có giá trị tốt nhất.
-                    </p>
-                )}
+                                const discountA = calculateDiscount(a, lastTotal);
+                                const discountB = calculateDiscount(b, lastTotal);
+                                return discountB - discountA;
+                            })
+                            .map((voucher) => (
+                                <option key={voucher.id} value={voucher.id}>
+                                    {voucher.maKhuyenMai} - {voucher.giaTri.toLocaleString({ style: 'currency', currency: 'VND' })} {voucher.hinhThuc}
+                                    {voucher.hinhThuc === '%' && ` - Tối đa ${voucher.giaTriToiDa.toLocaleString({ style: 'currency', currency: 'VND' })} VNĐ`}
+                                </option>
+                            ))
+                        }
+                    </select>) : (<p className="text-red-500">Không có phiếu giảm giá phù hợp.</p>)}
+                    {getTabVouchers().length > 0 && bestVoucherApplied && !voucherSearched && total > 0 && (
+                        <p className="text-red-500 italic text-sm mt-2">
+                            * Phiếu giảm giá có giá trị tốt nhất.
+                        </p>
+                    )}
 
                 </div>
                 <div className="flex items-center justify-between w-full mt-4">
@@ -818,37 +851,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                     </div>
                 )}
                 {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-                {deliveryMethod === "giaohang" && (
-                    <>
-                        {["hoten", "sodienthoai", "email", "diachi"].map((name) => (
-                            <div key={name}>
-                                <label>{name.charAt(0).toUpperCase() + name.slice(1)}:</label>
-                                <input
-                                    {...register(name, { required: `Vui lòng nhập ${name}` })}
-                                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
-                                />
-                                {errors[name] && <p style={{ color: "red" }}>{errors[name].message}</p>}
-                            </div>
-                        ))}
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                            {[{ label: "Tỉnh/Thành Phố", value: selectedProvince, onChange: handleProvinceChange, options: provinces, key: "ProvinceID", name: "ProvinceName" }, { label: "Quận/Huyện", value: selectedDistrict, onChange: handleDistrictChange, options: districts, key: "DistrictID", name: "DistrictName", disabled: !selectedProvince }, { label: "Xã/Phường", value: selectedWard, onChange: handleWardChange, options: wards, key: "WardCode", name: "WardName", disabled: !selectedDistrict }].map(({ label, value, onChange, options, key, name, disabled }) => (
-                                <div key={label}>
-                                    <label>{label}:</label>
-                                    <select value={value} onChange={onChange} disabled={disabled} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
-                                        <option value="">Chọn {label.toLowerCase()}</option>
-                                        {options.map((option) => (
-                                            <option key={option[key]} value={option[key]}>{option[name]}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            ))}
-                        </div>
-                        <div>
-                            <label>Ghi Chú:</label>
-                            <textarea {...register('note')} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
-                        </div>
-                    </>
-                )}
+
                 <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
@@ -890,7 +893,8 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 </div>
 
                 <button
-                    type="submit"
+                    type="button"
+                    onClick={handleSubmit(onSubmit)}
                     style={{
                         marginTop: "20px",
                         padding: "10px 20px",
@@ -904,61 +908,12 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 >
                     Thanh Toán
                 </button>
-            </form>
-            <Dialog open={openCustomerDialog} onClose={handleCloseCustomerDialog}>
-                <DialogTitle>Thêm khách hàng</DialogTitle>
-                <DialogContent>
-                    {["hoTen", "soDienThoai", "email", "diaChi"].map((name) => (
-                        <TextField
-                            key={name}
-                            label={name.charAt(0).toUpperCase() + name.slice(1)}
-                            {...register(name, { required: `Vui lòng nhập ${name}` })}
-                            fullWidth
-                            margin="normal"
-                            variant="outlined"
-                            error={!!errors[name]}
-                            helperText={errors[name]?.message}
-                        />
-                    ))}
-
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                        {[{
-                            label: "Tỉnh/Thành Phố", value: selectedProvince, onChange: handleProvinceChange, options: provinces, key: "ProvinceID", name: "ProvinceName"
-                        }, {
-                            label: "Quận/Huyện", value: selectedDistrict, onChange: handleDistrictChange, options: districts, key: "DistrictID", name: "DistrictName", disabled: !selectedProvince
-                        }, {
-                            label: "Xã/Phường", value: selectedWard, onChange: handleWardChange, options: wards, key: "WardCode", name: "WardName", disabled: !selectedDistrict
-                        }].map(({ label, value, onChange, options, key, name, disabled }) => (
-                            <FormControl fullWidth margin="normal" key={label} disabled={disabled}>
-                                <InputLabel>{label}</InputLabel>
-                                <Select value={value} onChange={onChange}>
-                                    <MenuItem value="">Chọn {label.toLowerCase()}</MenuItem>
-                                    {options.map((option) => (
-                                        <MenuItem key={option[key]} value={option[key]}>{option[name]}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        ))}
-                    </div>
-
-                    <TextField
-                        label="Ghi Chú"
-                        fullWidth
-                        margin="normal"
-                        variant="outlined"
-                        multiline
-                        rows={4}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseCustomerDialog} color="primary">
-                        Hủy
-                    </Button>
-                    <Button onClick={handleCloseCustomerDialog} color="primary">
-                        Xác nhận
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            </div>
+            <CustomerDialog
+                open={openCustomerDialog}
+                onClose={() => setOpenCustomerDialog(false)}
+                reload={(newCustomer) => reload(newCustomer)}
+            />
         </div>
     );
 };

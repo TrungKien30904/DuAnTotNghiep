@@ -89,4 +89,8 @@ public class KhachHangController {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    @PostMapping("/them-kh")
+    public ResponseEntity<?> themKh(@RequestBody KhachHang khachHang) {
+        return ResponseEntity.ok(khachHangService.themKhachHang(khachHang));
+    }
 }

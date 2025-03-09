@@ -3,8 +3,15 @@ package com.example.dev.entity.customer;
 import com.example.dev.mapper.CustomerMapper;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "khach_hang")
 public class KhachHang {
@@ -50,6 +57,7 @@ public class KhachHang {
     @Column(name = "hinh_anh")
     private String hinhAnh;
 
+    private String diaChi;
     public KhachHang() {
     }
 
