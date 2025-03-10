@@ -103,7 +103,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             return;
         }
         if (paymentMethod === "cahai" && (Number(cashAmount) + Number(transferAmount) !== lastTotal)) {
-            navigate("/orders", { state: { message: "Tổng tiền chưa đủ", type: "error" } });
+            navigate("/orders", { state: { message: "Tổng tiền chưa đủ hoặc đang lớn hơn", type: "error" } });
             return;
         }
         const thanhToanHoaDon = [];
@@ -117,24 +117,25 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         }
 
         const requestData = {
-            // idHoaDon: orderItems.idHoaDon,
-            // maHoaDon: orderItems.maHoaDon,
-            // khachHang: customers.id,
-            // tongTien: lastTotal,
+            idHoaDon: orderItems.idHoaDon,
+            maHoaDon: orderItems.maHoaDon,
+            khachHang: selectedCustomer.idKhachHang ?? -1,
+            tongTien: lastTotal,
             // tenNguoiNhan: deliveryMethod === "giaohang" ? data.hoten : null,
             // soDienThoai: deliveryMethod === "giaohang" ? data.sodienthoai : null,
             // email: deliveryMethod === "giaohang" ? data.email : null,
             // ngayGiaoHang: null,
-            // phiVanChuyen: deliveryMethod === "giaohang" ? amount : BigDecimal(0),
-            // trangThai: "Đã thanh toán",
-            // ngaySua: new Date().toISOString(),
-            // nguoiSua: null,
-            // loaiDon: deliveryMethod,
-            // thanhToanHoaDon: thanhToanHoaDon,
-            // diaChi: data.diachi || "",
-            // ghiChu: data.ghichu || ""
+            phiVanChuyen: deliveryMethod === "giaohang" ? amount : 0,
+            trangThai: "Đã thanh toán",
+            ngaySua: new Date().toISOString(),
+            nguoiSua: null,
+            loaiDon: deliveryMethod,
+            thanhToanHoaDon: thanhToanHoaDon,
+            diaChi: selectedCustomer.diaChi ?? "",
+            ghiChu: data.ghichu || ""
         };
 
+        console.log(requestData);
 
 
         if (lastTotal <= 0) {
@@ -142,15 +143,15 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             return;
         }
         try {
-            const response = await axios.post(
-                'http://localhost:8080/admin/hoa-don/thanh-toan',
-                requestData,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+            // const response = await axios.post(
+            //     'http://localhost:8080/admin/hoa-don/thanh-toan',
+            //     requestData,
+            //     {
+            //         headers: {
+            //             "Content-Type": "application/json",
+            //         },
+            //     }
+            // );
 
             if (response.status === 200) {
                 if (selectedVoucher) {
@@ -162,7 +163,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 }
                 const fetchOrders = async () => {
                     try {
-                        const response = await axios.get('http://localhost:8080/admin/hoa-don/listHoaDon');
+                        const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
                         const ordersData = response.data;
                         setOrders(ordersData);
                     } catch (error) {
@@ -378,8 +379,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             try {
                 const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
                 const customersData = response.data;
-                const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
-
+                const defaultCustomer = { idKhachHang: -1, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
                 const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
                     if (customer.diaChi) {
                         const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => id.trim());
@@ -450,10 +450,12 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, khachHang: customer } : tab);
         setTabs(updatedTabs);
         const selected = customer || customers.find(c => c.idKhachHang === 0);
-
-        const [province, district, ward] = selected.idDiaChi.split(',').map(id => id.trim());
-        setSelectedDistrict(district);
-        setSelectedWard(ward);
+        
+        if (customer.idKhachHang != -1) {
+            const [province, district, ward] = selected.idDiaChi.split(',').map(id => id.trim());
+            setSelectedDistrict(district);
+            setSelectedWard(ward);
+        }
         setDiscountAmount(0);
         setSelectedVoucher('');
         setFilteredVouchers([]);
