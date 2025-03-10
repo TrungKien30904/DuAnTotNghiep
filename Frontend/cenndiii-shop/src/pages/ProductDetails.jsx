@@ -898,7 +898,7 @@ export default function ProductDetails() {
 
                   </thead>
                   <tbody>
-                    {Object.values(groupedVariants).map((group, index) => {
+                    {Object.values(groupedVariants).map((group) => {
                       const colorName = group.colorName;
                       const variantsGroup = group.variants;
                       return (

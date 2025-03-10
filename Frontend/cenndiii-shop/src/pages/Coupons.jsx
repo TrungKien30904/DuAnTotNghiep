@@ -162,6 +162,7 @@ export default function Coupons() {
 
     // Xử lý xuất Excel
     const handleExportExcel = async () => {
+        toast.loading('Đang xuất Excel...');
         try {
             const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/xuat-excel", {
                 responseType: 'blob'
@@ -172,6 +173,7 @@ export default function Coupons() {
             link.setAttribute('download', 'phieu_giam_gia.xlsx');
             document.body.appendChild(link);
             link.click();
+            toast.dismiss();
             toast.success("Xuất file Excel thành công");
         } catch (error) {
             console.error("Error exporting Excel file:", error);
@@ -275,8 +277,7 @@ export default function Coupons() {
                     <div className="flex justify-end col-span-4">
                         <button
                             onClick={handleResetFilters}
-                            className="p-2 border-2 border-black text-black bg-white rounded hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
-                        >
+                            className=" w-36 flex items-center justify-center border border-black rounded-full px-4 py-2 space-x-2 hover:border-green-800 hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"                        >
                             Làm mới bộ lọc
                         </button>
                     </div>
@@ -289,7 +290,7 @@ export default function Coupons() {
                     <div className="flex space-x-2">
                         <div className="custom-tooltip">
                             <button
-                                className="flex items-center justify-center border-2 border-black rounded-md w-20 h-8 hover:border-green-800 hover:bg-green-800 hover:text-white transition duration-300"
+                                className=" w-28 flex items-center justify-center border border-black rounded-full px-4 py-2 space-x-2 hover:border-green-800 hover:bg-green-800 hover:text-white transition duration-300"
                                 onClick={() => openConfirmDialog(null, 'exportExcel')}
                             >
                                 <FileUp size={20}/>
@@ -298,7 +299,7 @@ export default function Coupons() {
                         </div>
                         <div className="custom-tooltip">
                             <button
-                                className="flex items-center justify-center border-2 border-black rounded-md w-20 h-8 hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
+                                className=" w-28 flex items-center justify-center border border-black rounded-full px-4 py-2 space-x-2  hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
                                 onClick={() => navigate('/add-coupon')}
                             >
                                 <Plus size={20} />
@@ -315,7 +316,7 @@ export default function Coupons() {
                                 <th className="p-2">STT</th>
                                 <th className="p-2">Mã</th>
                                 <th className="p-2">Tên</th>
-                                <th className="p-2">Hình Thức</th>
+                                <th className="p-2">Loại</th>
                                 <th className="p-2">Giá Trị Giảm</th>
                                 <th className="p-2">Số Lượng</th>
                                 <th className="p-2">Ngày Bắt Đầu</th>

@@ -14,7 +14,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 h-screen bg-white p-4 shadow-md flex flex-col">
+    <aside className="w-[200px] h-screen bg-white p-4 shadow-md flex flex-col text-xs">
       <div className="text-center mb-6">
         <img src="/logo.png" alt="" className="h-20 mx-auto" />
       </div>
@@ -22,7 +22,7 @@ export default function Sidebar() {
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
-            `flex items-center space-x-2 p-2 rounded text-sm transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`
+            `flex items-center space-x-2 p-2 rounded transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`
           }
           onClick={handleMenuClick} // Đóng menu con khi chọn menu này
         >
@@ -33,7 +33,7 @@ export default function Sidebar() {
         <NavLink
           to="/orders"
           className={({ isActive }) =>
-            `flex items-center space-x-2 p-2 rounded text-sm transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`
+            `flex items-center space-x-2 p-2 rounded transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`
           }
           onClick={handleMenuClick} // Đóng menu con khi chọn menu này
         >
@@ -45,7 +45,7 @@ export default function Sidebar() {
         <div>
           <button
             onClick={() => toggleMenu("account")}
-            className="flex items-center justify-between p-2 w-full text-left rounded text-sm transition-all hover:bg-gray-200"
+            className="flex items-center justify-between p-2 w-full text-left rounded transition-all hover:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
               <User size={20} />
@@ -84,7 +84,7 @@ export default function Sidebar() {
         <div>
           <button
             onClick={() => toggleMenu("sales")}
-            className="flex items-center justify-between p-2 w-full text-left rounded text-sm transition-all hover:bg-gray-200"
+            className="flex items-center justify-between p-2 w-full text-left rounded transition-all hover:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
               <Percent size={20} />
@@ -123,7 +123,7 @@ export default function Sidebar() {
         <div>
           <button
             onClick={() => toggleMenu("products")}
-            className="flex items-center justify-between p-2 w-full text-left rounded text-sm transition-all hover:bg-gray-200"
+            className="flex items-center justify-between p-2 w-full text-left rounded transition-all hover:bg-gray-200"
           >
             <div className="flex items-center space-x-2">
               <Box size={20} />
@@ -225,7 +225,7 @@ export default function Sidebar() {
         <NavLink
           to="/invoices"
           className={({ isActive }) =>
-            `flex items-center space-x-2 p-2 rounded text-sm transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`
+            `flex items-center space-x-2 p-2 rounded transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-200"}`
           }
           onClick={handleMenuClick} // Đóng menu con khi chọn menu này
         >

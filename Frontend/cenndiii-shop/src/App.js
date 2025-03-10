@@ -34,8 +34,8 @@ import EditCustomer from "./pages/EditCustomer";
 import "react-toastify/dist/ReactToastify.css";
 import InvoiceDetail from "./pages/InvoiceDetail";
 // import { LoadingProvider, useLoading } from './components/ui/spinner/LoadingContext';
-
-
+import VoucherOrder from "./pages/VoucherOrder";
+import Test from "./pages/test";
 
 function App() {
   return (
@@ -74,6 +74,9 @@ function App() {
           <Route path="/edit-customer/:id" element={<EditCustomer />} />
           <Route path="/invoice-detail/:id" element={<InvoiceDetail />} />
           {/* <Route path="/test" element={<DynamicForm />} /> */}
+          <Route path="/test1" element={<VoucherOrder />} />
+          <Route path="/test" element={<Test />} />
+
         </Route>
       </Routes>
     </Router>

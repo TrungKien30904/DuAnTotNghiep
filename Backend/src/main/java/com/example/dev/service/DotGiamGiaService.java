@@ -9,7 +9,7 @@ import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.repository.ChiTietSanPhamRepo;
 import com.example.dev.repository.DotGiamGiaChiTietRepo;
 import com.example.dev.repository.DotGiamGiaRepo;
-import com.example.dev.repository.SanPhamRepo;
+import com.example.dev.repository.attribute.SanPhamRepo;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;

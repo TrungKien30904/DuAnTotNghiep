@@ -1,11 +1,11 @@
 package com.example.dev.service;
 
-import com.example.dev.entity.KhachHang;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.PhieuGiamGiaChiTiet;
-import com.example.dev.repository.KhachHangRepository;
-import com.example.dev.repository.PhieuGiamGiaChiTietRepository;
-import com.example.dev.repository.PhieuGiamGiaRepository;
+import com.example.dev.repository.customer.KhachHangRepository;
+import com.example.dev.repository.voucher.PhieuGiamGiaChiTietRepository;
+import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -47,6 +47,34 @@ public class PhieuGiamGiaService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
         return giamGiaRepository.findAll(pageable);
     }
+
+
+    // hiển thị bên bán hàng
+    public List<PhieuGiamGia> getPhieuGiamGia(Integer khachHangId) {
+        if (khachHangId == null) {
+            // Nếu không có khách hàng cụ thể (khách lẻ), chỉ lấy phiếu Công Khai
+            return giamGiaRepository.findPublicVouchers();
+        }
+        // Nếu có khách hàng, lấy cả Công Khai + Cá Nhân (nếu có)
+        return giamGiaRepository.findApplicableVouchers(khachHangId);
+    }
+    // trừ số lg
+    @Transactional
+    public void giamSoLuongPhieu(int id) {
+        PhieuGiamGia phieuGiamGia = timPhieuGiamTheoID(id);
+        if (phieuGiamGia.getSoLuong() > 0) {
+            phieuGiamGia.setSoLuong(phieuGiamGia.getSoLuong() - 1);
+            System.out.println("Đã trừ"+phieuGiamGia.getSoLuong());
+            if (phieuGiamGia.getSoLuong()==0){
+                phieuGiamGia.setNgayKetThuc(LocalDateTime.now());
+                phieuGiamGia.setTrangThai(0);
+            }
+            giamGiaRepository.save(phieuGiamGia);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phiếu giảm giá đã hết số lượng");
+        }
+    }
+
 
     // hien thi danh sach khach hang
     public Page<KhachHang> hienThiKhachHang(int page, int size) {
@@ -90,7 +118,7 @@ public class PhieuGiamGiaService {
                 phieuGiamGia.getDanhSachKhachHang().add(chiTiet);
 
                 // Gửi email cho khách hàng
-                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
+//                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
             }
         } else if ("Cá Nhân".equals(phieuGiamGia.getLoai())) {
             if (phieuGiamGia.getDanhSachKhachHang() != null && !phieuGiamGia.getDanhSachKhachHang().isEmpty()) {
