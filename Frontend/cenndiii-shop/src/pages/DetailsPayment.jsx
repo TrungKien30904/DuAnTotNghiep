@@ -295,6 +295,54 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             navigate("/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
     };
+    useEffect(() => {
+        const fetchPublicVouchers = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
+                    params: { khachHangId: null } // null => lấy phiếu công khai
+                });
+    
+                const validVouchers = total > 0
+                    ? response.data.filter(v => total >= v.dieuKien)
+                    : response.data;
+    
+                setOriginalVouchers(validVouchers);
+                setFilteredVouchers(validVouchers);
+    
+                const { bestVoucher, maxDiscount } = calculateBestVoucher(total + Number(amount), validVouchers);
+                if (bestVoucher) {
+                    setSelectedVoucher(bestVoucher.id);
+                    setDiscountAmount(maxDiscount);
+                    setLastTotal(calculateLastTotal(total, amount, maxDiscount));
+                    setBestVoucherApplied(true);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy phiếu giảm giá công khai:", error);
+            }
+        };
+    
+        fetchPublicVouchers();
+    }, []);
+    useEffect(() => {
+        // Nếu chưa chọn khách hàng thì tự động tính lại PGG tốt nhất
+        if(total===0) return;
+        const selectedCustomer = getSelectedCustomer();
+        if (!manualVoucherSelected && (!selectedCustomer || selectedCustomer.idKhachHang === 0)) {
+            const validVouchers = total > 0
+                ? originalVouchers.filter(v => total >= v.dieuKien)
+                : originalVouchers;
+    
+            setFilteredVouchers(validVouchers);
+    
+            const { bestVoucher, maxDiscount } = calculateBestVoucher(total + Number(amount), validVouchers);
+            setSelectedVoucher(bestVoucher?.id || '');
+            setDiscountAmount(maxDiscount);
+            setLastTotal(calculateLastTotal(total, amount, maxDiscount));
+            setBestVoucherApplied(true);
+        }
+    }, [total, amount]);
+    
+    
 
     //tính toán lại khi có sự thay đổi tổng tiền
     const calculateBestVoucher = (total, vouchers) => {
@@ -419,12 +467,13 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             }
 
             const activeTabData = tabs.find(tab => tab.id === activeTab);
-            if (activeTabData && activeTabData.vouchers) {
-                const filteredVouchers = activeTabData.vouchers.filter(v => tongTien >= v.dieuKien);
-                setFilteredVouchers(filteredVouchers);
-            } else {
-                setFilteredVouchers([]);
+            const selectedCustomer = getSelectedCustomer();
+            
+            if (activeTabData && activeTabData.vouchers && selectedCustomer && selectedCustomer.idKhachHang !== 0) {
+                const filtered = activeTabData.vouchers.filter(v => tongTien >= v.dieuKien);
+                setFilteredVouchers(filtered);
             }
+            
 
             const finalTotal = Math.max(tongTien + Number(amount) - discount, 0);
             setLastTotal(finalTotal);
