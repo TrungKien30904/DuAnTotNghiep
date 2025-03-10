@@ -10,6 +10,7 @@ import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.entity.invoice.LichSuHoaDon;
 import com.example.dev.entity.invoice.ThanhToanHoaDon;
 import com.example.dev.repository.ChiTietSanPhamRepo;
+import com.example.dev.repository.customer.KhachHangRepo;
 import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.repository.invoice.LichSuHoaDonRepository;
@@ -27,10 +28,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +44,7 @@ public class HoaDonService {
     private final HoaDonRepository hoaDonRepository;
     private final PhieuGiamGiaRepository phieuGiamGiaRepository;
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
+    private final KhachHangRepo khachHangRepo;
 
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
@@ -253,12 +252,29 @@ public class HoaDonService {
 
     public void pay(HoaDonResponse hoaDonResponse) {
         HoaDon find = hoaDonRepository.findById(hoaDonResponse.getIdHoaDon()).orElseThrow();
+        find.setTongTien(hoaDonResponse.getTongTien());
+        find.setLoaiDon(find.getLoaiDon());
+        find.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
+        find.setKhachHang(khachHangRepo.findById(hoaDonResponse.getKhachHang()).orElseThrow());
         find.setNgaySua(LocalDateTime.now());
         find.setTrangThai("Đã thanh toán");
         find.setDiaChi(hoaDonResponse.getDiaChi());
         find.setGhiChu(hoaDonResponse.getGhiChu());
         hoaDonRepository.save(find);
-        
+
+        List<ThanhToanHoaDon> tthd = new ArrayList<>();
+        for (ThanhToanHoaDonResponse tt : hoaDonResponse.getThanhToanHoaDon()) {
+            tthd.add(ThanhToanHoaDon.builder()
+                    .hoaDon(find)
+                    .hinhThucThanhToan(tt.getHinhThucThanhToan())
+                    .soTienThanhToan(tt.getSoTien())
+                    .trangThai(true)
+                    .ngayTao(LocalDateTime.now())
+                    .nguoiTao("Admin")
+                    .build());
+        }
+        thanhToanHoaDonService.thanhToanHoaDon(tthd);
+
         lichSuHoaDonService.themLichSu(
                 LichSuHoaDon.builder()
                         .hoaDon(find)
