@@ -5,6 +5,7 @@ import com.example.dev.repository.NhanVienRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,6 +15,9 @@ import java.util.List;
 public class NhanVienService {
     @Autowired
     NhanVienRepo nhanVienRepo;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     public Page<NhanVien> getAllEmployees(Pageable pageable) {
         return nhanVienRepo.findAll(pageable);
@@ -36,6 +40,7 @@ public class NhanVienService {
     }
 
     public List<NhanVien> themNv(NhanVien nhanVien){
+        nhanVien.setMatKhau(passwordEncoder.encode(nhanVien.getMatKhau()));
         nhanVienRepo.save(nhanVien);
         return getNv();
     }
