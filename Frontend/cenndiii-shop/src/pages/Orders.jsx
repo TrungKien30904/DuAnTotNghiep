@@ -132,6 +132,7 @@ export default function Orders() {
             .get(`http://localhost:8080/admin/hdct/get-cart/${idHoaDon}`)
             .then((response) => {
                 setOrderItemsByTab(response.data);
+                console.log(response.data);
             })
             .catch((error) => {
                 console.error("Error fetching product details:", error);
@@ -238,7 +239,6 @@ export default function Orders() {
             .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi")
             .then((response) => {
                 setProductDetails(response.data);
-                console.log(response.data);
             })
             .catch((error) => {
                 console.error("Error fetching product details:", error);
@@ -320,13 +320,14 @@ export default function Orders() {
     };
 
 
-    const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity) => {
+    const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity,giaDuocTinh) => {
         if (newQuantity == "tru" || newQuantity == "cong") {
             try {
                 const requestData = {
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
-                    soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1)
+                    soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1),
+                    giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
                 await axios.post(
@@ -344,7 +345,8 @@ export default function Orders() {
                 const requestData = {
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
-                    soLuongMua: Number(newQuantity)
+                    soLuongMua: Number(newQuantity),
+                    giaDuocTinh : giaDuocTinh
                 };
                 // console.log(newQuantity);
                 await axios.post(
@@ -482,7 +484,7 @@ export default function Orders() {
                                                             <TableCell align="center">Số lượng</TableCell>
                                                             <TableCell align="center">Kho</TableCell>
                                                             <TableCell align="center">Giá hiện tại</TableCell>
-                                                            {/* <TableCell align="center">Giá được tính</TableCell> */}
+                                                            <TableCell align="center">Giá được tính</TableCell>
                                                             <TableCell align="center">Tổng</TableCell>
                                                             <TableCell align="center">Hành động</TableCell>
                                                         </TableRow>
@@ -512,7 +514,7 @@ export default function Orders() {
                                                                         {item.trangThai && (
                                                                             <button onClick={() => {
                                                                                 if (Number(item.soLuongMua) > 1) {
-                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru")
+                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru",item.giaDuocTinh)
                                                                                 } else {
                                                                                     Notification("Đã là số lượng nhỏ nhất !", "warning")
                                                                                     return;
@@ -530,7 +532,7 @@ export default function Orders() {
                                                                                 onChange={(e) => {
                                                                                     if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
                                                                                         if ((e.target.value - item.soLuongMua) <= item.kho) {
-                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value)
+                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value,item.giaDuocTinh)
                                                                                         }
                                                                                     } else {
                                                                                         Notification("Chọn số lượng hợp lệ", "error")
@@ -545,7 +547,11 @@ export default function Orders() {
                                                                         {item.trangThai && (
                                                                             <button onClick={() => {
                                                                                 if (item.kho > 0) {
-                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong")
+                                                                                    if (!item.giaDuocTinh) {
+                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong",item.giaDuocTinh)
+                                                                                    } else {
+                                                                                        Notification("Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!", "warning")
+                                                                                    }
                                                                                 } else {
                                                                                     Notification("Đã hết hàng trong kho!", "warning")
                                                                                     return;
@@ -557,6 +563,7 @@ export default function Orders() {
                                                                     </TableCell>
                                                                     <TableCell align="center">{item.kho}</TableCell>
                                                                     <TableCell align="center">{item.donGia.toLocaleString()} đ</TableCell>
+                                                                    <TableCell align="center">{(item.giaDuocTinh ?? item.donGia).toLocaleString()} đ</TableCell>
                                                                     <TableCell align="center">{item.thanhTien.toLocaleString()} đ</TableCell>
                                                                     <TableCell align="center">
                                                                         <Button
@@ -565,8 +572,12 @@ export default function Orders() {
                                                                             <Trash size={16} className="text-red-600" />
                                                                         </Button>
                                                                     </TableCell>
-                                                                    {!item.trangThai && (
+                                                                    {!item.trangThai ? (
                                                                         <p className='text-red-500 absolute bottom-0 left-10 w-[500px]'>*Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán !</p>
+                                                                    ) : (
+                                                                        item.giaDuocTinh && (
+                                                                            <p className='text-red-500 absolute bottom-0 left-10 w-[500px]'>*Sản phẩm có sự thay đổi về giá !</p>
+                                                                        )
                                                                     )}
                                                                 </TableRow>
                                                             ))) : (
@@ -632,62 +643,64 @@ export default function Orders() {
                                 {productDetails && productDetails.length > 0 ? (
                                     productDetails.map((item) => (
                                         item.trangThai && (
-                                            Number(item.soLuong) > 0 && (
-                                                <TableRow key={item.idChiTietSanPham}>
-                                                    <TableCell className="relative">
-                                                        {/* {item.listAnh.map((anh, index) => (
-                                                <div key={index}>
-                                                    <img
-                                                        src={anh}
-                                                        alt={item.sanPham.ten}
-                                                        style={{ left: index * 5 + "px" }}
-                                                        className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
-                                                    />
-                                                </div>
-                                            ))} */}
+                                            !item.giaDuocTinh && (
+                                                Number(item.soLuong) > 0 && (
+                                                    <TableRow key={item.idChiTietSanPham}>
+                                                        <TableCell className="relative">
+                                                            {/* {item.listAnh.map((anh, index) => (
+                                                    <div key={index}>
                                                         <img
-                                                            src={item.lienKet}
+                                                            src={anh}
                                                             alt={item.sanPham.ten}
-                                                            className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
+                                                            style={{ left: index * 5 + "px" }}
+                                                            className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
                                                         />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <span className="flex items-center space-x-2">
-                                                            <span>{item.sanPham} &#91;</span>
-                                                            <span
-                                                                className="w-4 h-4 rounded-full"
-                                                                style={{ backgroundColor: item.mauSac }}
-                                                            ></span>
-                                                            <span>{item.kichCo} &#93;</span>
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell>{item.coGiay}</TableCell>
-                                                    <TableCell>{item.muiGiay}</TableCell>
-                                                    <TableCell>{item.deGiay}</TableCell>
-                                                    <TableCell>{item.thuongHieu}</TableCell>
-                                                    <TableCell>{item.chatLieu}</TableCell>
-                                                    <TableCell>{item.nhaCungCap}</TableCell>
-                                                    <TableCell>{item.danhMucSanPham}</TableCell>
-                                                    <TableCell>{item.giaSauGiam.toLocaleString()} đ</TableCell>
-                                                    <TableCell>{item.soLuong}</TableCell>
-                                                    <TableCell>
-                                                        <Button
-                                                            variant="contained"
-                                                            onClick={() => {
-                                                                // if (item.soLuong <= 0) {
-                                                                // Notification(
-                                                                // "Hàng đã hết! Xin vui lòng chọn sản phẩm khác !",
-                                                                // "warning"
-                                                                // );
-                                                                // } else {
-                                                                handleOpenSelectQuantity(item);
-                                                                // }
-                                                            }}
-                                                        >
-                                                            Chọn
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
+                                                    </div>
+                                                ))} */}
+                                                            <img
+                                                                src={item.lienKet}
+                                                                alt={item.sanPham.ten}
+                                                                className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span className="flex items-center space-x-2">
+                                                                <span>{item.sanPham} &#91;</span>
+                                                                <span
+                                                                    className="w-4 h-4 rounded-full"
+                                                                    style={{ backgroundColor: item.mauSac }}
+                                                                ></span>
+                                                                <span>{item.kichCo} &#93;</span>
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell>{item.coGiay}</TableCell>
+                                                        <TableCell>{item.muiGiay}</TableCell>
+                                                        <TableCell>{item.deGiay}</TableCell>
+                                                        <TableCell>{item.thuongHieu}</TableCell>
+                                                        <TableCell>{item.chatLieu}</TableCell>
+                                                        <TableCell>{item.nhaCungCap}</TableCell>
+                                                        <TableCell>{item.danhMucSanPham}</TableCell>
+                                                        <TableCell>{item.giaSauGiam.toLocaleString()} đ</TableCell>
+                                                        <TableCell>{item.soLuong}</TableCell>
+                                                        <TableCell>
+                                                            <Button
+                                                                variant="contained"
+                                                                onClick={() => {
+                                                                    // if (item.soLuong <= 0) {
+                                                                    // Notification(
+                                                                    // "Hàng đã hết! Xin vui lòng chọn sản phẩm khác !",
+                                                                    // "warning"
+                                                                    // );
+                                                                    // } else {
+                                                                    handleOpenSelectQuantity(item);
+                                                                    // }
+                                                                }}
+                                                            >
+                                                                Chọn
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
                                             )
                                         )
                                     ))

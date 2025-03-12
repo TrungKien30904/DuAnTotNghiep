@@ -10,6 +10,8 @@ public interface HoaDonChiTietRequest {
     public int getSoLuongMua();
     public int getKho();
     public BigDecimal getDonGia();
+    public BigDecimal getGiaDuocTinh();
+    public Integer getTaoBoi();
     public BigDecimal getThanhTien();
     public boolean getTrangThai();
 }

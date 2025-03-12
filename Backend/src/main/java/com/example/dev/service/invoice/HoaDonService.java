@@ -262,6 +262,9 @@ public class HoaDonService {
         find.setGhiChu(hoaDonResponse.getGhiChu());
         hoaDonRepository.save(find);
 
+        // neu tim thay trong hd co sp cu thi xoa di
+
+
         List<ThanhToanHoaDon> tthd = new ArrayList<>();
         for (ThanhToanHoaDonResponse tt : hoaDonResponse.getThanhToanHoaDon()) {
             tthd.add(ThanhToanHoaDon.builder()

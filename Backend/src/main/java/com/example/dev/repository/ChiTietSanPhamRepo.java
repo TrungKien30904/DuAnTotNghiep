@@ -12,9 +12,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Integer> {
-    List<ChiTietSanPham> findBySanPham_IdSanPham(Integer id, Pageable pageable);
+    List<ChiTietSanPham> findBySanPham_IdSanPhamAndGiaDuocTinhIsNull(Integer id, Pageable pageable);
 
     @Query(value = """
                 select * from chi_tiet_san_pham 
@@ -57,4 +58,5 @@ public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Intege
     @Query(value = "EXEC sp_TinhGiaSauGiam",nativeQuery = true)
     List<SpGiamGiaRequest> getSanPhamGiamGia();
 
+    List<ChiTietSanPham> findAllByTaoBoi(Integer taoBoi);
 }

@@ -39,6 +39,7 @@ public class ChiTietSanPhamRequest {
     private CoGiay coGiay;
     private Integer soLuong;
     private BigDecimal gia;
+    private BigDecimal giaDuocTinh;
     private String moTa;
     private Boolean trangThai;
     private LocalDateTime ngayTao;

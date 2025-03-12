@@ -41,7 +41,7 @@ public class ChiTietSanPhamService {
     private final HinhAnhRepo hinhAnhRepo;
     private final SanPhamRepo sanPhamRepo;
     private final MauSacRepo mauSacRepo;
-    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
+//    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final LichSuRepo lichSuRepo;
@@ -120,9 +120,24 @@ public class ChiTietSanPhamService {
                 log.info("Update ProductDetails > {}", ctsp.toString());
 //                historyImpl.saveHistory(find,ctsp, BaseConstant.Action.UPDATE.getValue(), id,"Admin");
             }else{
+//              thêm sản phẩm mới từ id sp cũ
                 ctsp.setNgayTao(LocalDateTime.now());
                 ctsp.setNguoiTao("Admin");
+                ctsp.setMa(ctsp.getMauSac().getTen() + ctsp.getKichCo().getTen());
+                ctsp.setTaoBoi(find.getIdChiTietSanPham());
                 chiTietSanPhamRepo.save(ctsp);
+
+                find.setSoLuong(0);
+                find.setGiaDuocTinh(find.getGia());
+                find.setGia(ctsp.getGia());
+                chiTietSanPhamRepo.save(find);
+
+                List<HoaDonChiTiet> listCart = hoaDonChiTietRepository.findAllByChiTietSanPham_IdChiTietSanPham(id);
+                for (HoaDonChiTiet hdct : listCart) {
+                    hdct.setDonGia(find.getGiaDuocTinh());
+                    hdct.setThanhTien(find.getGiaDuocTinh().multiply(BigDecimal.valueOf(hdct.getSoLuong())));
+                }
+                hoaDonChiTietRepository.saveAll(listCart);
                 log.info("Create new ProductDetails > {}", ctsp.toString());
 //                historyImpl.saveHistory(null,ctsp, BaseConstant.Action.CREATE.getValue(), id,"Admin");
             }
@@ -136,12 +151,12 @@ public class ChiTietSanPhamService {
     public List<ChiTietSanPhamRequest> getPage(Integer idSanPham, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
         List<ChiTietSanPhamRequest> request = new ArrayList<>();
-        List<ChiTietSanPham> list = chiTietSanPhamRepo.findBySanPham_IdSanPham(idSanPham, pageable);
+        List<ChiTietSanPham> list = chiTietSanPhamRepo.findBySanPham_IdSanPhamAndGiaDuocTinhIsNull(idSanPham, pageable);
         return getChiTietSanPhamRequests(request, list);
     }
 
     public int totalPage(Integer id) {
-        return chiTietSanPhamRepo.findAll().stream().filter(ctsp -> ctsp.getSanPham().getIdSanPham().equals(id)).toList().size();
+        return chiTietSanPhamRepo.findAll().stream().filter(ctsp -> ctsp.getSanPham().getIdSanPham().equals(id) && ctsp.getGiaDuocTinh() == null).toList().size();
     }
 
     public ChiTietSanPham doiTrangThai(Integer idSanPham, Integer idChiTietSanPham, int trangThai) {
@@ -237,6 +252,7 @@ public class ChiTietSanPhamService {
             r.setCoGiay(c.getCoGiay());
             r.setSoLuong(c.getSoLuong());
             r.setGia(c.getGia());
+            r.setGiaDuocTinh(c.getGiaDuocTinh());
             r.setMoTa(c.getMoTa());
             r.setTrangThai(c.getTrangThai());
             r.setNgayTao(c.getNgayTao());
@@ -290,59 +306,103 @@ public class ChiTietSanPhamService {
     }
 
     @Transactional
-    public void suaSoLuongHoaDonChiTiet(Integer idHdct,Integer idCtsp,int slThem){
+    public void suaSoLuongHoaDonChiTiet(Integer idHdct,Integer idCtsp,int slThem,BigDecimal giaDuocTinh){
         HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Hóa đơn chi tiết với id: " + idHdct));
 
         ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Chi tiết sản phẩm với id: " + idCtsp));
 
-        if (slThem > 0 && slThem <= hdct.getSoLuong() + ctsp.getSoLuong()) {
-            int chenhLech = slThem - hdct.getSoLuong();
-            if (chenhLech <= ctsp.getSoLuong()) {
-                hdct.setSoLuong(slThem);
-                hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(slThem))); // Fix tính toán
-                hoaDonChiTietRepository.save(hdct);
+        if (giaDuocTinh == null){
+            if (slThem > 0 && slThem <= hdct.getSoLuong() + ctsp.getSoLuong()) {
+                int chenhLech = slThem - hdct.getSoLuong();
+                if (chenhLech <= ctsp.getSoLuong()) {
+                    hdct.setSoLuong(slThem);
+                    hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(slThem))); // Fix tính toán
+                    hoaDonChiTietRepository.save(hdct);
 
-                if (ctsp.getSoLuong() >= chenhLech) { // Kiểm tra trước khi trừ
-                    chiTietSanPhamRepo.updateQuantity(idCtsp, ctsp.getSoLuong() - chenhLech);
-                } else {
-                    throw new RuntimeException("Không đủ hàng trong kho!");
+                    if (ctsp.getSoLuong() >= chenhLech) { // Kiểm tra trước khi trừ
+                        chiTietSanPhamRepo.updateQuantity(idCtsp, ctsp.getSoLuong() - chenhLech);
+                    } else {
+                        throw new RuntimeException("Không đủ hàng trong kho!");
+                    }
+                }
+            } else {
+                throw new RuntimeException("Số lượng cập nhật không hợp lệ!");
+            }
+        }else{
+            List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idCtsp);
+            if (slThem > 0 && slThem <= hdct.getSoLuong()) {
+                //     -1           9            10
+                int chenhLech = slThem - hdct.getSoLuong();
+                hdct.setSoLuong(slThem);
+                hoaDonChiTietRepository.save(hdct);
+                if (!backTo.isEmpty()) {
+                    for (ChiTietSanPham b : backTo) {
+                        if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idCtsp)) {
+                            chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() - chenhLech);
+                        }
+                    }
                 }
             }
-        } else {
-            throw new RuntimeException("Số lượng cập nhật không hợp lệ!");
         }
     }
 
-
+    @Transactional
     public List<HoaDonChiTiet> xoaSp(Integer idHdct, Integer idChiTietSanPham) {
         // tim sp can xoa
         HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
 
         // lay sp trong db de cap nhat
         ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
-        chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
+
+        List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idChiTietSanPham);
+        if (!backTo.isEmpty()) {
+            for (ChiTietSanPham b : backTo) {
+                if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idChiTietSanPham)) {
+                    chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() + hdct.getSoLuong());
+                }
+            }
+        }else{
+            chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
+        }
         hoaDonChiTietRepository.delete(hdct);
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hdct.getHoaDon().getIdHoaDon());
     }
 
-    public void capNhatSl(Integer idHdct,Integer idCtsp,int slThem){
+    public void capNhatSl(Integer idHdct,Integer idCtsp,int slThem,BigDecimal giaDuocTinh){
 
-        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
-        if (hdct.getSoLuong() >= 0){
-            hdct.setSoLuong(hdct.getSoLuong() + slThem);
-            hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(hdct.getSoLuong())));
-            hoaDonChiTietRepository.save(hdct);
-        }
+        HoaDonChiTiet productChange = hoaDonChiTietRepository.findById(idHdct).get();
 
-        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).get();
-        if (ctsp.getSoLuong() >= 0){
-            ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
-            chiTietSanPhamRepo.save(ctsp);
+        if (giaDuocTinh == null){
+            if (productChange.getSoLuong() >= 0){
+                productChange.setSoLuong(productChange.getSoLuong() + slThem);
+                productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
+                hoaDonChiTietRepository.save(productChange);
+            }
+            ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).get();
+            if (ctsp.getSoLuong() >= 0){
+                ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
+                chiTietSanPhamRepo.save(ctsp);
+            }
         }else{
-            System.out.println("het kho");
+            if (slThem < 0){
+                if (productChange.getSoLuong() >= 0){
+                    productChange.setSoLuong(productChange.getSoLuong() + slThem);
+                    productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
+                    hoaDonChiTietRepository.save(productChange);
+                }
+                List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idCtsp);
+                if (!backTo.isEmpty()) {
+                    for (ChiTietSanPham b : backTo) {
+                        if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idCtsp)) {
+                            chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() - slThem);
+                        }
+                    }
+                }
+            }
         }
+
 
     }
 

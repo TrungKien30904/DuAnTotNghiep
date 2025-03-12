@@ -75,7 +75,7 @@ public class ChiTietSanPhamController {
 
     @PostMapping("/sua-sp")
     public ResponseEntity<?> suaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua());
+        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 
@@ -91,7 +91,7 @@ public class ChiTietSanPhamController {
 
     @PostMapping("/cap-nhat-sl")
     public ResponseEntity<?> capNhat(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua());
+        chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 }

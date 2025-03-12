@@ -105,7 +105,8 @@ public class ChiTietSanPham {
 //    @EqualsAndHashCode.Include
     @TrackChange(columnName = "gia")
     private BigDecimal gia;
-
+    private BigDecimal giaDuocTinh;
+    private Integer taoBoi;
     private String moTa;
     private Boolean trangThai = true;
 

@@ -160,27 +160,27 @@ export default function InvoiceDetail() {
                     <div className='grid grid-cols-2 gap-4 text-sm'>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Mã: </h2>
-                            <p>{invoice.maHoaDon}</p>
+                            <p>{invoice.maHoaDon ?? "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Tên khách hàng: </h2>
-                            <p>{invoice.khachHang.hoTen}</p>
+                            <p>{invoice.khachHang ? invoice.khachHang.hoTen : "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>SĐT người nhận: </h2>
-                            <p>{invoice.khachHang.soDienThoai}</p>
+                            <p>{invoice.khachHang ? invoice.khachHang.soDienThoai : "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Email người nhận: </h2>
-                            <p>{invoice.khachHang.email}</p>
+                            <p>{invoice.khachHang ? invoice.khachHang.email : "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Tên nhân viên: </h2>
-                            <p>{invoice.nhanVien.ten}</p>
+                            <p>{invoice.nhanVien ? invoice.nhanVien.ten : "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>SĐT nhân viên: </h2>
-                            <p>{invoice.nhanVien.soDienThoai}</p>
+                            <p>{invoice.nhanVien ? invoice.nhanVien.soDienThoai : "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Tổng tiền: </h2>

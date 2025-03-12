@@ -924,7 +924,7 @@ export default function ProductDetails() {
                                     }}
                                   />
                                 </td>
-                                {idx === 0 && (<td className="p-2 text-center " rowSpan={variantsGroup.length} >{index + 1}</td>)}
+                                {idx === 0 && (<td className="p-2 text-center " rowSpan={variantsGroup.length} ></td>)}
                                 <td className="p-2">
                                   {productSelected && productSelected.label
                                     ? `${productSelected.label} [${variant.colorName} - ${variant.sizeName}]`

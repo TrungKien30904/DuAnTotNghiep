@@ -20,6 +20,7 @@ public interface SpGiamGiaRequest {
     public String getCoGiay();
     public Integer getSoLuong();
     public BigDecimal getGia();
+    public BigDecimal getGiaDuocTinh();
     public String getMoTa();
     public Boolean getTrangThai();
     public LocalDateTime getNgayTao();
