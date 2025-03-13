@@ -64,7 +64,6 @@ public class PhieuGiamGiaService {
         PhieuGiamGia phieuGiamGia = timPhieuGiamTheoID(id);
         if (phieuGiamGia.getSoLuong() > 0) {
             phieuGiamGia.setSoLuong(phieuGiamGia.getSoLuong() - 1);
-            System.out.println("Đã trừ"+phieuGiamGia.getSoLuong());
             if (phieuGiamGia.getSoLuong()==0){
                 phieuGiamGia.setNgayKetThuc(LocalDateTime.now());
                 phieuGiamGia.setTrangThai(0);

@@ -26,6 +26,7 @@ import {
 import { Trash, Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
 import DetailsPayment from "./DetailsPayment";
+// import DeliveryForm from './Delivery';
 
 // TabPanel Component để hiển thị nội dung cho từng tab
 function TabPanel(props) {
@@ -80,7 +81,6 @@ export default function Orders() {
 
     //  Tong tien
     const [total, setTotal] = useState(0);
-
 
 
     useEffect(() => {

@@ -19,6 +19,8 @@ import {
     MenuItem,
 } from '@mui/material';
 import CustomerDialog from "./AddCustomerDialog";
+import Delivery from "./Delivery";
+
 const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
@@ -85,6 +87,24 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         "Content-Type": "application/json",
     };
 
+    // giao hang khach le
+    
+    const [openDeliveryForm, setOpenDeliveryForm] = useState(false);
+    const [deliveryData, setDeliveryData] = useState([]);
+    const handleShippingFeeUpdate = (confirm, data,error) => {
+        if (error) {
+            navigate("/orders", { state: { message: error.message, type: error.type } });
+            return;
+        }
+        if (confirm) {
+            setDeliveryData(data);
+            setAmount(data.amount)
+        } else {
+            setDeliveryData(data);
+            setDeliveryMethod("taiquay")
+        }
+        setOpenDeliveryForm(false);
+    };
 
     useEffect(() => {
         setLastTotal(calculateLastTotal(total, amount, discountAmount));
@@ -97,7 +117,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
 
 
-    const onSubmit = async (data) => {
+    const onSubmit = async () => {
         if (!orderItems) {
             navigate("/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
@@ -119,21 +139,21 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         const requestData = {
             idHoaDon: orderItems.idHoaDon,
             maHoaDon: orderItems.maHoaDon,
-            khachHang: selectedCustomer.idKhachHang ?? -1,
+            khachHang: selectedCustomer?.idKhachHang ?? -1,
             tongTien: lastTotal,
-            // tenNguoiNhan: deliveryMethod === "giaohang" ? data.hoten : null,
-            // soDienThoai: deliveryMethod === "giaohang" ? data.sodienthoai : null,
-            // email: deliveryMethod === "giaohang" ? data.email : null,
-            // ngayGiaoHang: null,
             phiVanChuyen: deliveryMethod === "giaohang" ? amount : 0,
             trangThai: "Đã thanh toán",
             ngaySua: new Date().toISOString(),
             nguoiSua: null,
             loaiDon: deliveryMethod,
             thanhToanHoaDon: thanhToanHoaDon,
-            diaChi: selectedCustomer.diaChi ?? "",
-            ghiChu: data.ghichu || ""
+            tenNguoiNhan: deliveryMethod === "giaohang" ? (deliveryData?.hoTen || null) : null,
+            soDienThoai: deliveryMethod === "giaohang" ? (deliveryData?.soDienThoai || null) : null,
+            email: deliveryMethod === "giaohang" ? (deliveryData?.email || null) : null,
+            ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
+            diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
+
 
         if (lastTotal <= 0) {
             navigate("/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
@@ -714,6 +734,13 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         <select className="border p-2 rounded w-full h-8" onChange={(e) => {
                             const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
                             handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
+                            if (selected.idKhachHang != -1) {
+                                setDeliveryData(null);
+                                calculateShippingFee();
+                            }else{
+                                setDeliveryMethod("taiquay")
+                                setAmount(0);
+                            }
                         }}
                             value={selectedCustomer ? selectedCustomer.idKhachHang : ''}
                         >
@@ -751,7 +778,8 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         type="radio"
                         value="taiquay"
                         checked={deliveryMethod === "taiquay"}
-                        onChange={() => {
+                        readOnly
+                        onClick={() => {
                             setDeliveryMethod("taiquay");
                             setAmount(0);  // Tại quầy thì không có phí ship
                         }}
@@ -764,12 +792,17 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         type="radio"
                         value="giaohang"
                         checked={deliveryMethod === "giaohang"}
-                        onChange={() => {
+                        readOnly
+                        onClick={() => {
                             setDeliveryMethod("giaohang");
-                            calculateShippingFee();  // Gọi API tính phí ship khi chọn "Giao hàng"
+                            if (selectedCustomer.idKhachHang != -1) {
+                                calculateShippingFee();
+                            } else {
+                                setOpenDeliveryForm(true);
+                            }
                         }}
                     />
-                    Giao hàng
+                    Giao Hàng
                 </label>
 
 
@@ -892,7 +925,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                     </div>
                 )}
                 {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-
                 <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
@@ -954,6 +986,11 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 open={openCustomerDialog}
                 onClose={() => setOpenCustomerDialog(false)}
                 reload={(newCustomer) => reload(newCustomer)}
+            />
+            <Delivery
+                open={openDeliveryForm}
+                onClose={() => setOpenDeliveryForm(false)}
+                onShippingFeeUpdate={handleShippingFeeUpdate}
             />
         </div>
     );

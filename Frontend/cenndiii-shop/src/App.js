@@ -35,7 +35,7 @@ import "react-toastify/dist/ReactToastify.css";
 import InvoiceDetail from "./pages/InvoiceDetail";
 // import { LoadingProvider, useLoading } from './components/ui/spinner/LoadingContext';
 import VoucherOrder from "./pages/VoucherOrder";
-import Test from "./pages/test";
+import Test from "./pages/Delivery";
 
 function App() {
   return (

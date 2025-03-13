@@ -255,7 +255,7 @@ public class HoaDonService {
         find.setTongTien(hoaDonResponse.getTongTien());
         find.setLoaiDon(find.getLoaiDon());
         find.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
-        find.setKhachHang(khachHangRepo.findById(hoaDonResponse.getKhachHang()).orElseThrow());
+        find.setKhachHang(khachHangRepo.findById(hoaDonResponse.getKhachHang()).orElse(null));
         find.setNgaySua(LocalDateTime.now());
         find.setTrangThai("Đã thanh toán");
         find.setDiaChi(hoaDonResponse.getDiaChi());
