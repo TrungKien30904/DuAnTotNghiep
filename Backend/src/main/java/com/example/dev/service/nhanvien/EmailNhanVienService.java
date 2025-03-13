@@ -17,34 +17,32 @@ public class EmailNhanVienService {
 
     @Async
     public void sendHtmlMessage(String to, String subject, String htmlBody) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
-        }
+        new Thread(() -> {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(htmlBody, true);
+                mailSender.send(message);
+            } catch (MessagingException e) {
+                throw new RuntimeException("Failed to send email", e);
+            }
+        }).start();
     }
 
-@Async
-public void sendAccount(NhanVien nhanVien) {
-    if (nhanVien == null || nhanVien.getEmail() == null || nhanVien.getSoDienThoai() == null) {
-        System.out.println("Lỗi: Nhân viên hoặc thông tin email không hợp lệ.");
-        return;
+    @Async
+    public void sendAccount(NhanVien nhanVien) {
+        new Thread(() -> {
+            if (nhanVien == null || nhanVien.getEmail() == null || nhanVien.getSoDienThoai() == null) {
+                System.out.println("Lỗi: Nhân viên hoặc thông tin email không hợp lệ.");
+                return;
+            }
+            String subject = "Tài khoản của bạn";
+            String htmlBody = generateEmailContent(nhanVien);
+            sendHtmlMessage(nhanVien.getEmail(), subject, htmlBody);
+        }).start();
     }
-
-    System.out.println("Bắt đầu gửi email...");
-
-    String subject = "Tài khoản của bạn";
-    String htmlBody = generateEmailContent(nhanVien);
-
-    sendHtmlMessage(nhanVien.getEmail(), subject, htmlBody);
-
-    System.out.println("Email đã gửi xong!");
-}
 
     private String generateEmailContent(NhanVien nhanVien) {
         return String.format("""
@@ -69,6 +67,6 @@ public void sendAccount(NhanVien nhanVien) {
                 </div>
                 </body>
                 </html>
-                """, nhanVien.getTen(), nhanVien.getSoDienThoai(),nhanVien.getMatKhau());
+                """, nhanVien.getTen(), nhanVien.getSoDienThoai(), nhanVien.getMatKhau());
     }
 }

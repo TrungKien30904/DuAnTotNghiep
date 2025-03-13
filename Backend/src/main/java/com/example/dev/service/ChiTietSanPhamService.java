@@ -187,45 +187,45 @@ public class ChiTietSanPhamService {
 
     @Transactional
     public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham) {
-        if (!file.isEmpty()) {
+        new Thread(()->{
+            if (!file.isEmpty()) {
 //            for(String publicId : hinhAnhRepo.publicId(idSanPham)) {
 //                this.cloudinaryService.deleteImage(publicId);
 //            }
-            for (int i = 0; i < file.size(); i++) {
-                //Tao hinh anh
-                HinhAnh anh = new HinhAnh();
-                anh.setSanPham(sanPhamRepo.findById(idSanPham).get());
+                for (int i = 0; i < file.size(); i++) {
+                    //Tao hinh anh
+                    HinhAnh anh = new HinhAnh();
+                    anh.setSanPham(sanPhamRepo.findById(idSanPham).get());
 
-                // du lieu tu fe
-                MultipartFile f = file.get(i);
-                String tenMau = listTenMau.get(i);
+                    // du lieu tu fe
+                    MultipartFile f = file.get(i);
+                    String tenMau = listTenMau.get(i);
 
-                // xoa neu ton tai anh cu
+                    // xoa neu ton tai anh cu
 //                for (String publicId : hinhAnhRepo.publicId(String.valueOf(idSanPham),tenMau.substring(1,7))){
 //                    this.cloudinaryService.deleteImage(publicId);
 //                }
 
-                // lay ten file
-                final String fileName = FileUpLoadUtil.getFileName(f.getOriginalFilename());
-                // kiem tra dinh dang
-                FileUpLoadUtil.assertAllowed(f, FileUpLoadUtil.IMAGE_PATTERN);
-                // tai anh
-                final CloudinaryResponse response = this.cloudinaryService.uploadFile(f, fileName, tenMau, idSanPham);
+                    // lay ten file
+                    final String fileName = FileUpLoadUtil.getFileName(f.getOriginalFilename());
+                    // kiem tra dinh dang
+                    FileUpLoadUtil.assertAllowed(f, FileUpLoadUtil.IMAGE_PATTERN);
+                    // tai anh
+                    final CloudinaryResponse response = this.cloudinaryService.uploadFile(f, fileName, tenMau, idSanPham);
 
 
-                anh.setMauSac(mauSacRepo.findMauSacByTenEqualsIgnoreCase(tenMau));
-                anh.setIdHinhAnh(response.getPublicId());
-                anh.setLienKet(response.getUrl());
-                anh.setNgayTao(LocalDateTime.now());
-                anh.setNguoiTao("admin");
-                anh.setTrangThai(true);
-                this.hinhAnhRepo.save(anh);
+                    anh.setMauSac(mauSacRepo.findMauSacByTenEqualsIgnoreCase(tenMau));
+                    anh.setIdHinhAnh(response.getPublicId());
+                    anh.setLienKet(response.getUrl());
+                    anh.setNgayTao(LocalDateTime.now());
+                    anh.setNguoiTao("admin");
+                    anh.setTrangThai(true);
+                    this.hinhAnhRepo.save(anh);
+                }
+            } else {
+                System.out.println("File is empty");
             }
-        } else {
-            System.out.println("File is empty");
-        }
-
-
+        }).start();
     }
 
     public List<ChiTietSanPhamRequest> timKiem(String search, int page, int pageSize) {
