@@ -1,10 +1,13 @@
 package com.example.dev.repository;
 
+import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.DotGiamGia;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -43,52 +46,15 @@ public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Intege
 
     DotGiamGia save(DotGiamGia dotGiamGia);
 
-//    @Query("SELECT c FROM ChiTietSanPham c WHERE (:tenMuiGiay IS NULL OR c.muiGiay.ten = :tenMuiGiay) " +
-//            "AND (:tenSanPham IS NULL OR c.sanPham.ten = :tenSanPham) " +
-//            "AND (:idMauSac IS NULL OR c.mauSac.ten = :idMauSac) " +
-//            "AND (:idNhaCungCap IS NULL OR c.nhaCungCap.ten = :idNhaCungCap) " +
-//            "AND (:idKichCo IS NULL OR c.kichCo.ten = :idKichCo) " +
-//            "AND (:idChatLieu IS NULL OR c.chatLieu.ten = :idChatLieu) " +
-//            "AND (:idDeGiay IS NULL OR c.deGiay.ten = :idDeGiay) " +
-//            "AND (:idThuongHieu IS NULL OR c.thuongHieu.ten = :idThuongHieu) " +
-//            "AND (:idDanhMucSanPham IS NULL OR c.danhMucSanPham.ten = :idDanhMucSanPham) " +
-//            "AND (:idCoGiay IS NULL OR c.coGiay.ten = :idCoGiay) "
-//            + "AND (:trangThai IS NULL OR c.trangThai = :trangThai)")
-//    List<ChiTietSanPham> searchChiTietSanPham(
-//            @Param("tenMuiGiay") String tenMuiGiay,
-//            @Param("tenSanPham") String tenSanPham,
-//            @Param("ten") String tenMauSac,
-//            @Param("ten") String tenNhaCungCap,
-//            @Param("ten") String tenKichCo,
-//            @Param("ten") String tenChatLieu,
-//            @Param("ten") String tenDeGiay,
-//            @Param("ten") String tenThuongHieu,
-//            @Param("ten") String tenDanhMucSanPham,
-//            @Param("ten") String tenCoGiay,
-//            @Param("trangThai") Boolean trangThai);
-@Query("SELECT c FROM ChiTietSanPham c WHERE (:tenMuiGiay IS NULL OR c.muiGiay.ten = :tenMuiGiay) " +
-        "AND (:tenSanPham IS NULL OR c.sanPham.ten = :tenSanPham) " +
-        "AND (:tenMauSac IS NULL OR c.mauSac.ten = :tenMauSac) " +
-        "AND (:tenNhaCungCap IS NULL OR c.nhaCungCap.ten = :tenNhaCungCap) " +
-        "AND (:tenKichCo IS NULL OR c.kichCo.ten = :tenKichCo) " +
-        "AND (:tenChatLieu IS NULL OR c.chatLieu.ten = :tenChatLieu) " +
-        "AND (:tenDeGiay IS NULL OR c.deGiay.ten = :tenDeGiay) " +
-        "AND (:tenThuongHieu IS NULL OR c.thuongHieu.ten = :tenThuongHieu) " +
-        "AND (:tenDanhMucSanPham IS NULL OR c.danhMucSanPham.ten = :tenDanhMucSanPham) " +
-        "AND (:tenCoGiay IS NULL OR c.coGiay.ten = :tenCoGiay) " +
-        "AND (:trangThai IS NULL OR c.trangThai = :trangThai)")
-Page<ChiTietSanPham> searchChiTietSanPham(
-        @Param("tenMuiGiay") String tenMuiGiay,
-        @Param("tenSanPham") String tenSanPham,
-        @Param("tenMauSac") String tenMauSac,
-        @Param("tenNhaCungCap") String tenNhaCungCap,
-        @Param("tenKichCo") String tenKichCo,
-        @Param("tenChatLieu") String tenChatLieu,
-        @Param("tenDeGiay") String tenDeGiay,
-        @Param("tenThuongHieu") String tenThuongHieu,
-        @Param("tenDanhMucSanPham") String tenDanhMucSanPham,
-        @Param("tenCoGiay") String tenCoGiay,
-        @Param("trangThai") Boolean trangThai,
-        Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+        update chi_tiet_san_pham set so_luong = :soLuong where id_chi_tiet_san_pham = :idChiTietSanPham
+    """,nativeQuery = true)
+    void updateQuantity(@Param("idChiTietSanPham") Integer idChiTietSanPham,@Param("soLuong") int soLuong);
+
+    @Query(value = "EXEC sp_TinhGiaSauGiam",nativeQuery = true)
+    List<SpGiamGiaRequest> getSanPhamGiamGia();
 
 }

@@ -20,7 +20,7 @@ public class DotGiamGiaChiTiet {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_san_pham_chi_tiet")
+    @JoinColumn(name = "id_chi_tiet_san_pham")
     private ChiTietSanPham chiTietSanPham;
 
     @ManyToOne

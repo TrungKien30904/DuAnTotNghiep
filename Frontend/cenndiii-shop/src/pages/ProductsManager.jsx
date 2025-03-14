@@ -20,23 +20,9 @@ export default function ProductDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProductDetail, setSelectedProductDetail] = useState(null);
   const navigate = useNavigate();
-  const [filters, setFilters] = useState({
-    search: '',
-    idSanPham: '',
-    idMuiGiay: '',
-    idCoGiay: '',
-    idDeGiay: '',
-    idChatLieu: '',
-    idThuongHieu: '',
-    idNhaCungCap: '',
-    idDanhMucSanPham: '',
-    idMauSac: '',
-    idKichCo: '',
-    trangThai: null,
-  });
+  const [filters, setFilters] = useState("");
 
   // Dữ liệu từ BE
-  const [chiTietSanPhams, setChiTietSanPhams] = useState([]);
   const [products, setProducts] = useState([]);
   const [shoeCollars, setShoeCollars] = useState([]);
   const [shoeSoles, setShoeSoles] = useState([]);
@@ -50,37 +36,6 @@ export default function ProductDetails() {
 
   const [selectedImages, setSelectedImages] = useState([]);
 
-
-  const fetchChiTietSanPhams = async () => {
-    const response = await axios.get('http://localhost:8080/admin/chi-tiet-san-pham/search', {
-      params: {
-        ma: filters.search || undefined,
-        idSanPham: filters.idSanPham || undefined,
-        idMuiGiay: filters.idMuiGiay || undefined,
-        idCoGiay: filters.idCoGiay || undefined,
-        idDeGiay: filters.idDeGiay || undefined,
-        idChatLieu: filters.idChatLieu || undefined,
-        idThuongHieu: filters.idThuongHieu || undefined,
-        idNhaCungCap: filters.idNhaCungCap || undefined,
-        idDanhMucSanPham: filters.idDanhMucSanPham || undefined,
-        idMauSac: filters.idMauSac || undefined,
-        idKichCo: filters.idKichCo || undefined,
-        trangThai: filters.trangThai || undefined,
-      },
-    });
-    console.log("Dữ liệu trả về:", response.data);
-    setChiTietSanPhams(response.data);
-    // setChiTietSanPham(response.data);
-  };
-  useEffect(() => {
-    fetchChiTietSanPhams();
-  }, [filters]);
-  // Hàm xử lý thay đổi giá trị của select
-  const handleSelectChange = (field, value) => {
-    setFilters({ ...filters, [field]: value }); // Cập nhật state filters
-    console.log(field + " select", value);
-    fetchChiTietSanPhams(); // Gọi API để lấy dữ liệu mới
-  };
 
   const [openAlert, setOpenAlert] = useState(false); // trạng thái cho alert
   const [alertMessage, setAlertMessage] = useState(""); // thông báo cho alert
@@ -464,35 +419,35 @@ export default function ProductDetails() {
           <input
             type="text"
             name="search"
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            // value={filters.search}
+            // onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             placeholder="Tìm theo tên..."
             className="w-full pl-10 p-2 border rounded-md"
           />
         </div>
         <div className="grid grid-cols-5 gap-4">
           {[
-            { field: "idSanPham", options: products, label: "Sản phẩm" },
-            { field: "idMuiGiay", options: shoeToes, label: "Mũi giày" },
-            { field: "idCoGiay", options: shoeCollars, label: "Cổ giày" },
-            { field: "idDeGiay", options: shoeSoles, label: "Đế giày" },
-            { field: "idChatLieu", options: materials, label: "Chất liệu" },
-            { field: "idThuongHieu", options: brands, label: "Thương hiệu" },
-            { field: "idNhaCungCap", options: suppliers, label: "Nhà cung cấp" },
-            { field: "idDanhMucSanPham", options: categories, label: "Danh mục" },
-            { field: "idMauSac", options: colors, label: "Màu sắc" },
-            { field: "idKichCo", options: sizes, label: "Kích cỡ" },
-          ].map(({ field, options, label }) => (
-            <div key={field} className="relative text-sm">
+            { field: "product", options: products, label: "Sản phẩm" },
+            { field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
+            { field: "shoeToe", options: shoeToes, label: "Mũi giày" },
+            { field: "shoeSole", options: shoeSoles, label: "Đế giày" },
+            { field: "material", options: materials, label: "Chất liệu" },
+            { field: "brand", options: brands, label: "Thương hiệu" },
+            { field: "supplier", options: suppliers, label: "Nhà cung cấp" },
+            { field: "category", options: categories, label: "Danh mục" },
+            { field: "color", options: colors, label: "Màu sắc" },
+            { field: "size", options: sizes, label: "Kích cỡ" },
+          ].map(({ field, options, label,index}) => (
+            <div key={index} className="relative text-sm">
               <select
                 name={field}
                 value={filters[field] || ""}
-                onChange={(e) => handleSelectChange(field, e.target.value)} // Gọi hàm xử lý thay đổi
+                onChange={(e) => setFilters({ ...filters, [field]: e.target.value })}
                 className="border p-2 rounded-md w-full"
               >
                 <option value="">Tất cả {label}</option>
                 {options && options.map((option) => (
-                  <option key={option.id} value={option.ten}>
+                  <option key={option.id} value={option.id}>
                     {option.ten}
                   </option>
                 ))}
@@ -500,6 +455,7 @@ export default function ProductDetails() {
             </div>
           ))}
         </div>
+
       </div>
 
       {/* Card 2 - Danh Sách Chi Tiết Sản Phẩm */}
@@ -523,6 +479,7 @@ export default function ProductDetails() {
               <th className="p-2">Danh mục</th>
               <th className="p-2">Số Lượng</th>
               <th className="p-2">Giá bán</th>
+              {/* <th className="p-2">Trạng Thái</th> */}
               <th className="p-2">Hành Động</th>
             </tr>
           </thead>
@@ -544,6 +501,7 @@ export default function ProductDetails() {
                   ))}
                 </td>
 
+                {/* <td className="p-2">{c.sanPham.ten} &#91;{c.mauSac.ten} - {c.kichCo.ten}&#93;</td> */}
                 <td className="p-2">
                   <span className="flex items-center space-x-2">
                     <span>{c.sanPham.ten} &#91;</span>
@@ -564,6 +522,11 @@ export default function ProductDetails() {
                 <td className="p-2">{c.danhMucSanPham.ten}</td>
                 <td className="p-2">{c.soLuong ?? 0}</td>
                 <td className="p-2">{c.gia}</td>
+                {/* <td className="p-2">
+                  <span className={`px-2 py-1 rounded text-white w-28 inline-block text-center ${Number(c.trangThai) === 1 ? "bg-green-500" : "bg-red-500"}`}>
+                    {Number(c.trangThai) === 1 ? "Đang Bán" : "Ngừng Bán"}
+                  </span>
+                </td> */}
                 <td className="p-2 flex space-x-2 items-center">
                   <button className="text-black p-1 rounded" onClick={() => openModal(c)}>
                     <Edit size={18} stroke="black" />
@@ -583,73 +546,6 @@ export default function ProductDetails() {
             ))}
           </tbody>
         </table>
-        {/* <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-2">STT</th>
-              <th className="p-2">Ảnh</th>
-              <th className="p-2">Tên sản phẩm</th>
-              <th className="p-2">Cổ giày</th>
-              <th className="p-2">Đế giày</th>
-              <th className="p-2">Mũi giày</th>
-              <th className="p-2">Thương hiệu</th>
-              <th className="p-2">Chất liệu</th>
-              <th className="p-2">Nhà cung cấp</th>
-              <th className="p-2">Danh mục</th>
-              <th className="p-2">Số Lượng</th>
-              <th className="p-2">Giá bán</th>
-              <th className="p-2">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {chiTietSanPhams.length > 0 ? (
-              chiTietSanPhams.map((c, index) => (
-                <tr key={c.idChiTietSanPham} className="border-t">
-                  <td className="p-2">{index + 1}</td>
-                  <td className="p-2 max-w-md relative">
-                    {c.listAnh.map((anh, imgIndex) => (
-                      <div key={imgIndex}>
-                        <img
-                          src={anh} alt={c.sanPham.ten}
-                          className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${imgIndex}`}
-                        />
-                      </div>
-                    ))}
-                  </td>
-                  <td className="p-2">{c.sanPham.ten}</td>
-                  <td className="p-2">{c.coGiay.ten}</td>
-                  <td className="p-2">{c.deGiay.ten}</td>
-                  <td className="p-2">{c.muiGiay.ten}</td>
-                  <td className="p-2">{c.thuongHieu.ten}</td>
-                  <td className="p-2">{c.chatLieu.ten}</td>
-                  <td className="p-2">{c.nhaCungCap.ten}</td>
-                  <td className="p-2">{c.danhMucSanPham.ten}</td>
-                  <td className="p-2">{c.soLuong ?? 0}</td>
-                  <td className="p-2">{c.gia}</td>
-                  <td className="p-2 flex space-x-2 items-center">
-                    <button className="text-black p-1 rounded" onClick={() => openModal(c)}>
-                      <Edit size={18} stroke="black" />
-                    </button>
-                    <Switch
-                      checked={Number(c.trangThai) === 1}
-                      onChange={async () => {
-                        await toggleTrangThai(c.sanPham.idSanPham, c.idChiTietSanPham, Number(c.trangThai));
-                      }}
-                      className={`${Number(c.trangThai) === 1 ? "bg-green-600" : "bg-gray-300"} relative inline-flex items-center h-6 rounded-full w-11`}
-                    >
-                      <span className="sr-only">Toggle</span>
-                      <span className={`${Number(c.trangThai) === 1 ? "translate-x-6" : "translate-x-1"} inline-block w-4 h-4 transform bg-white rounded-full transition-transform`} />
-                    </Switch>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={13} className="p-2 text-center">Không có dữ liệu để hiển thị</td>
-              </tr>
-            )}
-          </tbody>
-        </table> */}
 
         {/* Modal for Edit */}
         <Dialog
@@ -1001,6 +897,6 @@ export default function ProductDetails() {
         onClose={handleAlertClose}
       />
       <ToastContainer />
-    </div >
+    </div>
   );
 }

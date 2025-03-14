@@ -1,11 +1,8 @@
 package com.example.dev.util.baseModel;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-
+@Builder
 public class BaseResponse <T>{
     private int code;
     private boolean isSuccess;

@@ -9,7 +9,7 @@ import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.repository.ChiTietSanPhamRepo;
 import com.example.dev.repository.DotGiamGiaChiTietRepo;
 import com.example.dev.repository.DotGiamGiaRepo;
-import com.example.dev.repository.SanPhamRepo;
+import com.example.dev.repository.attribute.SanPhamRepo;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -73,8 +73,8 @@ public class DotGiamGiaService {
                         System.out.println("111111   " + root.get("ngayBatDau"));
                         System.out.println("111111   " + root.get("ngayKetThuc"));
                         System.out.println("111111   " + now);
-                        predicates.add(cb.greaterThanOrEqualTo(root.get("ngayBatDau"), now));
-                        predicates.add(cb.lessThanOrEqualTo(root.get("ngayKetThuc"), now));
+                        predicates.add(cb.greaterThanOrEqualTo(root.get("ngayKetThuc"), now));
+                        predicates.add(cb.lessThanOrEqualTo(root.get("ngayBatDau"), now));
                         break;
 
                     case "0": // Đã kết thúc
@@ -229,12 +229,14 @@ public class DotGiamGiaService {
        return dotGiamGiaRepo.getSpAll();
     }
 
-    public List<ChiTietSanPham> getSanPhamChiTiet(List<Integer> idSanPham, int skip, int limit) {
+//    public List<ChiTietSanPham> getSanPhamChiTiet(List<Integer> idSanPham, int skip, int limit) {
+    public Page<ChiTietSanPham> getSanPhamChiTiet(List<Integer> idSanPham, int skip, int limit) {
         int page = skip / limit;
         PageRequest pageable = PageRequest.of(page, limit);
 
-        Page<ChiTietSanPham> chiTietSanPhamPage = chiTietSanPhamRepo.findBySanPhamIdSanPhamIn(idSanPham, pageable);
-        return chiTietSanPhamPage.getContent();
+//        Page<ChiTietSanPham> chiTietSanPhamPage = chiTietSanPhamRepo.findBySanPhamIdSanPhamIn(idSanPham, pageable);
+//        return chiTietSanPhamPage.getContent();
+        return chiTietSanPhamRepo.findBySanPhamIdSanPhamIn(idSanPham, pageable);
 //        return (List<ChiTietSanPham>) chiTietSanPhamRepo.findByIdSanPhamIn(idSanPham, pageable);
 
         // Lấy danh sách chi tiết sản phẩm theo ID sản phẩm

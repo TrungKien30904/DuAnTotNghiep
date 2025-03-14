@@ -95,13 +95,6 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.32.2</version>
         </dependency>
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.netflix.graphql.dgs.codegen/graphql-dgs-codegen-gradle &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.netflix.graphql.dgs.codegen</groupId>-->
-<!--            <artifactId>graphql-dgs-codegen-gradle</artifactId>-->
-<!--            <version>7.0.3</version>-->
-<!--        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/org.springframework/spring-core -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -126,6 +119,16 @@
             <groupId>com.google.auth</groupId>
             <artifactId>google-auth-library-oauth2-http</artifactId>
             <version>1.32.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.6.0</version>
         </dependency>
     </dependencies>
 

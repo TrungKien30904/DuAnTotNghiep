@@ -400,7 +400,7 @@ export default function CouponDetails() {
                         </div>
                         <div className="flex space-x-4 mb-4">
                             <div className="flex-1">
-                                <label className="block text-sm font-semibold mb-2">Kiểu</label>
+                                <label className="block text-sm font-semibold mb-2">Hình Thức</label>
                                 <div>
                                     <label className="inline-flex items-center">
                                         <input

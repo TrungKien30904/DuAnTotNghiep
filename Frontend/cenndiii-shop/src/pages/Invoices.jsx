@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FileText, ShoppingCart, Home, EyeIcon, } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { FileSpreadsheet } from "lucide-react";
-
+import Notification from '../components/Notification';
+import { ToastContainer } from 'react-toastify';
 
 const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Thanh toán', 'Hoàn thành', 'Hủy'];
 
@@ -63,7 +63,7 @@ export default function Invoices() {
     const handleSearch = () => {
         const { startDate, endDate } = filter;
         if (new Date(endDate) < new Date(startDate)) {
-            toast.error('Ngày kết thúc không được bé hơn ngày bắt đầu!');
+            Notification("Ngày kết thúc không được bé hơn ngày bắt đầu!","error")
         } else {
             fetchInvoices(filter);
         }
@@ -71,7 +71,6 @@ export default function Invoices() {
     // Xuất excel
 
     const exportExcel = async () => {
-        toast.loading('Đang xuất Excel...');
         try {
             const response = await axios.get('http://localhost:8080/admin/hoa-don/export-excel', {
                 responseType: 'blob', // Important for downloading files
@@ -82,12 +81,11 @@ export default function Invoices() {
             link.setAttribute('download', 'FileExcel.xlsx'); // or any other extension
             document.body.appendChild(link);
             link.click();
-            toast.dismiss();
-            toast.success('Xuất Excel thành công!');
+            Notification("Xuất hóa đơn thành công","success")
         } catch (error) {
             console.error('Error exporting Excel:', error);
-            toast.dismiss();
-            toast.error('Xuất Excel thất bại!');
+            Notification("Xuất hóa đơn thất bại","error")
+
         }
     };
 
@@ -196,7 +194,6 @@ export default function Invoices() {
             <div className="bg-white p-4 rounded-lg shadow-md">
                 <div className="flex justify-between">
                     <h3 className="text-lg font-semibold flex items-center">
-                        { }
                         <FileText className="mr-2" /> Danh sách hoá đơn
                     </h3>
                     <div className='flex justify-end gap-10'>
@@ -224,12 +221,12 @@ export default function Invoices() {
                 </div>
 
                 <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400">
-                    {statuses.map(status =>
-                        <li className="me-2 relative inline-flex" onClick={() => changeStatusHandler(status)}>
+                    {statuses.map((status,index) =>
+                        <li key={index} className="me-2 relative inline-flex" onClick={() => changeStatusHandler(status)}>
                             <a href="#"
                                 className={`inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-300 dark:hover:bg-gray-400 dark:hover:text-white ${status === selectedStatus && 'active text-blue-600 bg-blue-50'}`}>{status}</a>
                             <span
-                                class="absolute  right-0.5 grid min-h-[12px] min-w-[24px] translate-x-1/4 -translate-y-1/8 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
+                                className="absolute  right-0.5 grid min-h-[12px] min-w-[24px] translate-x-1/4 -translate-y-1/8 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
                                 {status === 'Tất cả' ? invoices.length : (countByTrangThai[status] || 0)}
                             </span>
                         </li>
@@ -257,7 +254,7 @@ export default function Invoices() {
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
                                 <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
-                                <td className="px-4 py-2">{invoice.nhanVien.ten}</td>
+                                {/* <td className="px-4 py-2">{invoice.nhanVien.ten}</td> */}
                                 <td className="px-4 py-2">{invoice.soDienThoai}</td>
                                 <td className="px-4 py-2">{invoice.email}</td>
                                 <td className="px-4 py-2">{invoice.tongTien}</td>
@@ -306,7 +303,7 @@ export default function Invoices() {
                 </div>
 
             </div>
-            <Toaster position="top-right" />
+            <ToastContainer/>
         </div>
     );
 }

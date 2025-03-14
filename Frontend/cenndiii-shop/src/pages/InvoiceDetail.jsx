@@ -2,6 +2,12 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import OrderStatus from '../components/ui/OrderStatus';
+import Notification from '../components/Notification';
+import { ToastContainer } from 'react-toastify';
+// import { confirmAlert } from 'react-confirm-alert';
+// import 'react-confirm-alert/src/react-confirm-alert.css';
+
+
 
 export default function InvoiceDetail() {
     const { id } = useParams();
@@ -10,24 +16,38 @@ export default function InvoiceDetail() {
     const [showHistory, setShowHistory] = useState(false);
     const [histories, setHistories] = useState([]);
     const [invoiceDetails, setInvoiceDetails] = useState([]);
+
     const fetchInvoice = async (maHoaDon) => {
         const response = await axios.get(`http://localhost:8080/admin/hoa-don/${maHoaDon}`);
         setInvoice(response.data);
-    }
+    };
+
     const fetchInvoicePaymentHistory = async (maHoaDon) => {
         const response = await axios.get(`http://localhost:8080/admin/hoa-don/${maHoaDon}/lich-su-thanh-toan`);
         setPayment(response.data);
-    }
+    };
+
     const fetchHistories = async () => {
         const response = await axios.get(`http://localhost:8080/admin/hoa-don/${id}/lich-su-hoa-don`);
         setHistories(response.data);
-    }
+    };
+
+    const fetchInvoiceDetails = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8080/admin/hdct/listHoaDonChiTiet?maHoaDon=${id}`);
+            setInvoiceDetails(response.data);
+        } catch (error) {
+            console.error('Error fetching invoice details:', error);
+        }
+    };
+
     useEffect(() => {
         fetchInvoice(id);
         fetchInvoicePaymentHistory(id);
         fetchHistories();
         fetchInvoiceDetails();
-    }, []);
+    }, [id]);
+
     const getProgressPercent = () => {
         if (!invoice) return;
         if (invoice.trangThai === 'Chờ xác nhận') return 0;
@@ -35,46 +55,63 @@ export default function InvoiceDetail() {
         if (invoice.trangThai === 'Chờ vận chuyển') return 50;
         if (invoice.trangThai === 'Đã thanh toán') return 75;
         if (invoice.trangThai === 'Giao thành công') return 100;
-    }
+    };
+
     const xacNhanDonHang = () => {
         axios.put(`http://localhost:8080/admin/hoa-don/${id}/xac-nhan`)
             .then(() => fetchInvoice(id));
-    }
+    };
+
     const huyDonHang = () => {
         axios.put(`http://localhost:8080/admin/hoa-don/${id}/huy`)
             .then(() => fetchInvoice(id));
-    }
+    };
+
     const quayLai = () => {
         axios.put(`http://localhost:8080/admin/hoa-don/${id}/quay-lai`)
             .then(() => fetchInvoice(id));
-    }
+    };
+
     const hienThiLichSu = () => {
         setShowHistory(true);
-    }
-
-    const fetchInvoiceDetails = async () => {
-        try {
-            const response = await axios.get(`http://localhost:8080/HoaDonChiTiet/listHoaDonChiTiet?maHoaDon=${id}`);
-            setInvoiceDetails(response.data);
-        } catch (error) {
-            console.error('Error fetching invoice details:', error);
-        }
     };
 
     const handleEdit = (id) => {
         // Handle edit action
         console.log(`Edit item with id: ${id}`);
-    }
+    };
 
     const handleDelete = (id) => {
-        // Handle delete action
-        console.log(`Delete item with id: ${id}`);
-    }
+        // confirmAlert({
+        //     title: 'Xác nhận xóa',
+        //     message: 'Bạn có chắc chắn muốn xóa mục này?',
+        //     buttons: [
+        //         {
+        //             label: 'Yes',
+        //             onClick: async () => {
+        //                 try {
+        //                     await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
+        //                     setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
+        //                     Notification("Xóa thành công","success")
+        //                 } catch (error) {
+        //                     console.error('Error deleting item:', error);
+        //                     Notification("Xóa thất bại","error")
+        //                 }
+        //             }
+        //         },
+        //         {
+        //             label: 'No',
+        //             onClick: () => {}
+        //         }
+        //     ]
+        // });
+    };
 
     const handleAdd = () => {
         // Handle add action
         console.log('Add new item');
-    }
+    };
+
     return (
         <div className="p-6 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow-md ">
@@ -119,7 +156,7 @@ export default function InvoiceDetail() {
             {
                 invoice &&
                 <div className="bg-white p-4 rounded-lg shadow-md ">
-                    <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Thông tin đơn hàng</h1>
+                    <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Thông tin khách hàng</h1>
                     <div className='grid grid-cols-2 gap-4 text-sm'>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Mã: </h2>
@@ -252,18 +289,14 @@ export default function InvoiceDetail() {
             <div className="bg-white p-4 rounded-lg shadow-md mt-4">
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-lg font-semibold">Thông tin đơn hàng có mã hóa đơn: {id}</h1>
-                    <button
-                        onClick={handleAdd}
-                        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                        Thêm mới
-                    </button>
+
                 </div>
                 <table className="min-w-full border-collapse">
                     <thead className=''>
                         <tr className="bg-gray-100 text-left ">
                             <th className="px-4 py-2 ">STT</th>
-                            <th className="px-4 py-2 ">Ảnh sản phẩm</th>
                             <th className="px-4 py-2 ">Tên sản phẩm</th>
+                            <th className="px-4 py-2 ">Kích cỡ</th>
                             <th className="px-4 py-2 ">Màu sắc</th>
                             <th className="px-4 py-2 ">Số lượng</th>
                             <th className="px-4 py-2 ">Thành tiền</th>
@@ -276,18 +309,14 @@ export default function InvoiceDetail() {
                         {invoiceDetails.map((detail, index) => (
                             <tr key={detail.idHoaDonChiTiet} className="border-b hover:bg-gray-100">
                                 <td className="px-4 py-2">{index + 1}</td>
-                                <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.tenSanPham}</td>
+                                <td className="px-4 py-2">{detail.chiTietSanPham.kichCo.ten}</td>
+
                                 <td className="px-4 py-2">{detail.chiTietSanPham.mauSac.ten}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.soLuong}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.soLuong * detail.chiTietSanPham.gia + 'VND'}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.trangThai ?"Còn hàng":"Hết hàng"}</td>
                                 <td className="px-4 py-2 flex gap-2">
-                                    <button
-                                        onClick={() => handleEdit(detail.idHoaDonChiTiet)}
-                                        className="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-yellow-400 dark:hover:bg-yellow-500 focus:outline-none dark:focus:ring-yellow-600">
-                                        Sửa
-                                    </button>
                                     <button
                                         onClick={() => handleDelete(detail.idHoaDonChiTiet)}
                                         className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-400 dark:hover:bg-red-500 focus:outline-none dark:focus:ring-red-600">
@@ -299,6 +328,7 @@ export default function InvoiceDetail() {
                     </tbody>
                 </table>
             </div>
+            <ToastContainer/>
         </div >
     )
 }
