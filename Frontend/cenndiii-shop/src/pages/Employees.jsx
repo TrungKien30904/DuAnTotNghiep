@@ -88,7 +88,7 @@ export default function EmployeeManagement() {
       "Số Điện Thoại": employee.soDienThoai,
       "Địa Chỉ": employee.diachi || "Chưa có", // Nếu địa chỉ là null, hiển thị "Chưa có"
       "Ngày Sinh": employee.ngaySinh ? new Date(employee.ngaySinh).toLocaleDateString("vi-VN") : "Chưa có", // Kiểm tra nếu có ngày sinh
-      "Giới Tính": employee.gioiTinh == "Nam"? "Nam" : "Nữ", // Chuyển đổi giá trị chuỗi thành giới tính
+      "Giới Tính": employee.gioiTinh == "Nam" ? "Nam" : "Nữ", // Chuyển đổi giá trị chuỗi thành giới tính
       "Trạng Thái": employee.trangThai ? "Hoạt động" : "Ngừng hoạt động"
     }));
 
@@ -216,7 +216,7 @@ export default function EmployeeManagement() {
                   <td className="p-2">{employee.cccd}</td>
                   <td className="p-2">{employee.soDienThoai}</td>
                   <td className="p-2">{new Date(employee.ngaySinh).toLocaleDateString("vi-VN")}</td>
-                  <td className="p-2">{employee.gioiTinh == "Nam"? "Nam" : "Nữ"}</td>
+                  <td className="p-2">{employee.gioiTinh == "Nam" ? "Nam" : "Nữ"}</td>
                   <td className="p-2">
                     <span className={`px-2 py-1 rounded text-white w-28 inline-block text-center ${employee.trangThai == 1 ? "bg-green-500" : "bg-red-500"}`}>
                       {employee.trangThai == 1 ? "Hoạt động" : "Ngừng hoạt động"}
@@ -242,23 +242,25 @@ export default function EmployeeManagement() {
             }
           </tbody>
         </table>
-        <div className="flex justify-center items-center mt-4">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 0}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
-          >
-            Trước
-          </button>
-          <span className="mx-4">Trang {currentPage + 1} / {totalPages}</span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage + 1 === totalPages}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
-          >
-            Sau
-          </button>
-        </div>
+        {employees.length > 0 && (
+          <div className="flex justify-center items-center mt-4">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
+            >
+              Trước
+            </button>
+            <span className="mx-4">Trang {currentPage + 1} / {totalPages}</span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage + 1 === totalPages}
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
+            >
+              Sau
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

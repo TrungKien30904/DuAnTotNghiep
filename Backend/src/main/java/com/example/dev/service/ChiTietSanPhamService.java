@@ -13,6 +13,7 @@ import com.example.dev.repository.SanPhamRepo;
 import com.example.dev.util.FileUpLoadUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ public class ChiTietSanPhamService {
     public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id) {
         ctsp.setIdChiTietSanPham(id);
         ChiTietSanPham find = chiTietSanPhamRepo.findById(id).get();
-        if(isEqual(ctsp,find)) {
+        if (isEqual(ctsp, find)) {
             find.setSoLuong(ctsp.getSoLuong() + find.getSoLuong());
             find.setGia(ctsp.getGia());
         }
@@ -132,7 +133,7 @@ public class ChiTietSanPhamService {
     }
 
     @Transactional
-    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau,Integer idSanPham) {
+    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham) {
         if (!file.isEmpty()) {
 //            for(String publicId : hinhAnhRepo.publicId(idSanPham)) {
 //                this.cloudinaryService.deleteImage(publicId);
@@ -156,8 +157,7 @@ public class ChiTietSanPhamService {
                 // kiem tra dinh dang
                 FileUpLoadUtil.assertAllowed(f, FileUpLoadUtil.IMAGE_PATTERN);
                 // tai anh
-                final CloudinaryResponse response = this.cloudinaryService.uploadFile(f, fileName, tenMau,idSanPham);
-
+                final CloudinaryResponse response = this.cloudinaryService.uploadFile(f, fileName, tenMau, idSanPham);
 
 
                 anh.setMauSac(mauSacRepo.findMauSacByTenEqualsIgnoreCase(tenMau));
@@ -175,15 +175,15 @@ public class ChiTietSanPhamService {
 
     }
 
-    public List<ChiTietSanPhamRequest> timKiem (String search,int page, int pageSize){
+    public List<ChiTietSanPhamRequest> timKiem(String search, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
         List<ChiTietSanPhamRequest> request = new ArrayList<>();
-        List<ChiTietSanPham> list = chiTietSanPhamRepo.searchs(search,pageable).getContent();
+        List<ChiTietSanPham> list = chiTietSanPhamRepo.searchs(search, pageable).getContent();
         return getChiTietSanPhamRequests(request, list);
     }
 
     private List<ChiTietSanPhamRequest> getChiTietSanPhamRequests(List<ChiTietSanPhamRequest> request, List<ChiTietSanPham> list) {
-        for(ChiTietSanPham c : list) {
+        for (ChiTietSanPham c : list) {
             ChiTietSanPhamRequest r = new ChiTietSanPhamRequest();
             r.setIdChiTietSanPham(c.getIdChiTietSanPham());
             r.setMuiGiay(c.getMuiGiay());
@@ -210,7 +210,15 @@ public class ChiTietSanPhamService {
         return request;
     }
 
-    public void xoaAnh(){
+    public void xoaAnh() {
 
+    }
+
+    public Page<ChiTietSanPham> searchChiTietSanPham(String idMuiGiay, String idSanPham, String idMauSac,
+                                                     String idNhaCungCap, String idKichCo, String idChatLieu,
+                                                     String idDeGiay, String idThuongHieu, String idDanhMucSanPham,
+                                                     String idCoGiay, Boolean trangThai, Pageable pageable) {
+        return chiTietSanPhamRepo.searchChiTietSanPham(idMuiGiay, idSanPham, idMauSac, idNhaCungCap, idKichCo,
+                idChatLieu, idDeGiay, idThuongHieu, idDanhMucSanPham, idCoGiay, trangThai,pageable);
     }
 }
