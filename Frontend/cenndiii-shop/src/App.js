@@ -33,7 +33,6 @@ import EditCustomer from "./pages/EditCustomer";
 // import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import InvoiceDetail from "./pages/InvoiceDetail";
-import Client from "./pages/client/show"
 // import { LoadingProvider, useLoading } from './components/ui/spinner/LoadingContext';
 
 
