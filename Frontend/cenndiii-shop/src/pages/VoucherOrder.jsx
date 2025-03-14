@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Ticket } from "lucide-react";
 import axios from 'axios';
-// import { confirmAlert } from 'react-confirm-alert';
+import { confirmAlert } from 'react-confirm-alert';
 // import 'react-confirm-alert/src/react-confirm-alert.css';
 // import { toast } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';

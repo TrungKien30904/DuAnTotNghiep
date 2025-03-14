@@ -41,7 +41,7 @@ public class ChiTietSanPhamService {
     private final HinhAnhRepo hinhAnhRepo;
     private final SanPhamRepo sanPhamRepo;
     private final MauSacRepo mauSacRepo;
-    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
+//    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final LichSuRepo lichSuRepo;
