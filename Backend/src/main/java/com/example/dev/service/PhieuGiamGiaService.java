@@ -117,7 +117,7 @@ public class PhieuGiamGiaService {
                 phieuGiamGia.getDanhSachKhachHang().add(chiTiet);
 
                 // Gửi email cho khách hàng
-//                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
+                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
             }
         } else if ("Cá Nhân".equals(phieuGiamGia.getLoai())) {
             if (phieuGiamGia.getDanhSachKhachHang() != null && !phieuGiamGia.getDanhSachKhachHang().isEmpty()) {
