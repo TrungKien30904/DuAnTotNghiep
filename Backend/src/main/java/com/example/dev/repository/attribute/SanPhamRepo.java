@@ -36,4 +36,5 @@ public interface SanPhamRepo extends JpaRepository<SanPham, Integer> {
     List<SanPham> findAllByTrangThaiIsTrue();
 
     Page<SanPham> findByTenContaining(String tenSanPham, Pageable pageable);
+
 }
