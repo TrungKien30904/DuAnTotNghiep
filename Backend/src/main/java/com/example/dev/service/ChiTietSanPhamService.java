@@ -65,6 +65,9 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepo.findById(id).get();
     }
 
+    public List<ChiTietSanPham> getProductDetailsByColor(Integer idSanPham,Integer idMauSac) {
+        return chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac);
+    }
     public Integer themChiTietSanPham(ChiTietSanPhamResponse dto) {
         ChiTietSanPham ctsp = null;
         List<ChiTietSanPham> chiTietSanPhams = getListChiTietSanPham();
@@ -187,7 +190,6 @@ public class ChiTietSanPhamService {
 
     @Transactional
     public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham) {
-        new Thread(()->{
             if (!file.isEmpty()) {
 //            for(String publicId : hinhAnhRepo.publicId(idSanPham)) {
 //                this.cloudinaryService.deleteImage(publicId);
@@ -225,7 +227,6 @@ public class ChiTietSanPhamService {
             } else {
                 System.out.println("File is empty");
             }
-        }).start();
     }
 
     public List<ChiTietSanPhamRequest> timKiem(String search, int page, int pageSize) {
@@ -235,6 +236,11 @@ public class ChiTietSanPhamService {
         return getChiTietSanPhamRequests(request, list);
     }
 
+    public List<ChiTietSanPhamRequest> showProductOnline(Integer idSanPham){
+        List<ChiTietSanPham> list = chiTietSanPhamRepo.findChiTietSanPhamBySanPham_IdSanPhamAndGiaDuocTinhIsNull(idSanPham);
+        List<ChiTietSanPhamRequest> request = new ArrayList<>();
+        return getChiTietSanPhamRequests(request,list);
+    }
     private List<ChiTietSanPhamRequest> getChiTietSanPhamRequests(List<ChiTietSanPhamRequest> request, List<ChiTietSanPham> list) {
         for (ChiTietSanPham c : list) {
             ChiTietSanPhamRequest r = new ChiTietSanPhamRequest();
@@ -406,8 +412,8 @@ public class ChiTietSanPhamService {
 
     }
 
-    public List<SpGiamGiaRequest> getSpGiamGia(){
-        return chiTietSanPhamRepo.getSanPhamGiamGia();
+    public List<SpGiamGiaRequest> getSpGiamGia(Integer idChiTietSanPham){
+        return chiTietSanPhamRepo.getSanPhamGiamGia(idChiTietSanPham);
     }
 
 }

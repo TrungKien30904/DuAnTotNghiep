@@ -35,7 +35,7 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex gap-6 text-lg text-black">
-          {["Home", "Pages", "Shop", "Blog", "Lookbook", "Elements"].map((item, index) => (
+          {["Home", "Shop", "Blog", "Contact", "About"].map((item, index) => (
             <Link 
               key={index} 
               to={`/${item.toLowerCase()}`} 

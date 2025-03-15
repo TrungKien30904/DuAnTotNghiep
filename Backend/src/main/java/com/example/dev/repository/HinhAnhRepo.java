@@ -5,10 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public interface HinhAnhRepo extends JpaRepository<HinhAnh,String> {
     @Query(value = """
@@ -25,5 +22,16 @@ public interface HinhAnhRepo extends JpaRepository<HinhAnh,String> {
 """,nativeQuery = true)
     List<String> listURl (Integer idChiTietSanPham);
 
+    @Query(value = """
 
+            WITH ranked_images AS (
+    SELECT
+        ha.*,
+        ROW_NUMBER() OVER (PARTITION BY ha.id_mau_sac ORDER BY ha.ngay_tao ASC) AS rn
+    FROM hinh_anh ha
+    WHERE ha.id_san_pham = :idSanPham
+)
+SELECT * FROM ranked_images WHERE rn = 1;
+""",nativeQuery = true)
+    List<HinhAnh> findImageByProduct(@Param("idSanPham") Integer idSanPham);
 }

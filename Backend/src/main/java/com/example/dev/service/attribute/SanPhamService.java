@@ -1,6 +1,7 @@
 package com.example.dev.service.attribute;
 
 import com.example.dev.DTO.response.product.SanPhamDTO;
+import com.example.dev.DTO.response.product.SanPhamOnlResponse;
 import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.repository.attribute.SanPhamRepo;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,9 @@ public class SanPhamService {
         return sanPhamRepo.findAllByTrangThaiIsTrue();
     }
 
+    public List<SanPhamOnlResponse> getProductOnl(){
+        return sanPhamRepo.getListProductOnl();
+    }
     @Transactional
     public SanPham themSanPham(SanPham sanPham) {
         sanPham.setNgayTao(LocalDateTime.now());

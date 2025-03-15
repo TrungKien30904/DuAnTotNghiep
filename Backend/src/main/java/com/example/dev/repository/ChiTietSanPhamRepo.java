@@ -16,7 +16,13 @@ import java.util.Optional;
 
 public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Integer> {
     List<ChiTietSanPham> findBySanPham_IdSanPhamAndGiaDuocTinhIsNull(Integer id, Pageable pageable);
+    @Query(value = """
+    select * from chi_tiet_san_pham\s
+    where id_san_pham = :idSanPham and gia_duoc_tinh is null and trang_thai = 1 and id_mau_sac = :idMauSac
+""",nativeQuery = true)
+    List<ChiTietSanPham> getAllProductByColor(@Param("idSanPham") Integer idSanPham,@Param("idMauSac") Integer idMauSac);
 
+    List<ChiTietSanPham> findChiTietSanPhamBySanPham_IdSanPhamAndGiaDuocTinhIsNull(Integer id);
     @Query(value = """
                 select * from chi_tiet_san_pham 
                 WHERE
@@ -55,8 +61,9 @@ public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Intege
     """,nativeQuery = true)
     void updateQuantity(@Param("idChiTietSanPham") Integer idChiTietSanPham,@Param("soLuong") int soLuong);
 
-    @Query(value = "EXEC sp_TinhGiaSauGiam",nativeQuery = true)
-    List<SpGiamGiaRequest> getSanPhamGiamGia();
+    @Query(value = "EXEC sp_TinhGiaSauGiam :idChiTietSanPham",nativeQuery = true)
+    List<SpGiamGiaRequest> getSanPhamGiamGia(@Param("idChiTietSanPham") Integer idChiTietSanPham);
 
     List<ChiTietSanPham> findAllByTaoBoi(Integer taoBoi);
+
 }

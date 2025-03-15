@@ -106,7 +106,7 @@ export default function Orders() {
         fetchOrders();
 
         const dataProduct = () => {
-            axios.get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi")
+            axios.get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
                 .then((response) => {
                     setProductDetails(response.data);
                 })
@@ -596,7 +596,7 @@ export default function Orders() {
                                 <div className='w-2/5'>
                                     <DetailsPayment
                                         total={total}
-                                        orderItems={orderItems}
+                                        orderItems={orderItemsByTab}
                                         reloadTab={reloadTab}
                                     />
                                 </div>

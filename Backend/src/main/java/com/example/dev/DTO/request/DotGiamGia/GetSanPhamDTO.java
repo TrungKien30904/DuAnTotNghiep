@@ -1,4 +1,4 @@
-package com.example.dev.DTO.dotgiamgia;
+package com.example.dev.DTO.request.DotGiamGia;
 import com.example.dev.entity.attribute.SanPham;
 import java.util.List;
 

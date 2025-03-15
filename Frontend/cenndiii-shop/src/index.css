@@ -42,3 +42,68 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+/* 
+.swiper-button-prev, .swiper-button-next {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  background-color: black !important; 
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease-in-out !important;
+}
+
+.swiper-button-prev::after, .swiper-button-next::after {
+  font-size: 22px !important;
+  font-weight: bold !important;
+  color: white !important; 
+  transition: all 0.3s ease-in-out !important;
+}
+.swiper-button-prev:hover, .swiper-button-next:hover {
+  background-color: white !important; 
+}
+
+.swiper-button-prev:hover::after, .swiper-button-next:hover::after {
+  color: black !important; 
+} */
+
+.swiper {
+  width: 100%;
+  height: 100vh;
+  background: #000;
+}
+
+.swiper-slide {
+  font-size: 18px;
+  color: #fff;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 40px 60px;
+}
+
+.parallax-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 130%;
+  height: 100%;
+  -webkit-background-size: cover;
+  background-size: cover;
+  background-position: center;
+}
+
+.swiper-slide .title {
+  font-size: 41px;
+  font-weight: 300;
+}
+
+.swiper-slide .subtitle {
+  font-size: 21px;
+}
+
+.swiper-slide .text {
+  font-size: 14px;
+  max-width: 400px;
+  line-height: 1.3;
+}

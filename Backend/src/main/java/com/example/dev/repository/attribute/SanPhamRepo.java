@@ -1,6 +1,7 @@
 package com.example.dev.repository.attribute;
 
 import com.example.dev.DTO.response.product.SanPhamDTO;
+import com.example.dev.DTO.response.product.SanPhamOnlResponse;
 import com.example.dev.entity.attribute.SanPham;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,4 +39,9 @@ public interface SanPhamRepo extends JpaRepository<SanPham, Integer> {
     List<SanPham> findAllByTrangThaiIsTrue();
 
     Page<SanPham> findByTenContaining(String tenSanPham, Pageable pageable);
+
+    @Query(value = """
+        exec sp_LaySanPham
+    """,nativeQuery = true)
+    List<SanPhamOnlResponse> getListProductOnl();
 }

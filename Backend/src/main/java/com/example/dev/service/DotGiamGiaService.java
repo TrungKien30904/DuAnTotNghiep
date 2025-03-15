@@ -1,7 +1,7 @@
 package com.example.dev.service;
 
-import com.example.dev.DTO.dotgiamgia.DotGiamGiaRequestDTO;
-import com.example.dev.DTO.dotgiamgia.GetSanPhamDTO;
+import com.example.dev.DTO.request.DotGiamGia.DotGiamGiaRequestDTO;
+import com.example.dev.DTO.request.DotGiamGia.GetSanPhamDTO;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.DotGiamGia;
 import com.example.dev.entity.DotGiamGiaChiTiet;

@@ -22,6 +22,11 @@ public class SanPhamController {
         return ResponseEntity.ok(sanPhamService.getSanPhamBan());
     }
 
+    @GetMapping("/hien-thi/online")
+    public ResponseEntity<?> hienThiOnline() {
+        return ResponseEntity.ok(sanPhamService.getProductOnl());
+    }
+
     @PostMapping("/them")
     public ResponseEntity<?> themSp(@RequestBody SanPham sanPham) {
         return ResponseEntity.ok(sanPhamService.themSanPham(sanPham));

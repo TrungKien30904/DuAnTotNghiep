@@ -1,8 +1,8 @@
 package com.example.dev.controller;
 
-import com.example.dev.DTO.dotgiamgia.DotGiamGiaRequestDTO;
-import com.example.dev.DTO.dotgiamgia.GetSanPhamChiTietDTO;
-import com.example.dev.DTO.dotgiamgia.GetSanPhamDTO;
+import com.example.dev.DTO.request.DotGiamGia.DotGiamGiaRequestDTO;
+import com.example.dev.DTO.request.DotGiamGia.GetSanPhamChiTietDTO;
+import com.example.dev.DTO.request.DotGiamGia.GetSanPhamDTO;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.DotGiamGia;
 import com.example.dev.entity.attribute.SanPham;
