@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ImageGallery from "./ProductImage";
 import { useLocation, NavLink } from "react-router-dom";
+import { useCart } from "../cart/CartContext"; 
 
 export default function ProductDetails() {
     const location = useLocation();
@@ -11,6 +12,41 @@ export default function ProductDetails() {
     const [productImage, setProductImage] = useState([]);
     const [colorSelected, setColorSelected] = useState([]);
     const [productSelected, setProductSelected] = useState({});
+   
+    const { cartCount, setCartCount } = useCart(); // Lấy hàm cập nhật số lượng giỏ hàng
+
+    const handleAddToCart = async () => {
+        if (!productSelected?.idChiTietSanPham) {
+            alert("Vui lòng chọn màu và kích cỡ trước khi thêm vào giỏ hàng!");
+            return;
+        }
+
+        const item = {
+            productId: productSelected.idChiTietSanPham,
+            productName: productSelected.sanPham,
+            img: productImage[0]?.lienKet || "",
+            price: productSelected.giaSauGiam || productSelected.gia,
+            soLuong: 1,
+            mauSac: productSelected.mauSac?.ten,
+            kichCo: productSelected.kichCo?.ten
+        };
+
+        try {
+            await fetch("http://localhost:8080/api/cart/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(item),
+            });
+
+            // Cập nhật số lượng giỏ hàng ngay lập tức
+            setCartCount(prev => prev + 1);
+            alert("Đã thêm sản phẩm vào giỏ hàng!");
+        } catch (error) {
+            console.error("Lỗi khi thêm vào giỏ hàng:", error);
+        }
+    };
+    
 
     const getAllProductImage = async () => {
         try {
@@ -41,6 +77,9 @@ export default function ProductDetails() {
     useEffect(() => {
         getAllProductImage();
     }, [product]);
+
+
+
 
     return (
         <div className="mt-[64px] mx-24 grid grid-cols-2 gap-10">
@@ -96,12 +135,14 @@ export default function ProductDetails() {
                     </div>
                 </div>
                 <div>
-                    <NavLink>
-                        <div className="p-4 border  rounded-lg text-center my-6">
-                            Thêm vào giỏ hàng
-                        </div>
-                    </NavLink>
+                    <button
+                        className="p-4 border rounded-lg text-center my-6 bg-black text-white hover:bg-blue-600 w-full"
+                        onClick={handleAddToCart}
+                    >
+                        Thêm vào giỏ hàng
+                    </button>
                 </div>
+
             </div>
 
         </div>
