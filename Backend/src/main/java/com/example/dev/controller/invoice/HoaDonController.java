@@ -21,7 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin/hoa-don")
-@CrossOrigin(origins = "*")
+
 public class HoaDonController {
 
     @Autowired
