@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useLocation, NavLink } from "react-router-dom";
 import ImageGallery from "./ProductImage";
-import { useCart } from "../cart/CartContext"; 
+import { useCart } from "../cart/CartContext";
 
 export default function ProductDetails() {
     const location = useLocation();
@@ -14,7 +14,7 @@ export default function ProductDetails() {
     const [listImageByColor, setListImageByColor] = useState([]);
     const [selectedColorId, setSelectedColorId] = useState(null); // ✅ Màu đang chọn
     const [selectedSizeId, setSelectedSizeId] = useState(null); // ✅ Size đang chọn
-   
+
     const { cartCount, setCartCount } = useCart(); // Lấy hàm cập nhật số lượng giỏ hàng
 
     const handleAddToCart = async () => {
@@ -48,7 +48,7 @@ export default function ProductDetails() {
             console.error("Lỗi khi thêm vào giỏ hàng:", error);
         }
     };
-    
+
 
     // Lấy danh sách ảnh sản phẩm
     const getAllProductImage = async () => {
@@ -66,9 +66,9 @@ export default function ProductDetails() {
             const response = await axios.get(`http://localhost:8080/admin/chi-tiet-san-pham/hien-thi/online/${idSanPham}/${idMauSac}`);
             setColorSelected(response.data.chiTietSanPham);
             setListImageByColor(response.data.listAnh);
-            setProductSelected(null); // Reset giá về range khi đổi màu
-            setSelectedColorId(idMauSac); // ✅ Cập nhật màu đang chọn
-            setSelectedSizeId(null); // Reset size khi đổi màu
+            setProductSelected(null);
+            setSelectedColorId(idMauSac);
+            setSelectedSizeId(null);
         } catch (error) {
             console.log("Chọn màu thất bại");
         }
@@ -173,16 +173,15 @@ export default function ProductDetails() {
                                 ))}
                         </div>
                     </div>
+                    <div>
+                        <button
+                            className="p-4 border rounded-lg text-center my-6 bg-black text-white hover:bg-blue-600 w-full"
+                            onClick={handleAddToCart}
+                        >
+                            Thêm vào giỏ hàng
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <button
-                        className="p-4 border rounded-lg text-center my-6 bg-black text-white hover:bg-blue-600 w-full"
-                        onClick={handleAddToCart}
-                    >
-                        Thêm vào giỏ hàng
-                    </button>
-                </div>
-
             </div>
         </div>
     );

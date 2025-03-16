@@ -80,7 +80,12 @@ const Navbar = () => {
               </Badge>
             </IconButton>
           </Link>
-          <Avatar src="" alt="User Avatar" className="transition-transform duration-300 hover:scale-110" />
+          <Link to={"/login"}>
+            <Avatar
+              src=""
+              alt="User Avatar" className="transition-transform duration-300 hover:scale-110"
+            />
+          </Link>
         </div>
       </Toolbar>
     </AppBar>
