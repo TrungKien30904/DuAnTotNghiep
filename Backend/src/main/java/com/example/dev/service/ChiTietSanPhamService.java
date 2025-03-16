@@ -28,8 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -41,7 +40,7 @@ public class ChiTietSanPhamService {
     private final HinhAnhRepo hinhAnhRepo;
     private final SanPhamRepo sanPhamRepo;
     private final MauSacRepo mauSacRepo;
-//    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
+    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final LichSuRepo lichSuRepo;
@@ -65,9 +64,24 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepo.findById(id).get();
     }
 
-    public List<ChiTietSanPham> getProductDetailsByColor(Integer idSanPham,Integer idMauSac) {
-        return chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac);
+    public Map<String,List<?>> getProductDetailsByColor(Integer idSanPham, Integer idMauSac) {
+        Map<String, List<?>> data = new HashMap<>();
+        data.put("chiTietSanPham",chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac));
+        data.put("listAnh",hinhAnhRepo.findHinhAnhBySanPham_IdSanPhamAndMauSac_IdMauSac(idSanPham,idMauSac));
+        return data;
     }
+//    public List<ChiTietSanPhamRequest> getProductDetailsByColor(Integer idSanPham,Integer idMauSac) {
+//        List<ChiTietSanPhamRequest> listRequest = new ArrayList<>();
+//
+//        List<String> lienKet = hinhAnhRepo.findHinhAnhBySanPham_IdSanPhamAndMauSac_IdMauSac(idSanPham,idMauSac).stream()
+//                .map(HinhAnh::getLienKet).toList();
+//        for (ChiTietSanPham ctsp : chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac)){
+//            ChiTietSanPhamRequest request = chiTietSanPhamMapper.entityToDto(ctsp);
+//            request.setListAnh(lienKet);
+//            listRequest.add(request);
+//        }
+//        return listRequest;
+//    }
     public Integer themChiTietSanPham(ChiTietSanPhamResponse dto) {
         ChiTietSanPham ctsp = null;
         List<ChiTietSanPham> chiTietSanPhams = getListChiTietSanPham();

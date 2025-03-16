@@ -132,7 +132,7 @@ export default function Orders() {
             .get(`http://localhost:8080/admin/hdct/get-cart/${idHoaDon}`)
             .then((response) => {
                 setOrderItemsByTab(response.data);
-                console.log(response.data);
+                // console.log(response.data);
             })
             .catch((error) => {
                 console.error("Error fetching product details:", error);
@@ -596,7 +596,7 @@ export default function Orders() {
                                 <div className='w-2/5'>
                                     <DetailsPayment
                                         total={total}
-                                        orderItems={orderItemsByTab}
+                                        orderItems={orderItems}
                                         reloadTab={reloadTab}
                                     />
                                 </div>

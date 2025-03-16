@@ -154,7 +154,6 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
 
-
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
