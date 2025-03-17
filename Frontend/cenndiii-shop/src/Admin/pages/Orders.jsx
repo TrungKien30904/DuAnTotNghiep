@@ -236,7 +236,7 @@ export default function Orders() {
 
     const handleOpenDialog = () => {
         axios
-            .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi")
+            .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
             .then((response) => {
                 setProductDetails(response.data);
             })

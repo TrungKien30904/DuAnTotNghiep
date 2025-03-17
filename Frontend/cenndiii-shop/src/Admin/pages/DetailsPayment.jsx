@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -454,6 +454,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 console.error('Lỗi khi lấy danh sách khách hàng:', error);
             }
         };
+
         fetchCustomers();
         fetchOrders();
     }, []);
@@ -504,7 +505,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     }, [activeTab, orders, total, amount]);
 
 
-    const handleSelectCustomer = async (customer) => {
+    const handleSelectCustomer = useCallback(async (customer) => {
         const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, khachHang: customer } : tab);
         setTabs(updatedTabs);
         const selected = customer || customers.find(c => c.idKhachHang === 0);
@@ -547,7 +548,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             console.error('Lỗi khi lấy phiếu giảm giá:', error);
             setLastTotal(calculateLastTotal(total, amount, 0));
         }
-    };
+    }, [tabs, activeTab, customers, total, amount, orders]);
 
     const reload = async (newCustomer = null) => {
         try {
