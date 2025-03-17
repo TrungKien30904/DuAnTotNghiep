@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Ticket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -88,10 +88,10 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     };
 
     // giao hang khach le
-    
+
     const [openDeliveryForm, setOpenDeliveryForm] = useState(false);
     const [deliveryData, setDeliveryData] = useState([]);
-    const handleShippingFeeUpdate = (confirm, data,error) => {
+    const handleShippingFeeUpdate = (confirm, data, error) => {
         if (error) {
             navigate("/admin/orders", { state: { message: error.message, type: error.type } });
             return;
@@ -153,6 +153,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
+
 
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
@@ -227,7 +228,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         // Nếu chưa chọn khách hàng thì tự động tính lại PGG tốt nhất
         if (total === 0) return;
         const selectedCustomer = getSelectedCustomer();
-        if (!manualVoucherSelected && (!selectedCustomer || selectedCustomer.idKhachHang === 0)) {
+        if (!manualVoucherSelected && (!selectedCustomer || selectedCustomer?.idKhachHang === 0)) {
             const validVouchers = total > 0
                 ? originalVouchers.filter(v => total >= v.dieuKien)
                 : originalVouchers;
@@ -360,7 +361,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         if (!selectedWard || !selectedDistrict) return;  // Kiểm tra địa chỉ đã chọn chưa
 
         const requestData = {
-            "service_type_id": 2, // cái này 
+            "service_type_id": 2, // cái này
             "from_district_id": 1542,
             "from_ward_code": "1A0607",
             "to_district_id": Number(selectedDistrict),
@@ -436,18 +437,34 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             try {
                 const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
                 const customersData = response.data;
-                const defaultCustomer = { idKhachHang: -1, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
-                const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
-                    if (customer.diaChi) {
-                        const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => id.trim());
-                        const provinceName = await getProvinceName(provinceId);
-                        const districtName = await getDistrictName(districtId, provinceId);
-                        const wardName = await getWardName(wardId, districtId);
-                        const diaChi = `${wardName}, ${districtName}, ${provinceName}`;
-                        const idDiaChi = customer.diaChi;
-                        return { ...customer, diaChi, idDiaChi };
-                    }
-                }));
+
+                // Định nghĩa khách hàng mặc định
+                const defaultCustomer = {
+                    idKhachHang: -1,
+                    hoTen: 'Khách Lẻ',
+                    soDienThoai: 'N/A',
+                    diaChi: 'Không xác định'
+                };
+
+                const updatedCustomers = await Promise.all(customersData
+                    .filter(c => c.idKhachHang !== 0)
+                    .map(async (customer) => {
+                        if (customer.diaChi && customer.diaChi.includes(',')) {
+                            const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => id.trim());
+                            const provinceName = await getProvinceName(provinceId);
+                            const districtName = await getDistrictName(districtId, provinceId);
+                            const wardName = await getWardName(wardId, districtId);
+                            return {
+                                ...customer,
+                                diaChi: `${wardName}, ${districtName}, ${provinceName}`,
+                                idDiaChi: customer.diaChi
+                            };
+                        } else {
+                            // Nếu diaChi bị null hoặc không hợp lệ, đặt giá trị mặc định
+                            return { ...customer, diaChi: "Không xác định" };
+                        }
+                    })
+                );
 
                 setCustomers([defaultCustomer, ...updatedCustomers]);
             } catch (error) {
@@ -487,7 +504,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             const activeTabData = tabs.find(tab => tab.id === activeTab);
             const selectedCustomer = getSelectedCustomer();
 
-            if (activeTabData && activeTabData.vouchers && selectedCustomer && selectedCustomer.idKhachHang !== 0) {
+            if (activeTabData && activeTabData.vouchers && selectedCustomer && selectedCustomer?.idKhachHang !== 0) {
                 const filtered = activeTabData.vouchers.filter(v => tongTien >= v.dieuKien);
                 setFilteredVouchers(filtered);
             }
@@ -505,16 +522,23 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     }, [activeTab, orders, total, amount]);
 
 
-    const handleSelectCustomer = useCallback(async (customer) => {
+    const handleSelectCustomer = async (customer) => {
         const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, khachHang: customer } : tab);
         setTabs(updatedTabs);
+
+        // Lấy thông tin khách hàng được chọn hoặc mặc định là khách lẻ
         const selected = customer || customers.find(c => c.idKhachHang === 0);
 
-        if (customer.idKhachHang != -1) {
+        // Kiểm tra xem khách hàng có địa chỉ hợp lệ hay không
+        if (customer.idKhachHang !== -1 && selected.idDiaChi && selected.idDiaChi.includes(',')) {
             const [province, district, ward] = selected.idDiaChi.split(',').map(id => id.trim());
             setSelectedDistrict(district);
             setSelectedWard(ward);
+        } else {
+            setSelectedDistrict(null);
+            setSelectedWard(null);
         }
+
         setDiscountAmount(0);
         setSelectedVoucher('');
         setFilteredVouchers([]);
@@ -523,22 +547,25 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
         setVoucherSearched(false);
 
         try {
-            const khachHangId = selected.idKhachHang !== 0 ? selected.idKhachHang : null;
+            const khachHangId = selected?.idKhachHang !== 0 ? selected?.idKhachHang : null;
             const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
                 params: { khachHangId }
             });
 
+            // Lọc phiếu giảm giá hợp lệ theo tổng tiền đơn hàng
             const validVouchers = total > 0 ? response.data.filter(v => total >= v.dieuKien) : response.data;
 
-            setOriginalVouchers(validVouchers);  // Lưu gốc
-            setFilteredVouchers(validVouchers);  // Hiển thị ban đầu
+            setOriginalVouchers(validVouchers);  // Lưu danh sách voucher gốc
+            setFilteredVouchers(validVouchers);  // Hiển thị danh sách voucher đã lọc
 
+            // Cập nhật vouchers cho tab hiện tại
             const updatedTabsWithVouchers = updatedTabs.map(tab => tab.id === activeTab ? {
                 ...tab,
                 vouchers: response.data
             } : tab);
             setTabs(updatedTabsWithVouchers);
 
+            // Tìm hóa đơn tương ứng với tab hiện tại
             const activeOrder = orders.find(o => o.idHoaDon === activeTab);
             applyBestVoucher(activeOrder, response.data).then((bestDiscount) => {
                 setLastTotal(calculateLastTotal(total, amount, bestDiscount));
@@ -548,29 +575,44 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             console.error('Lỗi khi lấy phiếu giảm giá:', error);
             setLastTotal(calculateLastTotal(total, amount, 0));
         }
-    }, [tabs, activeTab, customers, total, amount, orders]);
+    };
 
     const reload = async (newCustomer = null) => {
         try {
             const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
             const customersData = response.data;
-            const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
 
-            const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
-                if (customer.diaChi) {
-                    const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => Number(id.trim()));
-                    const provinceName = await getProvinceName(provinceId);
-                    const districtName = await getDistrictName(districtId, provinceId);
-                    const wardName = await getWardName(wardId, districtId);
-                    const diaChi = `${wardName}, ${districtName}, ${provinceName}`;
-                    return { ...customer, diaChi };
-                }
-            }));
+            const defaultCustomer = {
+                idKhachHang: 0,
+                hoTen: 'Khách Lẻ',
+                soDienThoai: 'N/A',
+                diaChi: 'Không xác định'
+            };
+
+            const updatedCustomers = await Promise.all(customersData
+                .filter(c => c.idKhachHang !== 0)
+                .map(async (customer) => {
+                    if (customer.diaChi && customer.diaChi.includes(',')) {
+                        const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => Number(id.trim()));
+                        const provinceName = await getProvinceName(provinceId);
+                        const districtName = await getDistrictName(districtId, provinceId);
+                        const wardName = await getWardName(wardId, districtId);
+                        return {
+                            ...customer,
+                            diaChi: `${wardName}, ${districtName}, ${provinceName}`
+                        };
+                    } else {
+                        return { ...customer, diaChi: "Không xác định" };
+                    }
+                })
+            );
+
             setCustomers([defaultCustomer, ...updatedCustomers]);
         } catch (error) {
             console.error('Lỗi khi lấy danh sách khách hàng:', error);
         }
     };
+
 
     const calculateLastTotal = (totalAmount, deliveryFee, discount) => {
         return Math.max(totalAmount + Number(deliveryFee) - discount, 0);
@@ -734,19 +776,19 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         <select className="border p-2 rounded w-full h-8" onChange={(e) => {
                             const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
                             handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
-                            if (selected.idKhachHang != -1) {
+                            if (selected?.idKhachHang != -1) {
                                 setDeliveryData(null);
                                 calculateShippingFee();
-                            }else{
+                            } else {
                                 setDeliveryMethod("taiquay")
                                 setAmount(0);
                             }
                         }}
-                            value={selectedCustomer ? selectedCustomer.idKhachHang : ''}
+                                value={selectedCustomer ? selectedCustomer?.idKhachHang : ''}
                         >
                             {customers.map(customer => (
-                                <option key={customer.idKhachHang} value={customer.idKhachHang}>
-                                    {customer.hoTen} - {customer.soDienThoai}
+                                <option key={customer?.idKhachHang} value={customer?.idKhachHang}>
+                                    {customer?.hoTen} - {customer?.soDienThoai}
                                 </option>))}
                         </select>
 
@@ -763,8 +805,8 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                     {selectedCustomer && selectedCustomer.diaChi && (
                         <div className="relative">
                             <input className="mt-2 text-gray-600 w-full p-2 border rounded "
-                                readOnly
-                                value={selectedCustomer.diaChi}
+                                   readOnly
+                                   value={selectedCustomer.diaChi}
                             />
                             <button className="absolute right-2 bottom-1.5">
                                 <EditLocationAlt />
@@ -795,7 +837,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                         readOnly
                         onClick={() => {
                             setDeliveryMethod("giaohang");
-                            if (selectedCustomer.idKhachHang != -1) {
+                            if (selectedCustomer?.idKhachHang != -1) {
                                 calculateShippingFee();
                             } else {
                                 setOpenDeliveryForm(true);

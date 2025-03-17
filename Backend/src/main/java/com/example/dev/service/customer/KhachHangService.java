@@ -55,16 +55,29 @@ public class KhachHangService {
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
 
-    public List<KhachHang> getAllCustomerIsStatusTrue(){
-        List<KhachHang> khachHang = khachHangRepo.findByTrangThaiIsTrue();
-        for (KhachHang kh : khachHang){
-            String[] address = kh.getDiaChi().split(", ");
-            String thanhPho = address[0];
-            String quan = address[1];
-            String xa   = address[2];
+    public List<KhachHang> getAllCustomerIsStatusTrue() {
+        List<KhachHang> khachHangList = khachHangRepo.findByTrangThaiIsTrue();
+
+        for (KhachHang kh : khachHangList) {
+            String diaChi = kh.getDiaChi();
+
+            if (diaChi == null || diaChi.trim().isEmpty()) {
+                System.out.println("Địa chỉ của khách hàng ID " + kh.getIdKhachHang() + " bị null hoặc trống.");
+                continue; // Bỏ qua vòng lặp nếu địa chỉ null hoặc trống
+            }
+
+            String[] address = diaChi.split(", ");
+            String thanhPho = (address.length > 0) ? address[0] : "Không xác định";
+            String quan = (address.length > 1) ? address[1] : "Không xác định";
+            String xa = (address.length > 2) ? address[2] : "Không xác định";
+
+            // Ghi log để kiểm tra dữ liệu
+            System.out.println("Khách hàng ID: " + kh.getIdKhachHang() + " - TP: " + thanhPho + ", Quận: " + quan + ", Xã: " + xa);
         }
-        return khachHangRepo.findByTrangThaiIsTrue();
+
+        return khachHangList;
     }
+
 
     public KhachHang themKhachHang(KhachHang khachHang){
         String password = iUtil.generatePassword();

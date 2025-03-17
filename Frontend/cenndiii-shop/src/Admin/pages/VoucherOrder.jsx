@@ -281,31 +281,31 @@ export default function Orders() {
         const tabToRemove = tabs.find(tab => tab.id === tabId);
         if (!tabToRemove) return;
 
-        confirmAlert({
-            title: 'Xác nhận xóa', message: `Bạn có muốn Hủy hóa đơn chờ hiện tại ${tabToRemove.maHoaDon}?`, buttons: [{
-                label: 'Yes', onClick: async () => {
-                    try {
-                        // Gọi API xóa hóa đơn
-                        await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`);
+        // confirmAlert({
+        //     title: 'Xác nhận xóa', message: `Bạn có muốn Hủy hóa đơn chờ hiện tại ${tabToRemove.maHoaDon}?`, buttons: [{
+        //         label: 'Yes', onClick: async () => {
+        //             try {
+        //                 // Gọi API xóa hóa đơn
+        //                 await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`);
 
-                        // Cập nhật danh sách tabs sau khi xóa thành công
-                        const newTabs = tabs.filter(tab => tab.id !== tabId);
-                        setTabs(newTabs);
+        //                 // Cập nhật danh sách tabs sau khi xóa thành công
+        //                 const newTabs = tabs.filter(tab => tab.id !== tabId);
+        //                 setTabs(newTabs);
 
-                        // Nếu tab đang active bị xóa, chuyển active sang tab đầu tiên còn lại
-                        if (activeTab === tabId) {
-                            setActiveTab(newTabs.length > 0 ? newTabs[0].id : '');
-                        }
+        //                 // Nếu tab đang active bị xóa, chuyển active sang tab đầu tiên còn lại
+        //                 if (activeTab === tabId) {
+        //                     setActiveTab(newTabs.length > 0 ? newTabs[0].id : '');
+        //                 }
 
-                        // Hiển thị thông báo thành công bằng toast
-                    } catch (error) {
-                    }
-                }
-            }, {
-                label: 'No', onClick: () => {
-                }
-            }]
-        });
+        //                 // Hiển thị thông báo thành công bằng toast
+        //             } catch (error) {
+        //             }
+        //         }
+        //     }, {
+        //         label: 'No', onClick: () => {
+        //         }
+        //     }]
+        // });
     };
 
     const scrollTabs = (direction) => {
@@ -348,7 +348,7 @@ export default function Orders() {
                     </button>
                     <ul ref={tabsRef} className="flex border-b overflow-x-auto scrollbar-hide">
                         {tabs.map(tab => (<li key={tab.id}
-                            className={`mr-1 flex items-center ${activeTab === tab.id ? 'border-blue-500' : ''}`}>
+                                              className={`mr-1 flex items-center ${activeTab === tab.id ? 'border-blue-500' : ''}`}>
                             <button
                                 className={`bg-white inline-block py-2 px-4 text-blue-500 ${activeTab === tab.id ? 'font-semibold' : ''}`}
                                 onClick={() => setActiveTab(tab.id)}>
@@ -365,7 +365,7 @@ export default function Orders() {
                 </div>
                 {tabs.map(tab => (
                     <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}
-                        style={{ height: '1000px', overflowY: 'auto' }}>
+                         style={{ height: '1000px', overflowY: 'auto' }}>
                         <div className="p-4">
                             <h3 className="text-lg font-semibold">{tab.label}</h3>
 
@@ -379,7 +379,7 @@ export default function Orders() {
                         const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
                         handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
                     }}
-                        value={selectedCustomer ? selectedCustomer.idKhachHang : ''}>
+                            value={selectedCustomer ? selectedCustomer.idKhachHang : ''}>
                         {customers.map(customer => (<option key={customer.idKhachHang} value={customer.idKhachHang}>
                             {customer.hoTen} - {customer.soDienThoai}
                         </option>))}
