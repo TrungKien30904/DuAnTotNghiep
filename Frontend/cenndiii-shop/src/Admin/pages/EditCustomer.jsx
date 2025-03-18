@@ -8,8 +8,8 @@ import { EyeClosed, Trash2, Star, Eye } from "lucide-react";
 import { ToastContainer } from 'react-toastify';
 // import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
 // import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
-import Loading from '../components/Loading';
-import Notification from '../components/Notification';
+import Loading from '../../components/Loading';
+import Notification from '../../components/Notification';
 function EditCustomer() {
     // const { setLoadingState, loading } = useLoading();
     const [loading, setLoadingState] = useState(false);

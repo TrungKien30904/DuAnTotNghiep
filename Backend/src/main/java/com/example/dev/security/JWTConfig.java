@@ -28,7 +28,17 @@ public class JWTConfig {
     private final JWTFilter jwtFilter;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
 
-    private static final String PUBLIC_URL="/**";
+    private static final String[] PUBLIC_URL = {
+            "/api/cart/**",
+            "/admin/mau-sac/hien-thi",
+            "/admin/kich-co/hien-thi",
+            "/admin/san-pham/hien-thi/online/**",
+            "/hinh-anh/**",
+            "/admin/chi-tiet-san-pham/hien-thi/online/**",
+            "/admin/chi-tiet-san-pham/dot-giam/hien-thi/**",
+            "/auth/*"
+    };
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -54,8 +64,8 @@ public class JWTConfig {
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests ->
                     authorizeRequests
-                            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "STAFF")
                             .requestMatchers(PUBLIC_URL).permitAll()
+                            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "STAFF")
                             .anyRequest().authenticated()
                 )
 //                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

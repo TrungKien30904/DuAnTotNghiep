@@ -6,7 +6,7 @@ import {ChevronLeft, ChevronRight, Search} from "lucide-react";
 import {Dialog} from "@headlessui/react";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import Notification from "../components/Notification";
+import Notification from "../../components/Notification";
 import api from "../../security/Axios";
 function AddCoupon() {
     const navigate = useNavigate();

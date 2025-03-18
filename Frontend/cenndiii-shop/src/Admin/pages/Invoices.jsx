@@ -3,7 +3,7 @@ import axios from 'axios';
 import { FileText, ShoppingCart, Home, EyeIcon, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FileSpreadsheet } from "lucide-react";
-import Notification from '../components/Notification';
+import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 

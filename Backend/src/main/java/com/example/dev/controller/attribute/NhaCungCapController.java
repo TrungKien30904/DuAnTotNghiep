@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/nha-cung-cap")
-@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class NhaCungCapController {
     @Autowired
     NhaCungCapService nhaCungCapService;
@@ -24,11 +23,13 @@ public class NhaCungCapController {
         return ResponseEntity.ok(nhaCungCapService.getNhaCungCapBan());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
     public ResponseEntity<?> themNhaCungCap(@RequestBody NhaCungCap ncc) {
         return ResponseEntity.ok(nhaCungCapService.themNhaCungCap(ncc));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaNhaCungCap(@RequestBody NhaCungCap ncc, @PathVariable Integer id) {
         return ResponseEntity.ok(nhaCungCapService.suaNhaCungCap(ncc, id));

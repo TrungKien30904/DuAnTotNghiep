@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation, NavLink } from "react-router-dom";
 import ImageGallery from "./ProductImage";
 import { useCart } from "../cart/CartContext";
-
+import Notification from "../../../components/Notification";
+import { ToastContainer } from "react-toastify";
 export default function ProductDetails() {
     const location = useLocation();
     const product = location.state?.product;
@@ -19,7 +20,7 @@ export default function ProductDetails() {
 
     const handleAddToCart = async () => {
         if (!productSelected?.idChiTietSanPham) {
-            alert("Vui lòng chọn màu và kích cỡ trước khi thêm vào giỏ hàng!");
+            Notification("Vui lòng chọn size sản phẩm", "error");
             return;
         }
 
@@ -43,7 +44,7 @@ export default function ProductDetails() {
 
             // Cập nhật số lượng giỏ hàng ngay lập tức
             setCartCount(prev => prev + 1);
-            alert("Đã thêm sản phẩm vào giỏ hàng!");
+            Notification("Thêm vào giỏ hàng thành công", "success");
         } catch (error) {
             console.error("Lỗi khi thêm vào giỏ hàng:", error);
         }
@@ -183,6 +184,7 @@ export default function ProductDetails() {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 }

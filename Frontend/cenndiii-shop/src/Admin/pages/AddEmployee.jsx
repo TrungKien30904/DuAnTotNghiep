@@ -5,7 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
-
+import api from "../../security/Axios";
 export default function AddEmployee() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -125,7 +125,7 @@ export default function AddEmployee() {
       };
       console.log("Dữ liệu gửi lên server:", newFormData);
 
-      const response = await axios.post("http://localhost:8080/admin/nhan-vien/them", newFormData);
+      const response = await api.post("/admin/nhan-vien/them", newFormData);
 
       if (response.status === 200) {
         toast.success("Thêm nhân viên thành công!", {

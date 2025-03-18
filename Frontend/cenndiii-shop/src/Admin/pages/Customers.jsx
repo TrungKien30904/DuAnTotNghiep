@@ -5,14 +5,14 @@ import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 // import { useLoading } from "../components/ui/spinner/LoadingContext";
 // import Spinner from "../components/ui/spinner/Spinner";
-
+import api from "../../security/Axios";
 export default function Coupons() {
   // const { setLoadingState, loading } = useLoading();
   const [filters, setFilters] = useState({
     keyword: "",
     gioiTinh: "all",
     trangThai: "all",
-    soDienThoai: "all", 
+    soDienThoai: "all",
     currentPage: 0
   });
   const [customers, setKhachHangs] = useState([]);
@@ -21,7 +21,7 @@ export default function Coupons() {
   const exportToExcel = async () => {
     try {
       // setLoadingState(true);
-      const response = await fetch("http://localhost:8080/admin/khach-hang/export-excel").then((response) => response.json())
+      await api.get("/admin/khach-hang/export-excel")
         .then((result) => {
           // setLoadingState(false);
           const ws = XLSX.utils.json_to_sheet(result);
@@ -42,20 +42,17 @@ export default function Coupons() {
   const searchKhachHangs = useCallback(async () => {
     try {
       // setLoadingState(true);
-      const response = await axios.get(
-        "http://localhost:8080/admin/khach-hang/tim-kiem",
-        {
-          params: {
-            keyword: filters.keyword,
-            gioiTinh: filters.gioiTinh === "all" ? null : filters.gioiTinh,
-            trangThai: filters.trangThai === "all" ? null : filters.trangThai,
-            soDienThoai: filters.soDienThoai === "all" ? null : filters.soDienThoai,
-            page: filters.currentPage,
-            size: 5,
-          },
-        }
-      );
-      if(response.status && response.status == 200){
+      const response = await api.get("/admin/khach-hang/tim-kiem", {
+        params: {
+          keyword: filters.keyword,
+          gioiTinh: filters.gioiTinh === "all" ? null : filters.gioiTinh,
+          trangThai: filters.trangThai === "all" ? null : filters.trangThai,
+          soDienThoai: filters.soDienThoai === "all" ? null : filters.soDienThoai,
+          page: filters.currentPage,
+          size: 5,
+        },
+      });
+      if (response.status && response.status == 200) {
         // setLoadingState(false);
         setKhachHangs(
           Array.isArray(response.data.data) ? response.data.data : []

@@ -53,6 +53,8 @@ public class KhachHangService {
     @Autowired
     private CloudinaryService cloudinaryService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
 

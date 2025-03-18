@@ -5,7 +5,7 @@ import axios from 'axios';
 // import 'react-confirm-alert/src/react-confirm-alert.css';
 // import { toast } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
-import Notification from "../components/Notification"
+import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 export default function Orders() {
     const [orders, setOrders] = useState([]);

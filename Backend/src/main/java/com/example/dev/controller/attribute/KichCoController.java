@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/kich-co")
-@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class KichCoController {
     @Autowired
     KichCoService kichCoService;
@@ -24,11 +23,12 @@ public class KichCoController {
         return ResponseEntity.ok(kichCoService.getKichCoBan());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
     public ResponseEntity<?> themKichCo(@RequestBody KichCo kc) {
         return ResponseEntity.ok(kichCoService.themKichCo(kc));
     }
-
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaKichCo(@RequestBody KichCo kc, @PathVariable Integer id) {
         return ResponseEntity.ok(kichCoService.suaKichCo(kc, id));

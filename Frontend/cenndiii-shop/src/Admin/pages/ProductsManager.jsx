@@ -7,9 +7,9 @@ import CreatableSelect from "react-select/creatable";
 import Select from "react-select";
 import { Dialog, Switch } from "@headlessui/react";
 import { ToastContainer } from "react-toastify";
-import Notification from "../components/Notification";
+import Notification from '../../components/Notification';
 import "react-toastify/dist/ReactToastify.css";
-import Alert from "../components/Alert";
+import Alert from "../../components/Alert";
 import { ImageList, ImageListItem } from "@mui/material";
 import api from "../../security/Axios";
 export default function ProductDetails() {

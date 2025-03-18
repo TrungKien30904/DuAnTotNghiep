@@ -7,10 +7,10 @@ import { SketchPicker } from "react-color";
 import { Dialog } from "@headlessui/react";
 import { Trash } from "lucide-react";
 import { ToastContainer } from "react-toastify";
-import Notification from "../components/Notification";
+import Notification from '../../components/Notification';
 import "react-toastify/dist/ReactToastify.css";
-import Loading from "../components/Loading";
-import Alert from "../components/Alert";
+import Loading from "../../components/Loading";
+import Alert from "../../components/Alert";
 import api from "../../security/Axios";
 
 const removeDiacritics = (str) => {

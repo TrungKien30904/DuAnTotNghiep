@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
 // import { useToast } from '../utils/ToastContext';
+import api from '../../security/Axios';
 function AddCustomers() {
     const [formData, setFormData] = useState({
         maKhachHang: '',
@@ -151,11 +152,7 @@ function AddCustomers() {
             forms.append('user', userJson);
             forms.append('fileImage', file);
     
-            const response = await fetch('http://localhost:8080/admin/khach-hang/them', {
-                method: "POST",
-                body: forms
-            });
-            console.log(forms);
+            const response = await api.post('/admin/khach-hang/them', forms);
             
             const data = await response.json();
             if (data) {

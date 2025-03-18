@@ -5,7 +5,8 @@ import axios from "axios";
 import api from "../../security/Axios";
 import moment from "moment";
 import { ToastContainer } from "react-toastify";
-import Loading from "../components/Loading";
+import Loading from "../../components/Loading";
+import Notification from "../../components/Notification";
 import { formatDateFromArray } from "../../untils/FormatDate";
 export default function Discounts() {
   const [loading, setLoadingState] = useState(false);

@@ -24,13 +24,12 @@ public class ChiTietSanPhamController {
     public ResponseEntity<?> hienThi() {
         return ResponseEntity.ok(chiTietSanPhamService.getAllChiTietSanPham());
     }
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
+
     @GetMapping("/hien-thi/online/{idSanPham}")
     public ResponseEntity<?> hienThiOnline(@PathVariable Integer idSanPham) {
         return ResponseEntity.ok(chiTietSanPhamService.showProductOnline(idSanPham));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @GetMapping("/hien-thi/online/{idSanPham}/{idMauSac}")
     public ResponseEntity<?> hienThiSanPhamMauSac(@PathVariable Integer idSanPham, @PathVariable Integer idMauSac) {
         return ResponseEntity.ok(chiTietSanPhamService.getProductDetailsByColor(idSanPham, idMauSac));
@@ -108,7 +107,6 @@ public class ChiTietSanPhamController {
         return ResponseEntity.ok(chiTietSanPhamService.xoaSp(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham()));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @GetMapping("/dot-giam/hien-thi/{idChiTietSanPham}")
     public ResponseEntity<?> spGiam(@PathVariable Integer idChiTietSanPham) {
         return ResponseEntity.ok(chiTietSanPhamService.getSpGiamGia(idChiTietSanPham));

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/mau-sac")
-@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class MauSacController {
     @Autowired
     MauSacService mauSacService;
@@ -24,11 +23,12 @@ public class MauSacController {
         return ResponseEntity.ok(mauSacService.getMauSacBan());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
     public ResponseEntity<?> themMauSac(@RequestBody MauSac ms) {
         return ResponseEntity.ok(mauSacService.themMauSac(ms));
     }
-
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaMauSac(@RequestBody MauSac ms, @PathVariable Integer id) {
         return ResponseEntity.ok(mauSacService.suaMauSac(ms, id));

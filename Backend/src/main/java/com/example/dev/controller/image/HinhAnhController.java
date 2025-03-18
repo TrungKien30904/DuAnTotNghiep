@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/hinh-anh")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class HinhAnhController {
     private final HinhAnhService hinhAnhService;
 
