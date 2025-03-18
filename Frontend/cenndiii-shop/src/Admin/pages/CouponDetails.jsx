@@ -6,7 +6,7 @@ import {ChevronLeft, ChevronRight, Search} from "lucide-react";
 import {Dialog} from "@headlessui/react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-
+import api from "../../security/Axios";
 export default function CouponDetails() {
     const {id} = useParams();
     const [coupon, setCoupon] = useState(null);
@@ -24,31 +24,31 @@ export default function CouponDetails() {
     useEffect(() => {
         const fetchCouponDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/admin/phieu-giam-gia/${id}`);
+                const response = await api.get(`/admin/phieu-giam-gia/${id}`);
                 const couponData = response.data;
                 setCoupon({
                     ...couponData,
                     ngayBatDau: moment(couponData.ngayBatDau, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DDTHH:mm'),
                     ngayKetThuc: moment(couponData.ngayKetThuc, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DDTHH:mm'),
                 });
-
+    
                 if (couponData.loai === "Cá Nhân" && couponData.danhSachKhachHang) {
                     setSelectedCustomers(couponData.danhSachKhachHang.map(kh => kh.khachHang.idKhachHang));
                 }
-
+    
                 fetchCustomers(0); // Fetch initial customers
             } catch (error) {
                 console.error("Lỗi khi lấy chi tiết phiếu giảm giá:", error);
                 toast.error("Lỗi khi lấy chi tiết phiếu giảm giá");
             }
         };
-
+    
         fetchCouponDetails();
     }, [id]);
-
+    
     const fetchCustomers = async (page) => {
         try {
-            const response = await axios.get(`http://localhost:8080/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
+            const response = await api.get(`/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
             setCustomers(Array.isArray(response.data.content) ? response.data.content : []);
             setTotalPages(response.data.totalPages);
         } catch (error) {
@@ -56,11 +56,10 @@ export default function CouponDetails() {
             toast.error('Lỗi khi lấy danh sách khách hàng');
         }
     };
-
+    
     const searchKhachHangs = useCallback(async () => {
-
         try {
-            const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/tim-kiem-khach-hang", {
+            const response = await api.get("/admin/phieu-giam-gia/tim-kiem-khach-hang", {
                 params: {
                     keyword: filters.keyword,
                     page: currentPage,
@@ -76,7 +75,46 @@ export default function CouponDetails() {
             toast.error("Lỗi khi tìm kiếm khách hàng");
         }
     }, [filters, currentPage]);
-
+    
+    const handleUpdateCoupon = async () => {
+        if (validate()) {
+            let phieuGiamGiaChiTiet = [];
+            if (coupon.loai === 'Cá Nhân') {
+                phieuGiamGiaChiTiet = selectedCustomers.map(customerId => ({
+                    khachHang: { idKhachHang: customerId },
+                }));
+            }
+    
+            const requestData = {
+                ...coupon,
+                dieuKien: coupon.dieuKien === '' ? 0 : coupon.dieuKien,
+                danhSachKhachHang: phieuGiamGiaChiTiet,
+                ngayBatDau: moment(coupon.ngayBatDau).format('DD/MM/YYYY HH:mm'),
+                ngayKetThuc: moment(coupon.ngayKetThuc).format('DD/MM/YYYY HH:mm')
+            };
+    
+            try {
+                setIsUpdating(true);
+                await api.post(`/admin/phieu-giam-gia/sua/${id}`, requestData);
+                toast.success("Cập nhật phiếu giảm giá thành công");
+                navigate('/admin/coupons', { state: { message: `Cập nhật thành công phiếu giảm giá có mã: ${coupon.maKhuyenMai}` } });
+            } catch (error) {
+                if (error.response && error.response.data) {
+                    setErrors(error.response.data);
+                    toast.error("Lỗi khi cập nhật phiếu giảm giá");
+                } else {
+                    console.error('Lỗi khi cập nhật phiếu giảm giá:', error.message);
+                    toast.error("Lỗi khi cập nhật phiếu giảm giá");
+                }
+            } finally {
+                setIsUpdating(false);
+            }
+        } else {
+            toast.error("Vui lòng kiểm tra lại thông tin");
+        }
+        closeModal();
+    };
+    
     useEffect(() => {
         searchKhachHangs();
     }, [filters, currentPage, searchKhachHangs]);
@@ -226,44 +264,7 @@ export default function CouponDetails() {
     };
 
 
-    const handleUpdateCoupon = async () => {
-        if (validate()) {
-            let phieuGiamGiaChiTiet = [];
-            if (coupon.loai === 'Cá Nhân') {
-                phieuGiamGiaChiTiet = selectedCustomers.map(customerId => ({
-                    khachHang: {idKhachHang: customerId},
-                }));
-            }
-
-            const requestData = {
-                ...coupon,
-                dieuKien: coupon.dieuKien === '' ? 0 : coupon.dieuKien,
-                danhSachKhachHang: phieuGiamGiaChiTiet,
-                ngayBatDau: moment(coupon.ngayBatDau).format('DD/MM/YYYY HH:mm'),
-                ngayKetThuc: moment(coupon.ngayKetThuc).format('DD/MM/YYYY HH:mm')
-            };
-
-            try {
-                setIsUpdating(true);
-                await axios.post(`http://localhost:8080/admin/phieu-giam-gia/sua/${id}`, requestData);
-                toast.success("Cập nhật phiếu giảm giá thành công");
-                navigate('/admin/coupons', { state: { message: `Cập nhật thành công phiếu giảm giá có mã: ${coupon.maKhuyenMai}` } });
-            } catch (error) {
-                if (error.response && error.response.data) {
-                    setErrors(error.response.data);
-                    toast.error("Lỗi khi cập nhật phiếu giảm giá");
-                } else {
-                    console.error('Lỗi khi cập nhật phiếu giảm giá:', error.message);
-                    toast.error("Lỗi khi cập nhật phiếu giảm giá");
-                }
-            } finally {
-                setIsUpdating(false);
-            }
-        } else {
-            toast.error("Vui lòng kiểm tra lại thông tin");
-        }
-        closeModal();
-    };
+    
 
     const handleCreateNewCoupon = () => {
         const newCouponData = {

@@ -144,6 +144,7 @@ public class ChiTietSanPhamService {
                 ctsp.setTaoBoi(find.getIdChiTietSanPham());
                 chiTietSanPhamRepo.save(ctsp);
 
+                // sua sp cu
                 find.setSoLuong(0);
                 find.setGiaDuocTinh(find.getGia());
                 find.setGia(ctsp.getGia());

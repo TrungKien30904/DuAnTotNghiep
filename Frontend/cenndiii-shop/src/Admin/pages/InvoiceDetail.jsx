@@ -6,7 +6,7 @@ import Notification from '../components/Notification';
 import { ToastContainer } from 'react-toastify';
 // import { confirmAlert } from 'react-confirm-alert';
 // import 'react-confirm-alert/src/react-confirm-alert.css';
-
+import api from '../../security/Axios';
 
 
 export default function InvoiceDetail() {
@@ -16,30 +16,6 @@ export default function InvoiceDetail() {
     const [showHistory, setShowHistory] = useState(false);
     const [histories, setHistories] = useState([]);
     const [invoiceDetails, setInvoiceDetails] = useState([]);
-
-    const fetchInvoice = async (maHoaDon) => {
-        const response = await axios.get(`http://localhost:8080/admin/hoa-don/${maHoaDon}`);
-        setInvoice(response.data);
-    };
-
-    const fetchInvoicePaymentHistory = async (maHoaDon) => {
-        const response = await axios.get(`http://localhost:8080/admin/hoa-don/${maHoaDon}/lich-su-thanh-toan`);
-        setPayment(response.data);
-    };
-
-    const fetchHistories = async () => {
-        const response = await axios.get(`http://localhost:8080/admin/hoa-don/${id}/lich-su-hoa-don`);
-        setHistories(response.data);
-    };
-
-    const fetchInvoiceDetails = async () => {
-        try {
-            const response = await axios.get(`http://localhost:8080/admin/hdct/listHoaDonChiTiet?maHoaDon=${id}`);
-            setInvoiceDetails(response.data);
-        } catch (error) {
-            console.error('Error fetching invoice details:', error);
-        }
-    };
 
     useEffect(() => {
         fetchInvoice(id);
@@ -57,20 +33,44 @@ export default function InvoiceDetail() {
         if (invoice.trangThai === 'Giao thành công') return 100;
     };
 
+    const fetchInvoice = async (maHoaDon) => {
+        const response = await api.get(`/admin/hoa-don/${maHoaDon}`);
+        setInvoice(response.data);
+    };
+    
+    const fetchInvoicePaymentHistory = async (maHoaDon) => {
+        const response = await api.get(`/admin/hoa-don/${maHoaDon}/lich-su-thanh-toan`);
+        setPayment(response.data);
+    };
+    
+    const fetchHistories = async () => {
+        const response = await api.get(`/admin/hoa-don/${id}/lich-su-hoa-don`);
+        setHistories(response.data);
+    };
+    
+    const fetchInvoiceDetails = async () => {
+        try {
+            const response = await api.get(`/admin/hdct/listHoaDonChiTiet?maHoaDon=${id}`);
+            setInvoiceDetails(response.data);
+        } catch (error) {
+            console.error('Error fetching invoice details:', error);
+        }
+    };
+    
     const xacNhanDonHang = () => {
-        axios.put(`http://localhost:8080/admin/hoa-don/${id}/xac-nhan`)
+        api.put(`/admin/hoa-don/${id}/xac-nhan`)
             .then(() => fetchInvoice(id));
     };
-
+    
     const huyDonHang = () => {
-        axios.put(`http://localhost:8080/admin/hoa-don/${id}/huy`)
+        api.put(`/admin/hoa-don/${id}/huy`)
             .then(() => fetchInvoice(id));
     };
-
+    
     const quayLai = () => {
-        axios.put(`http://localhost:8080/admin/hoa-don/${id}/quay-lai`)
+        api.put(`/admin/hoa-don/${id}/quay-lai`)
             .then(() => fetchInvoice(id));
-    };
+    };    
 
     const hienThiLichSu = () => {
         setShowHistory(true);
@@ -82,29 +82,29 @@ export default function InvoiceDetail() {
     };
 
     const handleDelete = (id) => {
-        // confirmAlert({
-        //     title: 'Xác nhận xóa',
-        //     message: 'Bạn có chắc chắn muốn xóa mục này?',
-        //     buttons: [
-        //         {
-        //             label: 'Yes',
-        //             onClick: async () => {
-        //                 try {
-        //                     await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
-        //                     setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
-        //                     Notification("Xóa thành công","success")
-        //                 } catch (error) {
-        //                     console.error('Error deleting item:', error);
-        //                     Notification("Xóa thất bại","error")
-        //                 }
-        //             }
-        //         },
-        //         {
-        //             label: 'No',
-        //             onClick: () => {}
-        //         }
-        //     ]
-        // });
+        confirmAlert({
+            title: 'Xác nhận xóa',
+            message: 'Bạn có chắc chắn muốn xóa mục này?',
+            buttons: [
+                {
+                    label: 'Yes',
+                    onClick: async () => {
+                        try {
+                            await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
+                            setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
+                            Notification("Xóa thành công","success")
+                        } catch (error) {
+                            console.error('Error deleting item:', error);
+                            Notification("Xóa thất bại","error")
+                        }
+                    }
+                },
+                {
+                    label: 'No',
+                    onClick: () => {}
+                }
+            ]
+        });
     };
 
     const handleAdd = () => {

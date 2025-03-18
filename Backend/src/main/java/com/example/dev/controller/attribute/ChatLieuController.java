@@ -4,10 +4,12 @@ import com.example.dev.entity.attribute.ChatLieu;
 import com.example.dev.service.attribute.ChatLieuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/chat-lieu")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class ChatLieuController {
     @Autowired
     ChatLieuService chatLieuService;

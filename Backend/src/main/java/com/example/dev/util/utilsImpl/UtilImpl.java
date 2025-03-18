@@ -31,7 +31,7 @@ public class UtilImpl implements IUtil {
             password.append(DIGITS.charAt(random.nextInt(DIGITS.length())));
 
             // Ensure at least one special character
-            password.append(SPECIAL_CHARACTERS.charAt(random.nextInt(SPECIAL_CHARACTERS.length())));
+//            password.append(SPECIAL_CHARACTERS.charAt(random.nextInt(SPECIAL_CHARACTERS.length())));
 
             // Fill the rest of the password with a mix of characters
             String allCharacters = LOWERCASE + UPPERCASE + DIGITS + SPECIAL_CHARACTERS;

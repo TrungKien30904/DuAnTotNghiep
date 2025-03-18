@@ -7,7 +7,7 @@ import {Dialog} from "@headlessui/react";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Notification from "../components/Notification";
-
+import api from "../../security/Axios";
 function AddCoupon() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -35,7 +35,7 @@ function AddCoupon() {
     const searchKhachHangs = useCallback(async () => {
         try {
             const formattedKeyword = filters.keyword.replace(/\s+/g, '').toLowerCase();
-            const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/tim-kiem-khach-hang", {
+            const response = await api.get("/admin/phieu-giam-gia/tim-kiem-khach-hang", {
                 params: {
                     keyword: formattedKeyword,
                     page: currentPage,
@@ -48,20 +48,9 @@ function AddCoupon() {
             }
         } catch (error) {
             console.error("Error searching data:", error);
-            Notification("Lỗi khi tìm kiếm dữ liệu","error");
+            Notification("Lỗi khi tìm kiếm dữ liệu", "error");
         }
     }, [filters.keyword, currentPage]);
-
-    const fetchCustomers = async (page) => {
-        try {
-            const response = await axios.get(`http://localhost:8080/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
-            setCustomers(Array.isArray(response.data.content) ? response.data.content : []);
-            setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error('Lỗi khi lấy danh sách khách hàng:', error);
-            Notification("Lỗi khi lấy danh sách khách hàng","error");
-        }
-    };
 
     useEffect(() => {
         searchKhachHangs();
@@ -226,44 +215,58 @@ function AddCoupon() {
         setIsConfirmOpen(false);
     };
 
+    
+    
+    const fetchCustomers = async (page) => {
+        try {
+            const response = await api.get(`/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
+            setCustomers(Array.isArray(response.data.content) ? response.data.content : []);
+            setTotalPages(response.data.totalPages);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách khách hàng:", error);
+            Notification("Lỗi khi lấy danh sách khách hàng", "error");
+        }
+    };
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         if (!validate()) {
-            Notification("Vui lòng kiểm tra lại thông tin","error");
+            Notification("Vui lòng kiểm tra lại thông tin", "error");
             return;
         }
-
+    
         let phieuGiamGiaChiTiet = [];
-
-        if (formData.loai === 'Cá Nhân') {
-            phieuGiamGiaChiTiet = selectedCustomers.map(customerId => ({
-                khachHang: {idKhachHang: customerId},
+    
+        if (formData.loai === "Cá Nhân") {
+            phieuGiamGiaChiTiet = selectedCustomers.map((customerId) => ({
+                khachHang: { idKhachHang: customerId },
             }));
         }
-
+    
         const requestData = {
             ...formData,
-            dieuKien: formData.dieuKien === '' ? 0 : formData.dieuKien,
+            dieuKien: formData.dieuKien === "" ? 0 : formData.dieuKien,
             danhSachKhachHang: phieuGiamGiaChiTiet,
-            ngayBatDau: moment(formData.ngayBatDau).format('DD/MM/YYYY HH:mm'),
-            ngayKetThuc: moment(formData.ngayKetThuc).format('DD/MM/YYYY HH:mm')
+            ngayBatDau: moment(formData.ngayBatDau).format("DD/MM/YYYY HH:mm"),
+            ngayKetThuc: moment(formData.ngayKetThuc).format("DD/MM/YYYY HH:mm"),
         };
-
+    
         try {
-            await axios.post('http://localhost:8080/admin/phieu-giam-gia/them', requestData);
-            navigate('/admin/coupons', {state: {message: 'Thêm phiếu giảm giá thành công'}});
+            await api.post("/admin/phieu-giam-gia/them", requestData);
+            navigate("/admin/coupons", { state: { message: "Thêm phiếu giảm giá thành công" } });
         } catch (error) {
             if (error.response && error.response.data) {
                 setErrors(error.response.data);
-                console.error('Backend Error:', error.response.data);
-                Notification("Lỗi khi thêm phiếu giảm giá","error");
+                console.error("Backend Error:", error.response.data);
+                Notification("Lỗi khi thêm phiếu giảm giá", "error");
             } else {
-                console.error('Lỗi khi thêm phiếu giảm giá:', error.message);
-                Notification("Lỗi khi thêm phiếu giảm giá","error");
+                console.error("Lỗi khi thêm phiếu giảm giá:", error.message);
+                Notification("Lỗi khi thêm phiếu giảm giá", "error");
             }
         }
     };
+    
 
     const handleConfirmSubmit = async () => {
         await handleSubmit({

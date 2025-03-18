@@ -46,7 +46,7 @@ public class AuthImpl implements AuthService{
                 UserLogin userLogin = UserLogin.builder()
                         .userName(nhanVien.getTen())
                         .phoneNum(nhanVien.getSoDienThoai())
-                        .permissions(List.of(nhanVien.getVaiTro()))
+                        .permissions(List.of(nhanVien.getVaiTro() ))
                         .build();
                 return LoginResponse.builder()
                         .token(jwtService.generateToken(userLogin))
@@ -60,8 +60,6 @@ public class AuthImpl implements AuthService{
     @Override
     public LoginResponse getToken(Authentication authentication) {
         UserLogin userLogin = (UserLogin) authentication.getPrincipal();
-        String token = jwtService.generateToken(userLogin);
-        String refreshToken = jwtService.generateRefreshToken(userLogin);
         return LoginResponse.builder()
                 .token(jwtService.generateToken(userLogin))
                 .refreshToken(jwtService.generateRefreshToken(userLogin))

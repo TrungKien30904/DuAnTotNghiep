@@ -26,9 +26,9 @@ import {
 import { Trash, Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
 import DetailsPayment from "./DetailsPayment";
-// import DeliveryForm from './Delivery';
+import { hasPermission } from '../../security/DecodeJWT';
+import api from '../../security/Axios';
 
-// TabPanel Component để hiển thị nội dung cho từng tab
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
 
@@ -48,11 +48,21 @@ function TabPanel(props) {
 export default function Orders() {
     const navigate = useNavigate();
     const location = useLocation();
+    const token = localStorage.getItem("token") || "";
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+    };
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/login");
+        }
+    }, [navigate]);
 
     useEffect(() => {
         if (location.state && location.state.message) {
             Notification(location.state.message, location.state.type)
-            // reloadTab();
+
         }
     }, [location.state]);
 
@@ -84,12 +94,18 @@ export default function Orders() {
 
 
     useEffect(() => {
+        if (!token) {
+            console.error("Token không tồn tại.");
+            window.location.href = "/login"; // Điều hướng về trang đăng nhập
+            return;
+        }
+    
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
+                const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
                 const ordersData = response.data;
                 setOrders(ordersData);
-
+    
                 // Create tabs from the orders data
                 const newTabs = ordersData.map((order) => ({
                     id: order.idHoaDon,
@@ -98,24 +114,23 @@ export default function Orders() {
                     content: `Hóa đơn ${order.maHoaDon}` // Mỗi tab sẽ có một nội dung riêng
                 }));
                 setTabs(newTabs);
-
+    
             } catch (error) {
                 console.error('Error fetching orders:', error);
             }
         };
         fetchOrders();
-
-        const dataProduct = () => {
-            axios.get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
-                .then((response) => {
-                    setProductDetails(response.data);
-                })
-                .catch((error) => {
-                    console.error("Error fetching product details:", error);
-                });
-        }
+    
+        const dataProduct = async () => {
+            try {
+                const response = await api.get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1"); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
+                setProductDetails(response.data);
+            } catch (error) {
+                console.error("Error fetching product details:", error);
+            }
+        };
         dataProduct();
-
+    
     }, []);
 
     useEffect(() => {
@@ -127,59 +142,38 @@ export default function Orders() {
         }
     }, [orders, isFirstLoad]);
 
-    const getProductFromDetailsInvoice = (idHoaDon) => {
-        axios
-            .get(`http://localhost:8080/admin/hdct/get-cart/${idHoaDon}`)
-            .then((response) => {
-                setOrderItemsByTab(response.data);
-                // console.log(response.data);
-            })
-            .catch((error) => {
-                console.error("Error fetching product details:", error);
-            });
-    }
+    const getProductFromDetailsInvoice = async (idHoaDon) => {
+        if (!token) {
+            console.error("Token không tồn tại.");
+            window.location.href = "/login"; // Điều hướng về trang đăng nhập
+            return;
+        }
+    
+        try {
+            const response = await api.get(`/admin/hdct/get-cart/${idHoaDon}`); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
+            setOrderItemsByTab(response.data);
+        } catch (error) {
+            console.error("Error fetching product details:", error);
+        }
+    };
 
     const handleAdd = async () => {
         if (tabs.length >= 10) {
             Notification('Bạn chỉ có thể tạo tối đa 10 hóa đơn chờ.', "error");
             return;
         }
-
+    
         try {
-            const newOrder = {
-                maHoaDon: "", // Let the backend generate if needed
-                // khachHang: customers.find(c => c.idKhachHang === 0), // Gán khách hàng mặc định là "Khách lẻ"
-                phieuGiamGia: null,
-                nhanVien: null,
-                tongTien: null,
-                tenNguoiNhan: null,
-                soDienThoai: null,
-                email: null,
-                ngayGiaoHang: null,
-                phiVanChuyen: null,
-                trangThai: null,
-                ngayTao: null,
-                ngaySua: null,
-                nguoiTao: null,
-                nguoiSua: null
-            };
-
-            const response = await axios.post("http://localhost:8080/admin/hoa-don/create", newOrder, // Send JSON body
-                {
-                    headers: {
-                        "Content-Type": "application/json", // Ensure JSON format
-                    },
-                });
-
+            const response = await api.post("/admin/hoa-don/create", {}, { headers }); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
             const createdOrder = response.data;
             const newTabId = createdOrder.idHoaDon;
             setTabs([...tabs, { id: newTabId, label: `${createdOrder.maHoaDon}`, maHoaDon: createdOrder.maHoaDon, content: `Hóa đơn ${createdOrder.maHoaDon}` }]);
             setActiveTab(tabs.length);
             setOrders([...orders, createdOrder]);
-            setOrderId(newTabId)
-            setOrderItems(createdOrder)
-            getProductFromDetailsInvoice(createdOrder.idHoaDon)
-
+            setOrderId(newTabId);
+            setOrderItems(createdOrder);
+            getProductFromDetailsInvoice(createdOrder.idHoaDon);
+    
         } catch (error) {
             console.error("Error creating new order:", error);
         }
@@ -202,7 +196,7 @@ export default function Orders() {
         if (!tabToRemove) return;
 
         try {
-            await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`);
+            await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`,{headers});
 
             // Sau khi xóa, cập nhật lại danh sách orders và tabs
             const updatedOrders = orders.filter(order => order.idHoaDon !== tabId);
@@ -235,8 +229,13 @@ export default function Orders() {
     };
 
     const handleOpenDialog = () => {
+        if (!token) {
+            console.error("Token không tồn tại.");
+            window.location.href = "/login"; // Điều hướng về trang đăng nhập
+            return;
+        }
         axios
-            .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
+            .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1",{headers})
             .then((response) => {
                 setProductDetails(response.data);
             })
@@ -276,14 +275,14 @@ export default function Orders() {
 
             const response = await axios.post(
                 `http://localhost:8080/admin/chi-tiet-san-pham/them-sp`,
-                requestData
+                requestData,{headers}
             );
 
             if (response.status === 200) {
                 getProductFromDetailsInvoice(orderId)
                 Notification(`Sản phẩm ${productDetailSelected.sanPham} đã được thêm thành công!`, "success");
                 axios
-                    .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi")
+                    .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1",{headers})
                     .then((response) => {
                         setProductDetails(response.data);
                     })
@@ -310,7 +309,8 @@ export default function Orders() {
 
             await axios.post(
                 `http://localhost:8080/admin/chi-tiet-san-pham/xoa-sp`,
-                requestData
+                requestData,
+                {headers}
             );
 
             getProductFromDetailsInvoice(orderId)
@@ -320,7 +320,7 @@ export default function Orders() {
     };
 
 
-    const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity,giaDuocTinh) => {
+    const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity, giaDuocTinh) => {
         if (newQuantity == "tru" || newQuantity == "cong") {
             try {
                 const requestData = {
@@ -332,7 +332,8 @@ export default function Orders() {
                 // console.log(newQuantity);
                 await axios.post(
                     `http://localhost:8080/admin/chi-tiet-san-pham/cap-nhat-sl`,
-                    requestData
+                    requestData,
+                    {headers}
                 );
                 getProductFromDetailsInvoice(orderId);
 
@@ -346,12 +347,13 @@ export default function Orders() {
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
                     soLuongMua: Number(newQuantity),
-                    giaDuocTinh : giaDuocTinh
+                    giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
                 await axios.post(
                     `http://localhost:8080/admin/chi-tiet-san-pham/sua-sp`,
-                    requestData
+                    requestData,
+                    {headers}
                 );
                 getProductFromDetailsInvoice(orderId);
 
@@ -373,12 +375,16 @@ export default function Orders() {
     }, [orderItemsByTab]);
 
     const reloadTab = async () => {
-
+        if (!token) {
+            console.error("Token không tồn tại.");
+            window.location.href = "/login"; // Điều hướng về trang đăng nhập
+            return;
+        }
         try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
+            const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
             const ordersData = response.data;
             setOrders(ordersData);
-
+    
             // Create tabs from the orders data
             const newTabs = ordersData.map((order) => ({
                 id: order.idHoaDon,
@@ -514,7 +520,7 @@ export default function Orders() {
                                                                         {item.trangThai && (
                                                                             <button onClick={() => {
                                                                                 if (Number(item.soLuongMua) > 1) {
-                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru",item.giaDuocTinh)
+                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru", item.giaDuocTinh)
                                                                                 } else {
                                                                                     Notification("Đã là số lượng nhỏ nhất !", "warning")
                                                                                     return;
@@ -532,7 +538,7 @@ export default function Orders() {
                                                                                 onChange={(e) => {
                                                                                     if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
                                                                                         if ((e.target.value - item.soLuongMua) <= item.kho) {
-                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value,item.giaDuocTinh)
+                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value, item.giaDuocTinh)
                                                                                         }
                                                                                     } else {
                                                                                         Notification("Chọn số lượng hợp lệ", "error")
@@ -548,7 +554,7 @@ export default function Orders() {
                                                                             <button onClick={() => {
                                                                                 if (item.kho > 0) {
                                                                                     if (!item.giaDuocTinh) {
-                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong",item.giaDuocTinh)
+                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong", item.giaDuocTinh)
                                                                                     } else {
                                                                                         Notification("Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!", "warning")
                                                                                     }

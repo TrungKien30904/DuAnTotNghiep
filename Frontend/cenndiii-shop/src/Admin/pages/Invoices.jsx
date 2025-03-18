@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileSpreadsheet } from "lucide-react";
 import Notification from '../components/Notification';
 import { ToastContainer } from 'react-toastify';
+import api from '../../security/Axios';
 
 const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Thanh toán', 'Hoàn thành', 'Hủy'];
 
@@ -25,7 +26,7 @@ export default function Invoices() {
 
     const fetchInvoices = async (filterParams = {}) => {
         try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don', {
+            const response = await api.get('/admin/hoa-don', {
                 params: {
                     loaiDon: filterParams.loaiDon || filter.loaiDon,
                     startDate: filterParams.startDate || filter.startDate,
@@ -38,16 +39,34 @@ export default function Invoices() {
             console.error('Error fetching invoices:', error);
         }
     };
-
+    
     const fetchInvoiceStatistics = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don/thong-ke');
+            const response = await api.get('/admin/hoa-don/thong-ke');
             setStatistics(response.data);
         } catch (error) {
             console.error('Error fetching statistics:', error);
         }
     };
-
+    
+    const exportExcel = async () => {
+        try {
+            const response = await api.get('/admin/hoa-don/export-excel', {
+                responseType: 'blob', // Important for downloading files
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'FileExcel.xlsx'); // or any other extension
+            document.body.appendChild(link);
+            link.click();
+            Notification("Xuất hóa đơn thành công", "success");
+        } catch (error) {
+            console.error('Error exporting Excel:', error);
+            Notification("Xuất hóa đơn thất bại", "error");
+        }
+    };
+    
     const changePageHandler = (page) => {
         if (page > totalPage || page < 1) {
             return;
@@ -70,24 +89,7 @@ export default function Invoices() {
     };
     // Xuất excel
 
-    const exportExcel = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don/export-excel', {
-                responseType: 'blob', // Important for downloading files
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'FileExcel.xlsx'); // or any other extension
-            document.body.appendChild(link);
-            link.click();
-            Notification("Xuất hóa đơn thành công","success")
-        } catch (error) {
-            console.error('Error exporting Excel:', error);
-            Notification("Xuất hóa đơn thất bại","error")
-
-        }
-    };
+    
 
     const handleReset = () => {
         setFilter({

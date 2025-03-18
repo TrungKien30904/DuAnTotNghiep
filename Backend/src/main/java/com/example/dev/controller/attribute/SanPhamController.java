@@ -4,10 +4,12 @@ import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.service.attribute.SanPhamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/san-pham")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class SanPhamController {
     @Autowired
     SanPhamService sanPhamService;

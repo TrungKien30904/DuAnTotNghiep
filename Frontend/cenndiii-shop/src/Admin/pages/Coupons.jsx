@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Dialog } from "@headlessui/react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import api from "../../security/Axios";
 
 export default function Coupons() {
     const [filters, setFilters] = useState({ keyword: "", trangThai: "all", startDate: "", endDate: "" });
@@ -26,13 +27,10 @@ export default function Coupons() {
             toast.success(location.state.message);
         }
     }, [location.state]);
-
-
-
     const fetchPhieuGiamGias = async () => {
         try {
             console.log("Fetching initial data...");
-            const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/hien-thi");
+            const response = await api.get("/admin/phieu-giam-gia/hien-thi");
             if (Array.isArray(response.data)) {
                 setPhieuGiamGias(response.data);
             }
@@ -42,7 +40,7 @@ export default function Coupons() {
             toast.error("Lỗi khi lấy dữ liệu ban đầu");
         }
     };
-
+    
     const searchPhieuGiamGias = useCallback(async () => {
         setIsLoading(true);
         setError("");
@@ -54,7 +52,7 @@ export default function Coupons() {
         try {
             const formattedKeyword = filters.keyword.replace(/\s+/g, '').toLowerCase();
             console.log("Searching data with filters:", filters, "and currentPage:", currentPage);
-            const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/tim-kiem", {
+            const response = await api.get("/admin/phieu-giam-gia/tim-kiem", {
                 params: {
                     keyword: formattedKeyword,
                     trangThai: filters.trangThai === "all" ? null : filters.trangThai,
@@ -69,7 +67,6 @@ export default function Coupons() {
                 setPhieuGiamGias(response.data.content);
                 setTotalPages(response.data.totalPages);
             }
-            console.log("Search results:", response.data);
         } catch (error) {
             console.error("Error searching data:", error);
             toast.error("Lỗi khi tìm dữ liệu");
@@ -77,6 +74,50 @@ export default function Coupons() {
             setIsLoading(false);
         }
     }, [filters, currentPage]);
+    
+    // Xử lý chuyển trạng thái
+    const handleStatusToggle = async () => {
+        if (!selectedId) return;
+        try {
+            console.log("Toggling status for id:", selectedId);
+            const response = await api.patch(`/admin/phieu-giam-gia/chuyen-doi-trang-thai/${selectedId}`);
+            setPhieuGiamGias((prevPhieuGiamGias) => prevPhieuGiamGias.map((phieu) => phieu.id === selectedId ? {
+                ...phieu,
+                trangThai: response.data.trangThai,
+                ngayBatDau: response.data.ngayBatDau,
+                ngayKetThuc: response.data.ngayKetThuc
+            } : phieu));
+            toast.success("Chuyển đổi trạng thái thành công");
+        } catch (error) {
+            console.error("Error toggling status:", error);
+            toast.error("Lỗi khi chuyển đổi trạng thái");
+        } finally {
+            setIsConfirmOpen(false);
+        }
+    };
+    
+    // Xử lý xuất Excel
+    const handleExportExcel = async () => {
+        toast.loading('Đang xuất Excel...');
+        try {
+            const response = await api.get("/admin/phieu-giam-gia/xuat-excel", {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'phieu_giam_gia.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            toast.dismiss();
+            toast.success("Xuất file Excel thành công");
+        } catch (error) {
+            console.error("Error exporting Excel file:", error);
+            toast.error("Lỗi khi xuất file Excel");
+        } finally {
+            setIsConfirmOpen(false);
+        }
+    };
     useEffect(() => {
         searchPhieuGiamGias();
     }, [filters, currentPage, searchPhieuGiamGias]);
@@ -84,33 +125,9 @@ export default function Coupons() {
         fetchPhieuGiamGias(currentPage);
     }, [currentPage]);
 
-
     const handlePageChange = (newPage) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
-        }
-    };
-
-
-    // Xử lý chuyển trạng thái
-    const handleStatusToggle = async () => {
-        if (!selectedId) return;
-        try {
-            console.log("Toggling status for id:", selectedId);
-            const response = await axios.patch(`http://localhost:8080/admin/phieu-giam-gia/chuyen-doi-trang-thai/${selectedId}`);
-            setPhieuGiamGias((prevPhieuGiamGias) => prevPhieuGiamGias.map((phieu) => phieu.id === selectedId ? {
-                ...phieu,
-                trangThai: response.data.trangThai,
-                ngayBatDau: response.data.ngayBatDau,
-                ngayKetThuc: response.data.ngayKetThuc
-            } : phieu));
-            console.log("Status toggled for id:", selectedId, "new status:", response.data.trangThai);
-            toast.success("Chuyển đổi trạng thái thành công");
-        } catch (error) {
-            console.error("Error toggling status:", error);
-            toast.error("Lỗi khi chuyển đổi trạng thái");
-        } finally {
-            setIsConfirmOpen(false);
         }
     };
 
@@ -160,28 +177,7 @@ export default function Coupons() {
     };
 
 
-    // Xử lý xuất Excel
-    const handleExportExcel = async () => {
-        toast.loading('Đang xuất Excel...');
-        try {
-            const response = await axios.get("http://localhost:8080/admin/phieu-giam-gia/xuat-excel", {
-                responseType: 'blob'
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'phieu_giam_gia.xlsx');
-            document.body.appendChild(link);
-            link.click();
-            toast.dismiss();
-            toast.success("Xuất file Excel thành công");
-        } catch (error) {
-            console.error("Error exporting Excel file:", error);
-            toast.error("Lỗi khi xuất file Excel");
-        } finally {
-            setIsConfirmOpen(false);
-        }
-    };
+    
 
     const openConfirmDialog = (id, action) => {
         setSelectedId(id);

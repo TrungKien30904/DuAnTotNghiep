@@ -4,10 +4,12 @@ import com.example.dev.entity.attribute.MauSac;
 import com.example.dev.service.attribute.MauSacService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/mau-sac")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class MauSacController {
     @Autowired
     MauSacService mauSacService;

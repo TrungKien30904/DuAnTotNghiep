@@ -1,7 +1,9 @@
 package com.example.dev.entity.attribute;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -23,7 +25,9 @@ public class SanPham {
     private String ten;
     private Boolean trangThai = true;
     @Column(updatable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime ngayTao;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime ngaySua;
     @Column(updatable = false)
     private String nguoiTao;

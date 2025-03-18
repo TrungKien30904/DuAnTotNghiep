@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import CustomerDialog from "./AddCustomerDialog";
 import Delivery from "./Delivery";
+import api from "../../security/Axios";
 
 const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -82,11 +83,16 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     // >
 
 
-    const headers = {
+    const token = localStorage.getItem("token") || "";
+    const headersGHN = {
         token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
         "Content-Type": "application/json",
     };
-
+    
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+    };
     // giao hang khach le
     
     const [openDeliveryForm, setOpenDeliveryForm] = useState(false);
@@ -126,6 +132,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             navigate("/admin/orders", { state: { message: "Tổng tiền chưa đủ hoặc đang lớn hơn", type: "error" } });
             return;
         }
+    
         const thanhToanHoaDon = [];
         if (paymentMethod === "tienmat") {
             thanhToanHoaDon.push({ hinhThucThanhToan: "tienmat", soTien: lastTotal });
@@ -135,7 +142,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             thanhToanHoaDon.push({ hinhThucThanhToan: "tienmat", soTien: cashAmount });
             thanhToanHoaDon.push({ hinhThucThanhToan: "chuyenkhoan", soTien: transferAmount });
         }
-
+    
         const requestData = {
             idHoaDon: orderItems.idHoaDon,
             maHoaDon: orderItems.maHoaDon,
@@ -146,42 +153,33 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             ngaySua: new Date().toISOString(),
             nguoiSua: null,
             loaiDon: deliveryMethod,
-            thanhToanHoaDon: thanhToanHoaDon,
+            thanhToanHoaDon,
             tenNguoiNhan: deliveryMethod === "giaohang" ? (deliveryData?.hoTen || null) : null,
             soDienThoai: deliveryMethod === "giaohang" ? (deliveryData?.soDienThoai || null) : null,
             email: deliveryMethod === "giaohang" ? (deliveryData?.email || null) : null,
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
-
+    
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
         }
-
+    
         try {
-            const response = await axios.post(
-                'http://localhost:8080/admin/hoa-don/thanh-toan',
-                requestData,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+            const response = await api.post('/admin/hoa-don/thanh-toan', requestData);
             if (response.status === 200) {
                 if (selectedVoucher) {
                     try {
-                        await axios.patch(`http://localhost:8080/admin/phieu-giam-gia/tru-so-luong-pgg/${selectedVoucher}`);
+                        await api.patch(`/admin/phieu-giam-gia/tru-so-luong-pgg/${selectedVoucher}`);
                     } catch (voucherError) {
                         console.error("Lỗi khi cập nhật số lượng phiếu giảm giá:", voucherError);
                     }
                 }
                 const fetchOrders = async () => {
                     try {
-                        const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
-                        const ordersData = response.data;
-                        setOrders(ordersData);
+                        const response = await api.get('/admin/hoa-don/hd-ban-hang');
+                        setOrders(response.data);
                     } catch (error) {
                         console.error('Error fetching orders:', error);
                     }
@@ -195,20 +193,21 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
             navigate("/admin/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
     };
+    
     useEffect(() => {
         const fetchPublicVouchers = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
-                    params: { khachHangId: null } // null => lấy phiếu công khai
+                const response = await api.get('/admin/phieu-giam-gia/hien-thi-voucher', {
+                    params: { khachHangId: null },
                 });
-
+    
                 const validVouchers = total > 0
                     ? response.data.filter(v => total >= v.dieuKien)
                     : response.data;
-
+    
                 setOriginalVouchers(validVouchers);
                 setFilteredVouchers(validVouchers);
-
+    
                 const { bestVoucher, maxDiscount } = calculateBestVoucher(total + Number(amount), validVouchers);
                 if (bestVoucher) {
                     setSelectedVoucher(bestVoucher.id);
@@ -220,9 +219,10 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 console.error("Lỗi khi lấy phiếu giảm giá công khai:", error);
             }
         };
-
+    
         fetchPublicVouchers();
     }, []);
+    
     useEffect(() => {
         // Nếu chưa chọn khách hàng thì tự động tính lại PGG tốt nhất
         if (total === 0) return;
@@ -311,7 +311,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
     const getProvinceName = async (provinceId) => {
         try {
-            const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/province", { headers });
+            const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/province", { headers:headersGHN });
             const provinces = response.data.data || [];  // Nếu null thì trả về mảng rỗng
             const province = provinces.find(p => p.ProvinceID === Number(provinceId));  // Ép kiểu số
             return province ? province.ProvinceName : 'Không tìm thấy';
@@ -325,7 +325,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const getDistrictName = async (districtId, provinceId) => {
         try {
             const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/district", {
-                headers,
+                headers:headersGHN,
                 params: { province_id: Number(provinceId) }  // Ép kiểu số
             });
             const districts = response.data.data || [];
@@ -341,7 +341,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     const getWardName = async (wardId, districtId) => {
         try {
             const response = await axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/ward", {
-                headers,
+                headers:headersGHN,
                 params: { district_id: Number(districtId) }  // Ép kiểu số
             });
 
@@ -417,7 +417,7 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/admin/hoa-don/hd-ban-hang');
+                const response = await api.get('/admin/hoa-don/hd-ban-hang');
                 const ordersData = response.data;
                 setOrders(ordersData);
                 const newTabs = ordersData.map(order => ({
@@ -432,28 +432,34 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
                 console.error('Error fetching orders:', error);
             }
         };
+    
         const fetchCustomers = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
+                const response = await api.get('/admin/khach-hang/hien-thi-customer');
                 const customersData = response.data;
                 const defaultCustomer = { idKhachHang: -1, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
-                const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
-                    if (customer.diaChi) {
-                        const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => id.trim());
-                        const provinceName = await getProvinceName(provinceId);
-                        const districtName = await getDistrictName(districtId, provinceId);
-                        const wardName = await getWardName(wardId, districtId);
-                        const diaChi = `${wardName}, ${districtName}, ${provinceName}`;
-                        const idDiaChi = customer.diaChi;
-                        return { ...customer, diaChi, idDiaChi };
-                    }
-                }));
-
+    
+                const updatedCustomers = await Promise.all(
+                    customersData
+                        .filter(c => c.idKhachHang !== 0)
+                        .map(async (customer) => {
+                            if (customer.diaChi) {
+                                const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => id.trim());
+                                const provinceName = await getProvinceName(provinceId);
+                                const districtName = await getDistrictName(districtId, provinceId);
+                                const wardName = await getWardName(wardId, districtId);
+                                return { ...customer, diaChi: `${wardName}, ${districtName}, ${provinceName}`, idDiaChi: customer.diaChi };
+                            }
+                            return customer;
+                        })
+                );
+    
                 setCustomers([defaultCustomer, ...updatedCustomers]);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách khách hàng:', error);
             }
         };
+    
         fetchCustomers();
         fetchOrders();
     }, []);
@@ -505,44 +511,48 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
 
     const handleSelectCustomer = async (customer) => {
-        const updatedTabs = tabs.map(tab => tab.id === activeTab ? { ...tab, khachHang: customer } : tab);
+        const updatedTabs = tabs.map(tab =>
+            tab.id === activeTab ? { ...tab, khachHang: customer } : tab
+        );
         setTabs(updatedTabs);
+    
         const selected = customer || customers.find(c => c.idKhachHang === 0);
-
-        if (customer.idKhachHang != -1) {
+    
+        if (selected.idKhachHang !== -1 && selected.idDiaChi) {
             const [province, district, ward] = selected.idDiaChi.split(',').map(id => id.trim());
             setSelectedDistrict(district);
             setSelectedWard(ward);
         }
+    
+        // Reset các thông tin giảm giá
         setDiscountAmount(0);
         setSelectedVoucher('');
         setFilteredVouchers([]);
         setBestVoucherApplied(false);
         setManualVoucherSelected(false);
         setVoucherSearched(false);
-
+    
         try {
             const khachHangId = selected.idKhachHang !== 0 ? selected.idKhachHang : null;
-            const response = await axios.get('http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher', {
+            const response = await api.get('/admin/phieu-giam-gia/hien-thi-voucher', {
                 params: { khachHangId }
             });
-
+    
             const validVouchers = total > 0 ? response.data.filter(v => total >= v.dieuKien) : response.data;
-
-            setOriginalVouchers(validVouchers);  // Lưu gốc
-            setFilteredVouchers(validVouchers);  // Hiển thị ban đầu
-
-            const updatedTabsWithVouchers = updatedTabs.map(tab => tab.id === activeTab ? {
-                ...tab,
-                vouchers: response.data
-            } : tab);
+    
+            setOriginalVouchers(validVouchers);
+            setFilteredVouchers(validVouchers);
+    
+            const updatedTabsWithVouchers = updatedTabs.map(tab =>
+                tab.id === activeTab ? { ...tab, vouchers: response.data } : tab
+            );
             setTabs(updatedTabsWithVouchers);
-
+    
             const activeOrder = orders.find(o => o.idHoaDon === activeTab);
             applyBestVoucher(activeOrder, response.data).then((bestDiscount) => {
                 setLastTotal(calculateLastTotal(total, amount, bestDiscount));
             });
-
+    
         } catch (error) {
             console.error('Lỗi khi lấy phiếu giảm giá:', error);
             setLastTotal(calculateLastTotal(total, amount, 0));
@@ -551,25 +561,31 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
     const reload = async (newCustomer = null) => {
         try {
-            const response = await axios.get('http://localhost:8080/admin/khach-hang/hien-thi-customer');
+            const response = await api.get('/admin/khach-hang/hien-thi-customer');
             const customersData = response.data;
             const defaultCustomer = { idKhachHang: 0, hoTen: 'Khách Lẻ', soDienThoai: 'N/A', diaChi: '' };
-
-            const updatedCustomers = await Promise.all(customersData.filter(c => c.idKhachHang !== 0).map(async (customer) => {
-                if (customer.diaChi) {
-                    const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => Number(id.trim()));
-                    const provinceName = await getProvinceName(provinceId);
-                    const districtName = await getDistrictName(districtId, provinceId);
-                    const wardName = await getWardName(wardId, districtId);
-                    const diaChi = `${wardName}, ${districtName}, ${provinceName}`;
-                    return { ...customer, diaChi };
-                }
-            }));
+    
+            const updatedCustomers = await Promise.all(
+                customersData
+                    .filter(c => c.idKhachHang !== 0)
+                    .map(async (customer) => {
+                        if (customer.diaChi) {
+                            const [provinceId, districtId, wardId] = customer.diaChi.split(',').map(id => Number(id.trim()));
+                            const provinceName = await getProvinceName(provinceId);
+                            const districtName = await getDistrictName(districtId, provinceId);
+                            const wardName = await getWardName(wardId, districtId);
+                            return { ...customer, diaChi: `${wardName}, ${districtName}, ${provinceName}` };
+                        }
+                        return customer;
+                    })
+            );
+    
             setCustomers([defaultCustomer, ...updatedCustomers]);
         } catch (error) {
             console.error('Lỗi khi lấy danh sách khách hàng:', error);
         }
     };
+    
 
     const calculateLastTotal = (totalAmount, deliveryFee, discount) => {
         return Math.max(totalAmount + Number(deliveryFee) - discount, 0);
@@ -578,94 +594,54 @@ const DeliveryForm = ({ total, orderItems, reloadTab }) => {
 
 
     const applyBestVoucher = async (order, vouchers) => {
-        if (!order || !vouchers?.length) return 0;
-        if (total <= 0) return 0;
-
-        const totalAmount = total || 0;
-        const validVouchers = vouchers.filter(v => totalAmount >= v.dieuKien);
-
-        if (validVouchers.length === 0) return 0;
-
-        let bestVoucher = null;
-        let maxDiscount = 0;
-
-        validVouchers.forEach(voucher => {
-            let discount = 0;
-            if (voucher.hinhThuc === '%') {
-                discount = (totalAmount * voucher.giaTri) / 100;
-                if (discount > voucher.giaTriToiDa) discount = voucher.giaTriToiDa;
-            } else if (voucher.hinhThuc === 'VNĐ') {
-                discount = voucher.giaTri;
-            }
-            if (discount > maxDiscount) {
-                maxDiscount = discount;
-                bestVoucher = voucher;
-            }
-        });
-
-        if (bestVoucher) {
-            try {
-                await axios.put(`http://localhost:8080/admin/hoa-don/update-voucher/${order.idHoaDon}`, {
-                    voucherId: bestVoucher.id
-                });
-                const updatedOrder = { ...order, voucher: bestVoucher, discountAmount: maxDiscount };
-                const updatedOrders = orders.map(o => o.idHoaDon === order.idHoaDon ? updatedOrder : o);
-                setOrders(updatedOrders);
-                setDiscountAmount(maxDiscount);
-                setSelectedVoucher(bestVoucher.id ? bestVoucher.id : '');
-                setBestVoucherApplied(true);
-                setInitialBestVoucherId(bestVoucher.id);
-                return maxDiscount; // <-- Trả về giảm giá tốt nhất
-            } catch (error) {
-                console.error('Lỗi khi áp dụng voucher:', error);
-                return 0; // Nếu lỗi thì không giảm
-            }
-        } else {
-
+        if (!order || !vouchers?.length || total <= 0) return 0;
+    
+        const { bestVoucher, maxDiscount } = calculateBestVoucher(total, vouchers);
+        if (!bestVoucher) return 0;
+    
+        try {
+            await api.put(`/admin/hoa-don/update-voucher/${order.idHoaDon}`, {
+                voucherId: bestVoucher.id
+            });
+    
+            const updatedOrder = { ...order, voucher: bestVoucher, discountAmount: maxDiscount };
+            setOrders(prevOrders => prevOrders.map(o => o.idHoaDon === order.idHoaDon ? updatedOrder : o));
+    
+            setDiscountAmount(maxDiscount);
+            setSelectedVoucher(bestVoucher.id);
+            setBestVoucherApplied(true);
+            setInitialBestVoucherId(bestVoucher.id);
+    
+            return maxDiscount;
+        } catch (error) {
+            console.error('Lỗi khi áp dụng voucher:', error);
             return 0;
         }
     };
-
-
+    
     const applySelectedVoucher = async (order, voucher) => {
-        if (!order || !voucher) return;
-
-        let discount = 0;
-        if (total === 0) {
-            return;
-        }
+        if (!order || !voucher || total === 0) return;
+    
         const totalAmount = total || 0;
-        if (voucher.hinhThuc === '%') {
-            discount = (totalAmount * voucher.giaTri) / 100;
-            if (discount > voucher.giaTriToiDa) discount = voucher.giaTriToiDa;
-        } else if (voucher.hinhThuc === 'VNĐ') {
-            discount = voucher.giaTri;
-        }
-
+        let discount = voucher.hinhThuc === '%'
+            ? Math.min((totalAmount * voucher.giaTri) / 100, voucher.giaTriToiDa)
+            : voucher.giaTri;
+    
         try {
-            await axios.put(`http://localhost:8080/admin/hoa-don/update-voucher/${order.idHoaDon}`, {
+            await api.put(`/admin/hoa-don/update-voucher/${order.idHoaDon}`, {
                 voucherId: voucher.id
             });
-
+    
             const updatedOrder = { ...order, voucher, discountAmount: discount };
-            const updatedOrders = orders.map(o => o.idHoaDon === order.idHoaDon ? updatedOrder : o);
-            setOrders(updatedOrders);
+            setOrders(prevOrders => prevOrders.map(o => o.idHoaDon === order.idHoaDon ? updatedOrder : o));
+    
             setDiscountAmount(discount);
             setLastTotal(calculateLastTotal(total, amount, discount));
             setSelectedVoucher(voucher.id);
-
-            // Tính lại phiếu tốt nhất hiện tại
+    
             const { bestVoucher } = calculateBestVoucher(total + Number(amount), filteredVouchers);
-
-            // So sánh phiếu được chọn với phiếu tốt nhất hiện tại
-            if (voucher.id === bestVoucher?.id) {
-                setBestVoucherApplied(true); // Hiện lại dòng chữ
-                setManualVoucherSelected(false); // Vì chọn lại đúng auto voucher
-            } else {
-                setBestVoucherApplied(false); // Ẩn dòng chữ vì chọn tay
-                setManualVoucherSelected(true);  // Xác nhận chọn tay
-            }
-
+            setBestVoucherApplied(voucher.id === bestVoucher?.id);
+            setManualVoucherSelected(voucher.id !== bestVoucher?.id);
         } catch (error) {
             console.error('Lỗi khi áp dụng voucher:', error);
         }

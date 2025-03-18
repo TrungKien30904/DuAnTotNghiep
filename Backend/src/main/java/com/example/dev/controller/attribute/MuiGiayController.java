@@ -4,10 +4,12 @@ import com.example.dev.entity.attribute.MuiGiay;
 import com.example.dev.service.attribute.MuiGiayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/mui-giay")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class MuiGiayController {
     @Autowired
     MuiGiayService muiGiayService;

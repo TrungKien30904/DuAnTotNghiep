@@ -4,10 +4,12 @@ import com.example.dev.entity.attribute.NhaCungCap;
 import com.example.dev.service.attribute.NhaCungCapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/nha-cung-cap")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class NhaCungCapController {
     @Autowired
     NhaCungCapService nhaCungCapService;

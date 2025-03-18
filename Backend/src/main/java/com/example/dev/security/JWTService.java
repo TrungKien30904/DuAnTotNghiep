@@ -9,10 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,8 +18,8 @@ public class JWTService {
 //    @Value("JWT_SECRET_KEY")
     private final String secretKey = "kadfnkacytqwpejcnjvlasdfnfewia1238cnjajaslmvnabcowdgu39236fjai123lakldmcldnci10kdsnchamvoweoe";
 
-    @Value("ISSUER")
-    private String issuer;
+//    @Value("ISSUER")
+    private String issuer = "cenndii";
 
     public String generateToken(UserLogin userLogin) {
         //    @Value("TOKEN_EXPIRED_TIME")
@@ -66,21 +63,31 @@ public class JWTService {
         if (claims == null) {
             return null;
         }
+
+        // Ép kiểu chính xác về List<String>
+        List<String> permissions = claims.get("permissions", List.class);
         return UserLogin.builder()
                 .userName(claims.getSubject())
-                .permissions(Arrays.stream(claims.get("permissions").toString().split(" ")).collect(Collectors.toList()))
+                .permissions(permissions != null ? permissions : new ArrayList<>()) // Đề phòng null
                 .build();
     }
 
+
     public Claims extractClaims(String token) {
-        if (token == null || token.isEmpty()) {
-            return null;
+        try {
+            if (token == null || token.isEmpty()) {
+                return null;
+            }
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        }catch (ExpiredJwtException ex) {
+            throw new ExpiredJwtException(ex.getHeader(), ex.getClaims(), "Token đã hết hạn!");
+        } catch (Exception ex) {
+            throw new RuntimeException("Lỗi khi parse token: " + ex.getMessage());
         }
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJwt(token)
-                .getBody();
     }
 
 

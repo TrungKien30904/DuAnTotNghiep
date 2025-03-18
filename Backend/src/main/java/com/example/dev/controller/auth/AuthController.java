@@ -5,6 +5,7 @@ import com.example.dev.DTO.response.auth.LoginResponse;
 import com.example.dev.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,5 +20,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest.getUsername(), loginRequest.getPassword(),loginRequest.isCustomer()));
+    }
+
+    @PostMapping("/get-token")
+    public ResponseEntity<?> getToken(Authentication authentication) {
+        return ResponseEntity.ok(authService.getToken(authentication));
     }
 }

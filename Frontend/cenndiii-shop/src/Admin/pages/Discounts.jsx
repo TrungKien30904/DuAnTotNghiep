@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Search, Eye, Plus } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
+import api from "../../security/Axios";
 import moment from "moment";
 import { ToastContainer } from "react-toastify";
 import Loading from "../components/Loading";
-
+import { formatDateFromArray } from "../../untils/FormatDate";
 export default function Discounts() {
   const [loading, setLoadingState] = useState(false);
   const [filters, setFilters] = useState({
@@ -31,50 +32,47 @@ export default function Discounts() {
 
   const fetchdotGiamGias = async (skip, limit) => {
     try {
-      let apiDS = `http://localhost:8080/admin/dot-giam-gia/hien-thi?skip=${skip}&limit=${limit}`;
-      if (filters.tenDotGiamGia) {
-        apiDS = `${apiDS}&tenDotGiamGia=${filters.tenDotGiamGia}`;
-      }
-      if (filters.hinhThuc) {
-        apiDS = `${apiDS}&hinhThuc=${filters.hinhThuc}`;
-      }
-      if (filters.giaTri) {
-        apiDS = `${apiDS}&giaTri=${filters.giaTri}`;
-      }
+      let apiDS = `/admin/dot-giam-gia/hien-thi?skip=${skip}&limit=${limit}`;
+
+      if (filters.tenDotGiamGia) apiDS += `&tenDotGiamGia=${filters.tenDotGiamGia}`;
+      if (filters.hinhThuc) apiDS += `&hinhThuc=${filters.hinhThuc}`;
+      if (filters.giaTri) apiDS += `&giaTri=${filters.giaTri}`;
+
       if (filters.ngayBatDau) {
         const oldDate = filters.ngayBatDau;
-        filters.ngayBatDau = moment(filters.ngayBatDau).format(
-          "YYYY-MM-DDTHH:mm:ss.SSS"
-        );
-        apiDS = `${apiDS}&ngayBatDau=${filters.ngayBatDau}`;
+        filters.ngayBatDau = moment(filters.ngayBatDau).format("YYYY-MM-DDTHH:mm:ss.SSS");
+        apiDS += `&ngayBatDau=${filters.ngayBatDau}`;
         filters.ngayBatDau = oldDate;
       }
+
       if (filters.ngayKetThuc) {
         const oldDate = filters.ngayKetThuc;
-        filters.ngayKetThuc = moment(filters.ngayKetThuc).format(
-          "YYYY-MM-DDTHH:mm:ss.SSS"
-        );
-        apiDS = `${apiDS}&ngayKetThuc=${filters.ngayKetThuc}`;
+        filters.ngayKetThuc = moment(filters.ngayKetThuc).format("YYYY-MM-DDTHH:mm:ss.SSS");
+        apiDS += `&ngayKetThuc=${filters.ngayKetThuc}`;
         filters.ngayKetThuc = oldDate;
       }
-      if (filters.trangThai) {
-        apiDS = `${apiDS}&trangThai=${filters.trangThai}`;
-      }
+
+      if (filters.trangThai) apiDS += `&trangThai=${filters.trangThai}`;
+
       // setLoadingState(true);
-      const response = await axios.get(apiDS);
-      if (response && response.data && response.data.data) {
+      const response = await api.get(apiDS);
+console.log(response.data);
+
+      if (response?.data?.data) {
         setLoadingState(false);
       }
+
       response.data.data.forEach((i) => {
         i.ngayBatDau = formatDate(i.ngayBatDau);
         i.ngayKetThuc = formatDate(i.ngayKetThuc);
       });
+
       setDotGiamGias(response.data.data);
       const total = Number(response.data.total) / Number(limit);
       setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0)); // Tính tổng số trang
     } catch (error) {
       // setLoadingState(false);
-      console.error("Lỗi khi lấy sản phẩm:", error);
+      console.error("Lỗi khi lấy danh sách đợt giảm giá:", error);
     }
   };
 
@@ -294,8 +292,7 @@ export default function Discounts() {
             <NavLink
               to="/admin/discounts/add"
               className={({ isActive }) =>
-                `block transition-all ${
-                  isActive ? "bg-gray-300" : "hover:bg-gray-100"
+                `block transition-all ${isActive ? "bg-gray-300" : "hover:bg-gray-100"
                 }`
               }
             >
@@ -343,32 +340,30 @@ export default function Discounts() {
                     {dotGiamGia.giaTri.toLocaleString("en-US")}
                   </td>
                   <td className="p-2">{dotGiamGia.hinhThuc}</td>
-                  <td className="p-2">{dotGiamGia.ngayBatDau}</td>
-                  <td className="p-2">{dotGiamGia.ngayKetThuc}</td>
+                  <td className="p-2">{formatDateFromArray(dotGiamGia.ngayBatDau)}</td>
+                  <td className="p-2">{formatDateFromArray(dotGiamGia.ngayKetThuc)}</td>
                   <td className="p-2 ">
                     <span
                       className={`px-2 py-1 rounded w-29 text-center border
-                      ${
-                        new Date() < new Date(startDate)
+                      ${new Date() < new Date(startDate)
                           ? "bg-yellow-300 text-yellow-800 border-yellow-800" // Sắp diễn ra
                           : new Date() > new Date(endDate)
-                          ? "bg-orange-200 text-orange-800 border-orange-800" // Bị vô hiệu hóa
-                          : "bg-green-300 text-green-800 border-green-800"
-                      }`} // Đang diễn ra
+                            ? "bg-orange-200 text-orange-800 border-orange-800" // Bị vô hiệu hóa
+                            : "bg-green-300 text-green-800 border-green-800"
+                        }`} // Đang diễn ra
                     >
                       {new Date() < new Date(startDate)
                         ? "Sắp diễn ra"
                         : new Date() > new Date(endDate)
-                        ? "Bị vô hiệu hóa"
-                        : "Đang diễn ra"}
+                          ? "Bị vô hiệu hóa"
+                          : "Đang diễn ra"}
                     </span>
                   </td>
                   <td className="p-2 flex space-x-2 justify-center items-center">
                     <NavLink
                       to={`/admin/discounts/edit/${dotGiamGia.idDotGiamGia}`}
                       className={({ isActive }) =>
-                        `text-black p-1 rounded ${
-                          isActive ? "bg-gray-300" : "hover:bg-gray-100"
+                        `text-black p-1 rounded ${isActive ? "bg-gray-300" : "hover:bg-gray-100"
                         }`
                       }
                     >
@@ -385,11 +380,10 @@ export default function Discounts() {
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-              currentPage === 1
+            className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === 1
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-200"
-            }`}
+              }`}
           >
             ◀
           </button>
@@ -401,11 +395,10 @@ export default function Discounts() {
           <button
             onClick={nextPage}
             disabled={currentPage === totalPages}
-            className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-              currentPage === totalPages
+            className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === totalPages
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-200"
-            }`}
+              }`}
           >
             ▶
           </button>

@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import api from "../../../security/Axios";
 export default function EditDiscounts() {
   const { idDGG } = useParams();
   const [filters, setFilters] = useState({ search: "" });
@@ -196,29 +196,6 @@ export default function EditDiscounts() {
     setSkipCt(0);
   }, [selectedIds]);
 
-  const fetchdotGiamGia = async () => {
-    try {
-      const [response, response2] = await Promise.all([
-        axios.get(
-          `http://localhost:8080/admin/dot-giam-gia/chi-tiet-dgg/${idDGG}`
-        ),
-        axios.get(
-          `http://localhost:8080/admin/dot-giam-gia/get-list-id-san-pham-chi-tiet/${idDGG}`
-        ),
-      ]);
-      const body = response2.data;
-      const response3 = await axios.post(
-        "http://localhost:8080/admin/dot-giam-gia/get-list-id-san-pham",
-        body
-      );
-      editDGG(response.data);
-      setSelectedIds(response3.data);
-      setSelectedIdsCt(response2.data);
-    } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     editDGG((prev) => ({ ...prev, [name]: value }));
@@ -246,59 +223,69 @@ export default function EditDiscounts() {
     }
   };
 
-  const editDotGiamGias = async () => {
+  const fetchdotGiamGia = async () => {
     try {
-      // const sanPhamChiTietTrue = sanPhamChiTiets.filter(i => i.isSelected);
-      // const idChiTietSanPham = sanPhamChiTietTrue.map(i => i.idChiTietSanPham);
-      const body = {
-        dotGiamGia: { ...editMaDGG },
-        idSanPhamChiTietList: selectedIdsCt,
-      };
-      const response = await axios.put(
-        "http://localhost:8080/admin/dot-giam-gia/cap-nhat-dgg",
-        body
-      );
-      if (response && response.status === 200) {
-        return { status: 1 }; // Trả về thành công
-      } else {
-        return { status: 0 }; // Trường hợp không thành công
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
-    }
-  };
+        const [response, response2] = await Promise.all([
+            api.get(`/admin/dot-giam-gia/chi-tiet-dgg/${idDGG}`),
+            api.get(`/admin/dot-giam-gia/get-list-id-san-pham-chi-tiet/${idDGG}`)
+        ]);
 
-  const fetchChiTietSanPhams = async (skip, limit) => {
+        const body = response2.data;
+        const response3 = await api.post("/admin/dot-giam-gia/get-list-id-san-pham", body);
+
+        editDGG(response.data);
+        setSelectedIds(response3.data);
+        setSelectedIdsCt(response2.data);
+    } catch (error) {
+        console.error("Lỗi khi lấy đợt giảm giá:", error);
+    }
+};
+
+const editDotGiamGias = async () => {
     try {
-      const response = await axios.post(
-        `http://localhost:8080/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skip}&limit=${limit}`,
-        {
-          idSanPham: selectedIds, // Truyền mảng vào trong body
-        }
-      );
-      setSanPhamChiTiets(response.data.data);
-      const total = Number(response.data.total) / Number(limitCt);
-      setTotalPagesCt(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
+        const body = {
+            dotGiamGia: { ...editMaDGG },
+            idSanPhamChiTietList: selectedIdsCt,
+        };
+        const response = await api.put("/admin/dot-giam-gia/cap-nhat-dgg", body);
+        return response?.status === 200 ? { status: 1 } : { status: 0 };
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
+        console.error("Lỗi khi cập nhật đợt giảm giá:", error);
+        return { status: 0 };
     }
-  };
+};
 
-  const fetchSanPham = async (skip, limit) => {
-    let response;
-    if (filters.search) {
-      response = await axios.get(
-        `http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}&tenSanPham=${filters.search}`
-      );
-    } else {
-      response = await axios.get(
-        `http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}`
-      );
+const fetchChiTietSanPhams = async (skip, limit) => {
+    try {
+        const response = await api.post(
+            `/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skip}&limit=${limit}`,
+            { idSanPham: selectedIds }
+        );
+
+        setSanPhamChiTiets(response.data.data);
+        const total = Number(response.data.total) / Number(limit);
+        setTotalPagesCt(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
+    } catch (error) {
+        console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
     }
-    setSanPhams(response.data.data);
-    const total = Number(response.data.total) / Number(limit);
-    setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0)); // Tính tổng số trang
-  };
+};
+
+const fetchSanPham = async (skip, limit) => {
+    try {
+        const response = await api.get(
+            `/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}${
+                filters.search ? `&tenSanPham=${filters.search}` : ""
+            }`
+        );
+
+        setSanPhams(response.data.data);
+        const total = Number(response.data.total) / Number(limit);
+        setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+    }
+};
+
 
   const nextPage = () => {
     if (currentPage < totalPages) {

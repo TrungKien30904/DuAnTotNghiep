@@ -11,6 +11,7 @@ import Notification from "../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from "../components/Loading";
 import Alert from "../components/Alert";
+import api from "../../security/Axios";
 
 const removeDiacritics = (str) => {
   return str
@@ -159,17 +160,18 @@ export default function ProductDetails() {
   });
 
   useEffect(() => {
-    fetchData("http://localhost:8080/admin/san-pham/hien-thi/true", setProducts);
-    fetchData("http://localhost:8080/admin/co-giay/hien-thi/true", setShoeCollars);
-    fetchData("http://localhost:8080/admin/de-giay/hien-thi/true", setShoeSoles);
-    fetchData("http://localhost:8080/admin/mui-giay/hien-thi/true", setShoeToes);
-    fetchData("http://localhost:8080/admin/chat-lieu/hien-thi/true", setMaterials);
-    fetchData("http://localhost:8080/admin/thuong-hieu/hien-thi/true", setBrands);
-    fetchData("http://localhost:8080/admin/nha-cung-cap/hien-thi/true", setSuppliers);
-    fetchData("http://localhost:8080/admin/danh-muc/hien-thi/true", setCategories);
-    fetchData("http://localhost:8080/admin/mau-sac/hien-thi/true", setColors);
-    fetchData("http://localhost:8080/admin/kich-co/hien-thi/true", setSizes);
+    fetchData("/admin/san-pham/hien-thi/true", setProducts);
+    fetchData("/admin/co-giay/hien-thi/true", setShoeCollars);
+    fetchData("/admin/de-giay/hien-thi/true", setShoeSoles);
+    fetchData("/admin/mui-giay/hien-thi/true", setShoeToes);
+    fetchData("/admin/chat-lieu/hien-thi/true", setMaterials);
+    fetchData("/admin/thuong-hieu/hien-thi/true", setBrands);
+    fetchData("/admin/nha-cung-cap/hien-thi/true", setSuppliers);
+    fetchData("/admin/danh-muc/hien-thi/true", setCategories);
+    fetchData("/admin/mau-sac/hien-thi/true", setColors);
+    fetchData("/admin/kich-co/hien-thi/true", setSizes);
   }, []);
+
 
   useEffect(() => {
     setDeletedVariants([]);
@@ -181,47 +183,17 @@ export default function ProductDetails() {
   }, [selectedColors, selectedSizes]);
 
   // Hàm lấy dữ liệu từ API
-  const fetchData = async (url, setState) => {
+  const fetchData = async (endpoint, setter) => {
     try {
-      const response = await axios.get(url);
-      setState(response.data);
+      const response = await api.get(endpoint);
+      setter(response.data);
     } catch (error) {
-
+      console.error(`Lỗi khi lấy dữ liệu từ ${endpoint}:`, error);
     }
   };
 
-  const handleAddColor = async () => {
-    try {
-      const response = await axios.post("http://localhost:8080/admin/mau-sac/them", {
-        ten: newColor,
-      });
-      console.log("Response data màu sắc:", response.data);
-      const newOption = { value: response.data.idMauSac, label: response.data.ten };
-      setSelectedColors((prevSelected) => [...prevSelected, newOption]);
-      setIsAddingColor(false);
-      Notification("Thêm màu sắc thành công", "success");
-      await fetchData("http://localhost:8080/admin/mau-sac/hien-thi/true", setColors);
-    } catch (error) {
-      Notification("Lỗi khi thêm màu sắc!", "error");
-    }
-  };
 
-  const handleAddSize = async () => {
-    if (!newSize.trim()) return;
-    try {
-      const response = await axios.post("http://localhost:8080/admin/kich-co/them", {
-        ten: newSize,
-      });
-      const newOption = { value: response.data.idKichCo, label: response.data.ten };
-      setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
-      setIsAddingSize(false);
-      setNewSize("");
-      Notification("Thêm kích cỡ thành công", "success");
-      await fetchData("http://localhost:8080/admin/kich-co/hien-thi/true", setSizes);
-    } catch (error) {
-      Notification("Lỗi khi thêm kích cỡ!", "error");
-    }
-  };
+
   useEffect(() => {
     // Automatically select the first option for these fields on initial load
     if (shoeCollars.length > 0) {
@@ -247,10 +219,42 @@ export default function ProductDetails() {
     }
   }, [shoeCollars, shoeSoles, shoeToes, materials, brands, suppliers, categories]);
 
+  const handleAddColor = async () => {
+    try {
+      const response = await api.post(`/admin/${type}/them`, {
+        ten: inputValue,
+      });
+      console.log("Response data màu sắc:", response.data);
+      const newOption = { value: response.data.idMauSac, label: response.data.ten };
+      setSelectedColors((prevSelected) => [...prevSelected, newOption]);
+      setIsAddingColor(false);
+      Notification("Thêm màu sắc thành công", "success");
+      await fetchData("/admin/mau-sac/hien-thi/true", setColors);
+    } catch (error) {
+      Notification("Lỗi khi thêm màu sắc!", "error");
+    }
+  };
+
+  const handleAddSize = async () => {
+    if (!newSize.trim()) return;
+    try {
+      const response = await api.post("/admin/kich-co/them", {
+        ten: newSize,
+      });
+      const newOption = { value: response.data.idKichCo, label: response.data.ten };
+      setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
+      setIsAddingSize(false);
+      setNewSize("");
+      Notification("Thêm kích cỡ thành công", "success");
+      await fetchData("/admin/kich-co/hien-thi/true", setSizes);
+    } catch (error) {
+      Notification("Lỗi khi thêm kích cỡ!", "error");
+    }
+  };
   const handleCreateOption = async (type, inputValue) => {
 
     try {
-      const response = await axios.post(`http://localhost:8080/admin/${type}/them`, {
+      const response = await api.post(`/admin/${type}/them`, {
         ten: inputValue,
       });
       if (type === "san-pham") {
@@ -576,12 +580,10 @@ export default function ProductDetails() {
 
       setLoading(true);
       try {
-        const productResponse = await axios.post(
-          "http://localhost:8080/admin/chi-tiet-san-pham/them",
+        const productResponse = await api.post(
+          "/admin/chi-tiet-san-pham/them",
           payload
         );
-
-
         await handleUploadImages(productResponse.data);
         Notification("Thêm chi tiết sản phẩm thành công", "success");
         navigate(`/admin/product-details-manager/phan-trang/${productSelected.value}`);
