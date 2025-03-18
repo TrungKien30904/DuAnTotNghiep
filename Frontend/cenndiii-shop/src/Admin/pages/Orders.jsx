@@ -79,6 +79,40 @@ export default function Orders() {
 
     const [isFirstLoad, setIsFirstLoad] = useState(true); // Thêm state này
 
+    const handlePrintInvoice = () => {
+        const order = orders[activeTab];
+        const invoiceContent = `
+            <h1>Hóa đơn</h1>
+            <p>Mã Hóa Đơn: ${order.maHoaDon}</p>
+            <table border="1" cellpadding="5">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${orderItemsByTab.map(item => `
+                        <tr>
+                            <td>${item.tenSanPham}</td>
+                            <td>${item.soLuongMua}</td>
+                            <td>${item.thanhTien.toLocaleString()}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div>
+                <p>Tổng tiền: ${total.toLocaleString()} đ</p>
+            </div>
+        `;
+
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(invoiceContent);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
     //  Tong tien
     const [total, setTotal] = useState(0);
 
@@ -320,7 +354,7 @@ export default function Orders() {
     };
 
 
-    const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity,giaDuocTinh) => {
+    const handleQuantityChange = async (idHoaDonChiTiet, idChiTietSanPham, newQuantity, giaDuocTinh) => {
         if (newQuantity == "tru" || newQuantity == "cong") {
             try {
                 const requestData = {
@@ -346,7 +380,7 @@ export default function Orders() {
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
                     soLuongMua: Number(newQuantity),
-                    giaDuocTinh : giaDuocTinh
+                    giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
                 await axios.post(
@@ -471,6 +505,12 @@ export default function Orders() {
                                                 >
                                                     Thêm sản phẩm
                                                 </button>
+
+                                                <div className="flex gap-2">
+                                                    <Button onClick={handlePrintInvoice} variant="contained" color="primary">
+                                                        In hóa đơn
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                         {/* Bảng hóa đơn */}
@@ -514,7 +554,7 @@ export default function Orders() {
                                                                         {item.trangThai && (
                                                                             <button onClick={() => {
                                                                                 if (Number(item.soLuongMua) > 1) {
-                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru",item.giaDuocTinh)
+                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru", item.giaDuocTinh)
                                                                                 } else {
                                                                                     Notification("Đã là số lượng nhỏ nhất !", "warning")
                                                                                     return;
@@ -532,7 +572,7 @@ export default function Orders() {
                                                                                 onChange={(e) => {
                                                                                     if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
                                                                                         if ((e.target.value - item.soLuongMua) <= item.kho) {
-                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value,item.giaDuocTinh)
+                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value, item.giaDuocTinh)
                                                                                         }
                                                                                     } else {
                                                                                         Notification("Chọn số lượng hợp lệ", "error")
@@ -548,7 +588,7 @@ export default function Orders() {
                                                                             <button onClick={() => {
                                                                                 if (item.kho > 0) {
                                                                                     if (!item.giaDuocTinh) {
-                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong",item.giaDuocTinh)
+                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong", item.giaDuocTinh)
                                                                                     } else {
                                                                                         Notification("Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!", "warning")
                                                                                     }
