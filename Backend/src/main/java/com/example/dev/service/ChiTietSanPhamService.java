@@ -8,7 +8,7 @@ import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.HinhAnh;
 import com.example.dev.repository.ChiTietSanPhamRepo;
 import com.example.dev.repository.HinhAnhRepo;
-import com.example.dev.repository.MauSacRepo;
+import com.example.dev.repository.atriibute.MauSacRepo;
 import com.example.dev.repository.SanPhamRepo;
 import com.example.dev.util.FileUpLoadUtil;
 import jakarta.transaction.Transactional;

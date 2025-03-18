@@ -13,7 +13,7 @@ public class DeGiayService {
     @Autowired
     private DeGiayRepo deGiayRepo;
 
-    public List<DeGiay> getCoGiay() {
+    public List<DeGiay> getDeGiay() {
         return deGiayRepo.findAll(Sort.by(Sort.Direction.DESC, "idDeGiay"));
     }
 
@@ -25,7 +25,7 @@ public class DeGiayService {
         } else if (trangThai != null) {
             return deGiayRepo.findByTrangThai(trangThai);
         }
-        return getCoGiay();
+        return getDeGiay();
     }
 
     public DeGiay themDeGiay(DeGiay deGiay) {
@@ -35,7 +35,7 @@ public class DeGiayService {
     public List<DeGiay> suaDeGiay(DeGiay deGiay, Integer id) {
         deGiay.setIdDeGiay(id);
          deGiayRepo.save(deGiay);
-        return getCoGiay();
+        return getDeGiay();
     }
 
     public boolean existsByName(String ten) {

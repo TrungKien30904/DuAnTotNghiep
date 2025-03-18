@@ -34,19 +34,13 @@ public class CoGiayService {
     public List<CoGiay> getCoGiayBan(){
         return coGiayRepo.findAllByTrangThaiIsTrue();
     }
-//    public List<CoGiay> themCoGiay(CoGiay cg){
-//        coGiayRepo.save(cg);
-//        return getCoGiay();
-//    }
 
     public boolean existsByName(String ten) {
         return coGiayRepo.findByTen(ten).isPresent();
     }
 
-    public List<CoGiay> themCoGiay(CoGiay cg) {
-        // Kiểm tra xem tên giày đã tồn tại hay chưa
-        coGiayRepo.save(cg);
-        return getCoGiay();
+    public CoGiay themCoGiay(CoGiay cg) {
+        return coGiayRepo.save(cg);
     }
 
     public List<CoGiay> suaCoGiay(CoGiay cg,Integer id){

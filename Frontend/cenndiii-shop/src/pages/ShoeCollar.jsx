@@ -105,6 +105,7 @@ export default function CoGiayManagement() {
 
       // Reset ô input sau khi thêm thành công
       setNewItemName(''); // Reset ô input tên giày
+      fetchCoGiays();
       setIsAddModalOpen(false); // Đóng modal
     } catch (error) {
       if (error.response && error.response.data) {
