@@ -49,8 +49,6 @@ public class NhanVienController {
         if (!errors.isEmpty()) {
             return ResponseEntity.badRequest().body(errors);
         }
-
-        emailService.sendAccount(nhanVien);
         return ResponseEntity.ok(nhanVienService.themNv(nhanVien));
     }
 

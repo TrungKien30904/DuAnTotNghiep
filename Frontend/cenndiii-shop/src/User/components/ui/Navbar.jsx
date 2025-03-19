@@ -3,11 +3,34 @@ import { AppBar, Toolbar, IconButton, Badge, Avatar } from "@mui/material";
 import { ShoppingCart, Search } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/cart/CartContext"; // Import useCart
-
+import { useAuth } from "../../../untils/AuthContext";
+import { Menu, MenuItem } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const { cartCount } = useCart(); // Lấy cartCount từ context
   const [scrolling, setScrolling] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth(); // Lấy user từ context
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const navigate = useNavigate();
+
+  const handleAvatarClick = (event) => {
+    if (!user) {
+      navigate("/login");
+    } else {
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout(user?.permission);
+    handleClose();
+  };
 
   const handleScroll = useCallback(() => {
     requestAnimationFrame(() => setScrolling(window.scrollY > 400));
@@ -21,8 +44,6 @@ const Navbar = () => {
       setScrolling(false); // Reset trạng thái khi không ở /home
     }
   }, [handleScroll, location.pathname]);
-
-  const menuItems = useMemo(() => ["Home", "Shop", "Blog", "Contact", "About"], []);
 
   return (
     <AppBar position="fixed"
@@ -39,7 +60,6 @@ const Navbar = () => {
             && scrolling
             ? "0px 7px 10px rgba(0, 0, 0, 0.1)" // Home chỉ có boxShadow khi scroll xuống 400px
             : "none",
-
         borderBottom: location.pathname === "/home"
           ? scrolling
             ? "1px solid rgba(0, 0, 0, 0.2)"
@@ -48,14 +68,11 @@ const Navbar = () => {
         transition: "all 0.4s ease-in-out",
       }}>
       <Toolbar className="flex justify-between">
-        {/* Logo */}
         <div className="text-2xl font-bold">
           <Link to="/home">
             <img src="/logo.png" alt="logo" className="h-10 transition-transform duration-300 hover:scale-110" />
           </Link>
         </div>
-
-        {/* Navigation */}
         <div className="hidden md:flex gap-6 text-lg text-black">
           {["Home", "Shop", "Blog", "Contact", "About"].map((item, index) => (
             <Link key={index} to={`/${item.toLowerCase()}`} className="relative group">
@@ -64,8 +81,6 @@ const Navbar = () => {
             </Link>
           ))}
         </div>
-
-        {/* Right Icons */}
         <div className="flex items-center gap-4">
           <IconButton
             className="transition-transform duration-300 hover:scale-110 text-black"
@@ -80,12 +95,23 @@ const Navbar = () => {
               </Badge>
             </IconButton>
           </Link>
-          <Link to={"/login"}>
-            <Avatar
-              src=""
-              alt="User Avatar" className="transition-transform duration-300 hover:scale-110"
-            />
-          </Link>
+          <IconButton onClick={handleAvatarClick} className="transition-transform duration-300 hover:scale-110">
+            <Avatar src={user ? user.avatarUrl : ""} alt="User Avatar" />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            disablePortal
+            disableScrollLock
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <MenuItem disabled>
+              {user?.username}
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+          </Menu>
         </div>
       </Toolbar>
     </AppBar>

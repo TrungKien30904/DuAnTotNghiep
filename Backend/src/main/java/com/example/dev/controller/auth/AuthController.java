@@ -19,7 +19,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok(authService.login(loginRequest.getUsername(), loginRequest.getPassword(),loginRequest.isCustomer()));
+        return ResponseEntity.ok(authService.login(loginRequest.getUsername(), loginRequest.getPassword(),loginRequest.getIsCustomer()));
     }
 
     @PostMapping("/get-token")

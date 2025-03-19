@@ -10,14 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.sql.Date;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 
 @Service
 public class SendMailServiceImpl implements ISendMailService {
@@ -41,7 +38,7 @@ public class SendMailServiceImpl implements ISendMailService {
         entity.setCreatedBy(null);
         entity.setCreatedDate(new Date(System.currentTimeMillis()));
         int status = -1;
-        try{
+        try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromMail);
             message.setSubject(sendMailMapper.getSubject());
@@ -51,8 +48,7 @@ public class SendMailServiceImpl implements ISendMailService {
             entity.setStatus(1);
             entity.setMessage("Send mail success");
             status = 1;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             entity.setMessage(e.getMessage());
             entity.setStatus(0);
@@ -63,7 +59,7 @@ public class SendMailServiceImpl implements ISendMailService {
 
     @Override
     public int sendMailWithAttachment(SendMailMapper sendMailMapper) {
-        try{
+        try {
             MimeMessage mimeMailMessage = mailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper;
             mimeMessageHelper = new MimeMessageHelper(mimeMailMessage, true);
@@ -75,8 +71,7 @@ public class SendMailServiceImpl implements ISendMailService {
             mimeMessageHelper.addAttachment(file.getFilename(), file);
             mailSender.send(mimeMailMessage);
             return 1;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return -1;
         }

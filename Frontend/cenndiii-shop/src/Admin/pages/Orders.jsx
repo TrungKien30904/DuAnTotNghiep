@@ -55,7 +55,7 @@ export default function Orders() {
     };
     useEffect(() => {
         if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/login");
+            navigate("/admin/login");
         }
     }, [navigate]);
 
@@ -84,7 +84,7 @@ export default function Orders() {
     const [productDetails, setProductDetails] = useState([]);
     const [openSelectQuantity, setOpenSelectQuantity] = useState(false);
     const [productDetailSelected, setProductDetailSelected] = useState(null);
-    const [orderItems, setOrderItems] = useState([]);
+    const [invoiceId, setInvoiceId] = useState([]);
     const [selectedQuantity, setSelectedQuantity] = useState(1);
 
     const [isFirstLoad, setIsFirstLoad] = useState(true); // Thêm state này
@@ -137,7 +137,7 @@ export default function Orders() {
         if (orders.length > 0 && isFirstLoad) {
             getProductFromDetailsInvoice(orders[0].idHoaDon);
             setOrderId(orders[0].idHoaDon)
-            setOrderItems(orders[0]);
+            setInvoiceId(orders[0]);
             setIsFirstLoad(false); // Đánh dấu lần đầu tiên đã hoàn thành
         }
     }, [orders, isFirstLoad]);
@@ -152,6 +152,8 @@ export default function Orders() {
         try {
             const response = await api.get(`/admin/hdct/get-cart/${idHoaDon}`); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
             setOrderItemsByTab(response.data);
+            console.log(response.data);
+            
         } catch (error) {
             console.error("Error fetching product details:", error);
         }
@@ -171,7 +173,7 @@ export default function Orders() {
             setActiveTab(tabs.length);
             setOrders([...orders, createdOrder]);
             setOrderId(newTabId);
-            setOrderItems(createdOrder);
+            setInvoiceId(createdOrder);
             getProductFromDetailsInvoice(createdOrder.idHoaDon);
     
         } catch (error) {
@@ -196,7 +198,8 @@ export default function Orders() {
         if (!tabToRemove) return;
 
         try {
-            await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`,{headers});
+            const response = await api.get(`/admin/hoa-don/delete/${tabId}`, { headers });
+
 
             // Sau khi xóa, cập nhật lại danh sách orders và tabs
             const updatedOrders = orders.filter(order => order.idHoaDon !== tabId);
@@ -209,7 +212,7 @@ export default function Orders() {
                 content: `Hóa đơn ${order.maHoaDon}`
             }));
             setTabs(newTabs);
-            setOrderItems(updatedOrders[0])
+            setInvoiceId(updatedOrders[0])
             setActiveTab(0);
             setOrderId(updatedOrders[0].idHoaDon);
             getProductFromDetailsInvoice(updatedOrders[0].idHoaDon);
@@ -225,7 +228,7 @@ export default function Orders() {
         setActiveTab(newValue)
         setOrderId(orders[newValue].idHoaDon)
         getProductFromDetailsInvoice(orders[newValue].idHoaDon)
-        setOrderItems(orders[newValue])
+        setInvoiceId(orders[newValue])
     };
 
     const handleOpenDialog = () => {
@@ -234,14 +237,15 @@ export default function Orders() {
             window.location.href = "/login"; // Điều hướng về trang đăng nhập
             return;
         }
-        axios
-            .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1",{headers})
-            .then((response) => {
-                setProductDetails(response.data);
-            })
-            .catch((error) => {
-                console.error("Error fetching product details:", error);
-            });
+        api
+        .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
+        .then((response) => {
+          setProductDetails(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching product details:", error);
+        });
+      
         setOpenDialog(true);
     };
 
@@ -273,24 +277,28 @@ export default function Orders() {
                 giaSauGiam: productDetailSelected.giaSauGiam
             };
 
-            const response = await axios.post(
-                `http://localhost:8080/admin/chi-tiet-san-pham/them-sp`,
-                requestData,{headers}
-            );
-
-            if (response.status === 200) {
-                getProductFromDetailsInvoice(orderId)
+            const response = await api.post(
+                "/admin/chi-tiet-san-pham/them-sp",
+                requestData,
+                { headers }
+              );
+              
+              if (response.status === 200) {
+                getProductFromDetailsInvoice(orderId);
                 Notification(`Sản phẩm ${productDetailSelected.sanPham} đã được thêm thành công!`, "success");
-                axios
-                    .get("http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1",{headers})
-                    .then((response) => {
-                        setProductDetails(response.data);
-                    })
-                    .catch((error) => {
-                        console.error("Error fetching product details:", error);
-                    });
+              
+                api
+                  .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
+                  .then((response) => {
+                    setProductDetails(response.data);
+                  })
+                  .catch((error) => {
+                    console.error("Error fetching product details:", error);
+                  });
+              
                 setOpenSelectQuantity(false);
-            }
+              }
+              
         } catch (error) {
             console.error("Error adding product:", error);
             Notification("Đã có lỗi xảy ra khi thêm sản phẩm, vui lòng thử lại!", "error");
@@ -307,11 +315,8 @@ export default function Orders() {
                 idChiTietSanPham: idCtsp
             };
 
-            await axios.post(
-                `http://localhost:8080/admin/chi-tiet-san-pham/xoa-sp`,
-                requestData,
-                {headers}
-            );
+            await api.post("/admin/chi-tiet-san-pham/xoa-sp", requestData, { headers });
+
 
             getProductFromDetailsInvoice(orderId)
         } catch (error) {
@@ -330,11 +335,8 @@ export default function Orders() {
                     giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
-                await axios.post(
-                    `http://localhost:8080/admin/chi-tiet-san-pham/cap-nhat-sl`,
-                    requestData,
-                    {headers}
-                );
+                await api.post("/admin/chi-tiet-san-pham/cap-nhat-sl", requestData, { headers });
+
                 getProductFromDetailsInvoice(orderId);
 
             } catch (error) {
@@ -350,11 +352,8 @@ export default function Orders() {
                     giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
-                await axios.post(
-                    `http://localhost:8080/admin/chi-tiet-san-pham/sua-sp`,
-                    requestData,
-                    {headers}
-                );
+                await api.post("/admin/chi-tiet-san-pham/sua-sp", requestData, { headers });
+
                 getProductFromDetailsInvoice(orderId);
 
             } catch (error) {
@@ -602,8 +601,9 @@ export default function Orders() {
                                 <div className='w-2/5'>
                                     <DetailsPayment
                                         total={total}
-                                        orderItems={orderItems}
+                                        invoiceId={invoiceId}
                                         reloadTab={reloadTab}
+                                        totalItem={orderItemsByTab}
                                     />
                                 </div>
                             </div>

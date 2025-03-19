@@ -6,8 +6,8 @@ import { FileSpreadsheet } from "lucide-react";
 import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
-
-const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Thanh toán', 'Hoàn thành', 'Hủy'];
+import { formatDateFromArray } from "../../untils/FormatDate";
+const statuses = ['Tất cả', 'Chờ xử lý','Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã Thanh toán', 'Hoàn thành', 'Đã xóa'];
 
 export default function Invoices() {
     const navigate = useNavigate();
@@ -242,12 +242,10 @@ export default function Invoices() {
                             <th className="px-4 py-2 ">Mã hoá đơn</th>
                             <th className="px-4 py-2 ">Tên khách hàng</th>
                             <th className="px-4 py-2 ">Tên nhân viên</th>
-                            <th className="px-4 py-2 ">Số điện thoại</th>
-                            <th className="px-4 py-2 ">Email</th>
                             <th className="px-4 py-2 ">Tổng tiền</th>
                             <th className="px-4 py-2 ">Ngày tạo</th>
                             <th className="px-4 py-2 ">Loại đơn</th>
-                            <th className="px-4 py-2 "></th>
+                            <th className="px-4 py-2 ">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -256,11 +254,9 @@ export default function Invoices() {
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
                                 <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
-                                {/* <td className="px-4 py-2">{invoice.nhanVien.ten}</td> */}
-                                <td className="px-4 py-2">{invoice.soDienThoai}</td>
-                                <td className="px-4 py-2">{invoice.email}</td>
+                                <td className="px-4 py-2">{invoice.nhanVien?.ten || ""}</td>
                                 <td className="px-4 py-2">{invoice.tongTien}</td>
-                                <td className="px-4 py-2">{invoice.ngayTao}</td>
+                                <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>
                                 <td className="px-4 py-2">{invoice.loaiDon}</td>
                                 <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"
                                     onClick={() => goToDetail(invoice.maHoaDon)} /></td>

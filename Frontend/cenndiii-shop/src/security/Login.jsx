@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import axios from "axios";
-import {Decode,getDecodedToken} from "./DecodeJWT";
+import { Decode, getDecodedToken } from "./DecodeJWT";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../untils/AuthContext";
 export default function LoginForm() {
   const [phoneNum, setPhoneNum] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -15,32 +17,35 @@ export default function LoginForm() {
       axios.post("http://localhost:8080/auth/login", {
         username: phoneNum,
         password: password,
-        isCustomer: false,
+        isCustomer: true,
       }).then((res) => {
         if (res.status === 200) {
           const token = res.data.token;
           const refreshToken = res.data.refreshToken;
-          
+
           localStorage.setItem("token", token);
           localStorage.setItem("refreshToken", refreshToken);
-          
 
           const decodedToken = Decode(token);
 
-          if (decodedToken.permissions[0] === "ADMIN" || decodedToken.permissions[0] === "STAFF") {
-            navigate("/admin");
-          } else if (decodedToken.permissions[0] === "CUSTOMER") {
-            navigate("/home"); 
-          }else{
-            navigate("/login");
+          if (decodedToken!=null) {
+            setUser({
+              username: decodedToken.userName,
+              permission: decodedToken.permissions[0],
+            });
+
+            if (decodedToken.permissions[0] === "CUSTOMER") {
+              navigate("/");
+            } else {
+              navigate("/login");
+            }
           }
-          
         }
       });
 
       console.log(res);
     } catch (error) {
-      
+
     }
   };
 

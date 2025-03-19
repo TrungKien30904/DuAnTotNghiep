@@ -1,8 +1,11 @@
 import { jwtDecode } from 'jwt-decode';
 
 export const Decode = (token) => {
-    const decodedToken = jwtDecode(token);
-    return decodedToken;
+    if (token != null) {
+        const decodedToken = jwtDecode(token);
+        return decodedToken;
+    }
+    return null;
 };
 
 export const getDecodedToken = () => {
@@ -26,4 +29,16 @@ export const getPermissions = () => {
 export const hasPermission = (permission) => {
     const permissionsArray = getPermissions(); // Lấy danh sách permissions từ token
     return permissionsArray.includes(permission); // Kiểm tra xem quyền có trong danh sách không
+};
+
+export const getUserName = () => {
+    const decodedToken = getDecodedToken();
+    if (!decodedToken || !decodedToken.userName) return "";
+    return decodedToken.userName;
+};
+
+export const getSub = () => {
+    const decodedToken = getDecodedToken();
+    if (!decodedToken || !decodedToken.sub) return "";
+    return decodedToken.sub;
 };

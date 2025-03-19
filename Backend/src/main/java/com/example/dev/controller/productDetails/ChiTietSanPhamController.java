@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,14 +50,14 @@ public class ChiTietSanPhamController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
-    public ResponseEntity<?> themCtsp(@Valid @RequestBody ChiTietSanPhamResponse ctsp) {
-        return ResponseEntity.ok(chiTietSanPhamService.themChiTietSanPham(ctsp));
+    public ResponseEntity<?> themCtsp(@Valid @RequestBody ChiTietSanPhamResponse ctsp, Authentication auth) {
+        return ResponseEntity.ok(chiTietSanPhamService.themChiTietSanPham(ctsp,auth));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaCtsp(@Valid @RequestBody ChiTietSanPham cl, @PathVariable Integer id) {
-        return ResponseEntity.ok(chiTietSanPhamService.suaChiTietSanPham(cl, id));
+    public ResponseEntity<?> suaCtsp(@Valid @RequestBody ChiTietSanPham cl, @PathVariable Integer id, Authentication auth) {
+        return ResponseEntity.ok(chiTietSanPhamService.suaChiTietSanPham(cl, id,auth));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
@@ -83,8 +84,8 @@ public class ChiTietSanPhamController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping(value = "/them-anh/{idSanPham}")
-    public ResponseEntity<?> themAnh(@RequestPart final List<MultipartFile> file, @RequestParam("tenMau") List<String> tenMau, @PathVariable Integer idSanPham) {
-        chiTietSanPhamService.uploadImage(file, tenMau, idSanPham);
+    public ResponseEntity<?> themAnh(@RequestPart final List<MultipartFile> file, @RequestParam("tenMau") List<String> tenMau, @PathVariable Integer idSanPham, Authentication auth) {
+        chiTietSanPhamService.uploadImage(file, tenMau, idSanPham,auth);
         return ResponseEntity.ok("Upload successfully");
     }
 

@@ -1,5 +1,7 @@
 package com.example.dev.controller.cart;
 
+import com.example.dev.DTO.request.ChiTietSanPham.ChiTietSanPhamRequest;
+import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.DTO.response.cart.CartItemResponseDTO;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.HinhAnh;
@@ -71,19 +73,19 @@ public class CartController {
         List<CartItem> cart = getCart(session);
 
         List<CartItemResponseDTO> response = cart.stream().map(item -> {
-            ChiTietSanPham chiTiet = chiTietSanPhamRepository.findById(item.getProductId()).orElse(null);
-            if (chiTiet == null) return null;
+            SpGiamGiaRequest ctsp = chiTietSanPhamRepository.getSanPhamGiamGia(item.getProductId()).get(0);
+            if (ctsp == null) return null;
 
             CartItemResponseDTO dto = new CartItemResponseDTO();
-            dto.setProductId(chiTiet.getIdChiTietSanPham());
-            dto.setTenSanPham(chiTiet.getSanPham().getTen());
-            dto.setGia(chiTiet.getGia().intValue());
-            dto.setSoLuong(item.getSoLuong());
-            dto.setTrangThai(chiTiet.getTrangThai() != null && chiTiet.getTrangThai() ? "Còn hàng" : "Hết hàng");
-            dto.setMauSac(chiTiet.getMauSac().getTen());
-            dto.setKichCo(chiTiet.getKichCo().getTen());
+            dto.setProductId(ctsp.getIdChiTietSanPham());
+            dto.setTenSanPham(ctsp.getSanPham());
+            dto.setGia(ctsp.getGiaSauGiam().intValue());
+            dto.setSoLuong(1);
+            dto.setTrangThai(ctsp.getTrangThai() != null && ctsp.getTrangThai() ? "Còn hàng" : "Hết hàng");
+            dto.setMauSac(ctsp.getMauSac());
+            dto.setKichCo(ctsp.getKichCo());
 
-            List<String> imageUrls = hinhAnhRepo.listURl(chiTiet.getIdChiTietSanPham());
+            List<String> imageUrls = hinhAnhRepo.listURl(ctsp.getIdChiTietSanPham());
             if (!imageUrls.isEmpty()) {
                 dto.setImg(imageUrls.get(0));
             }

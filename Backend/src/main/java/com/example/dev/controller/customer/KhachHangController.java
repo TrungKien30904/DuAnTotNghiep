@@ -36,11 +36,11 @@ public class KhachHangController {
         return ResponseEntity.ok(khachHangService.getAll());
     }
 
-    @GetMapping("/detail/{id}")
-    public ResponseEntity<?> detail(@PathVariable Integer id) {
-        CustomerMapper khachHang = khachHangService.detailKhachHang(id);
-        return  ResponseEntity.ok(khachHang);
-    }
+//    @GetMapping("/detail/{id}")
+//    public ResponseEntity<?> detail(@PathVariable Integer id) {
+//        CustomerMapper khachHang = khachHangService.detailKhachHang(id);
+//        return  ResponseEntity.ok(khachHang);
+//    }
 
     @PostMapping("/them")
     public ResponseEntity<BaseResponse<Integer>> them(@RequestPart("user") String model, @RequestPart("fileImage") MultipartFile file) {

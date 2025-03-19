@@ -32,10 +32,12 @@ import "react-toastify/dist/ReactToastify.css";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import VoucherOrder from "./pages/VoucherOrder";
 import Test from "./pages/Delivery";
+import LoginPage from "./components/ui/Login"
 
 export default function AdminRoute() {
     return (
         <Routes>
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/" element={<DashboardLayout />}>
                 <Route path="" element={<Navigate to="/admin/dashboard" />} />
                 <Route path="dashboard" element={<Dashboard />} />
@@ -68,7 +70,6 @@ export default function AdminRoute() {
                 <Route path="edit-customer/:id" element={<EditCustomer />} />
                 <Route path="invoice-detail/:id" element={<InvoiceDetail />} />
                 {/* <Route path="/test" element={<DynamicForm />} /> */}
-                <Route path="test1" element={<VoucherOrder />} />
                 <Route path="test" element={<Test />} />
             </Route>
         </Routes>

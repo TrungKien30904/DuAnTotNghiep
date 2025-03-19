@@ -15,6 +15,7 @@ export default function ProductDetails() {
     const [listImageByColor, setListImageByColor] = useState([]);
     const [selectedColorId, setSelectedColorId] = useState(null); // ✅ Màu đang chọn
     const [selectedSizeId, setSelectedSizeId] = useState(null); // ✅ Size đang chọn
+    const [quantity, setQuantity] = useState(0);
 
     const { cartCount, setCartCount } = useCart(); // Lấy hàm cập nhật số lượng giỏ hàng
 
@@ -70,6 +71,7 @@ export default function ProductDetails() {
             setProductSelected(null);
             setSelectedColorId(idMauSac);
             setSelectedSizeId(null);
+            setQuantity(0);
         } catch (error) {
             console.log("Chọn màu thất bại");
         }
@@ -80,7 +82,8 @@ export default function ProductDetails() {
         try {
             const response = await axios.get(`http://localhost:8080/admin/chi-tiet-san-pham/dot-giam/hien-thi/${idChiTietSanPham}`);
             setProductSelected(response.data[0]);
-            setSelectedSizeId(idChiTietSanPham); // ✅ Cập nhật size đang chọn
+            setSelectedSizeId(idChiTietSanPham);
+            setQuantity(response.data[0].soLuong);
         } catch (error) {
             console.log("Chọn size thất bại");
         }
@@ -116,6 +119,7 @@ export default function ProductDetails() {
                     <div className="flex-none h-[56px]">
                         <h1 className="text-2xl font-bold">{productSelected?.sanPham ?? product?.tenSanPham}</h1>
                         <p className="text-gray-600">{productSelected?.danhMucSanPham || ""}</p>
+                        <p className="text-gray-600">{quantity != 0 ? `Kho: ${quantity}` : ""}</p>
                     </div>
 
                     {/* Giá sản phẩm */}

@@ -1,5 +1,6 @@
 package com.example.dev.service;
 
+import com.example.dev.DTO.UserLogin.UserLogin;
 import com.example.dev.DTO.request.ChiTietSanPham.ChiTietSanPhamRequest;
 import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.DTO.response.ChiTietSanPham.BienTheResponse;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -82,7 +84,7 @@ public class ChiTietSanPhamService {
 //        }
 //        return listRequest;
 //    }
-    public Integer themChiTietSanPham(ChiTietSanPhamResponse dto) {
+    public Integer themChiTietSanPham(ChiTietSanPhamResponse dto, Authentication auth) {
         ChiTietSanPham ctsp = null;
         List<ChiTietSanPham> chiTietSanPhams = getListChiTietSanPham();
         for (BienTheResponse dt : dto.getBienThe()) {
@@ -97,7 +99,8 @@ public class ChiTietSanPhamService {
             ctsp.setDanhMucSanPham(dto.getDanhMuc());
             ctsp.setMoTa(dto.getMoTa());
             ctsp.setNgayTao(LocalDateTime.now());
-            ctsp.setNguoiTao("Admin");
+            UserLogin userLogin = (UserLogin) auth.getPrincipal();
+            ctsp.setNguoiTao(userLogin.getUsername());
             ctsp.setMauSac(dt.getMauSac());
             ctsp.setKichCo(dt.getKichCo());
             ctsp.setGia(dt.getGia());
@@ -125,21 +128,23 @@ public class ChiTietSanPhamService {
         return ctsp.getSanPham().getIdSanPham();
     }
 
-    public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id) {
+    public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id,Authentication auth) {
         try {
             ChiTietSanPham find = chiTietSanPhamRepo.findById(id).orElseThrow();
 
             if (isEqual(ctsp, find)) {
                 ctsp.setIdChiTietSanPham(id);
                 ctsp.setNgaySua(LocalDateTime.now());
-                ctsp.setNguoiTao("Admin");
+                UserLogin userLogin = (UserLogin) auth.getPrincipal();
+                ctsp.setNguoiSua(userLogin.getUsername());
                 chiTietSanPhamRepo.save(ctsp);
                 log.info("Update ProductDetails > {}", ctsp.toString());
 //                historyImpl.saveHistory(find,ctsp, BaseConstant.Action.UPDATE.getValue(), id,"Admin");
             }else{
 //              thêm sản phẩm mới từ id sp cũ
                 ctsp.setNgayTao(LocalDateTime.now());
-                ctsp.setNguoiTao("Admin");
+                UserLogin userLogin = (UserLogin) auth.getPrincipal();
+                ctsp.setNguoiTao(userLogin.getUsername());
                 ctsp.setMa(ctsp.getMauSac().getTen() + ctsp.getKichCo().getTen());
                 ctsp.setTaoBoi(find.getIdChiTietSanPham());
                 chiTietSanPhamRepo.save(ctsp);
@@ -204,7 +209,7 @@ public class ChiTietSanPhamService {
     }
 
     @Transactional
-    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham) {
+    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham,Authentication auth) {
             if (!file.isEmpty()) {
 //            for(String publicId : hinhAnhRepo.publicId(idSanPham)) {
 //                this.cloudinaryService.deleteImage(publicId);
@@ -235,7 +240,8 @@ public class ChiTietSanPhamService {
                     anh.setIdHinhAnh(response.getPublicId());
                     anh.setLienKet(response.getUrl());
                     anh.setNgayTao(LocalDateTime.now());
-                    anh.setNguoiTao("admin");
+                    UserLogin userLogin = (UserLogin) auth.getPrincipal();
+                    anh.setNguoiTao(userLogin.getUsername());
                     anh.setTrangThai(true);
                     this.hinhAnhRepo.save(anh);
                 }
