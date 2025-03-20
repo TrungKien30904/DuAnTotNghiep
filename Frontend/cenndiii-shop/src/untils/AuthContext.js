@@ -6,14 +6,9 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     
 
-    const logout = (role) => {
+    const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
-        // if(role === "ADMIN" || role === "STAFF"){
-        //     navigate("/admin/login");
-        // } if(role === "CUSTOMER"){
-        //     navigate("/");
-        // }
         setUser(null);
         return;
     };

@@ -7,8 +7,8 @@ import { ToastContainer } from 'react-toastify';
 // import { confirmAlert } from 'react-confirm-alert';
 // import 'react-confirm-alert/src/react-confirm-alert.css';
 import api from '../../security/Axios';
-
-
+import { hasPermission } from "../../security/DecodeJWT";
+import { useNavigate } from 'react-router-dom';
 export default function InvoiceDetail() {
     const { id } = useParams();
     const [invoice, setInvoice] = useState();
@@ -16,7 +16,12 @@ export default function InvoiceDetail() {
     const [showHistory, setShowHistory] = useState(false);
     const [histories, setHistories] = useState([]);
     const [invoiceDetails, setInvoiceDetails] = useState([]);
-
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     useEffect(() => {
         fetchInvoice(id);
         fetchInvoicePaymentHistory(id);
@@ -37,17 +42,17 @@ export default function InvoiceDetail() {
         const response = await api.get(`/admin/hoa-don/${maHoaDon}`);
         setInvoice(response.data);
     };
-    
+
     const fetchInvoicePaymentHistory = async (maHoaDon) => {
         const response = await api.get(`/admin/hoa-don/${maHoaDon}/lich-su-thanh-toan`);
         setPayment(response.data);
     };
-    
+
     const fetchHistories = async () => {
         const response = await api.get(`/admin/hoa-don/${id}/lich-su-hoa-don`);
         setHistories(response.data);
     };
-    
+
     const fetchInvoiceDetails = async () => {
         try {
             const response = await api.get(`/admin/hdct/listHoaDonChiTiet?maHoaDon=${id}`);
@@ -56,21 +61,21 @@ export default function InvoiceDetail() {
             console.error('Error fetching invoice details:', error);
         }
     };
-    
+
     const xacNhanDonHang = () => {
         api.put(`/admin/hoa-don/${id}/xac-nhan`)
             .then(() => fetchInvoice(id));
     };
-    
+
     const huyDonHang = () => {
         api.put(`/admin/hoa-don/${id}/huy`)
             .then(() => fetchInvoice(id));
     };
-    
+
     const quayLai = () => {
         api.put(`/admin/hoa-don/${id}/quay-lai`)
             .then(() => fetchInvoice(id));
-    };    
+    };
 
     const hienThiLichSu = () => {
         setShowHistory(true);
@@ -92,16 +97,16 @@ export default function InvoiceDetail() {
                         try {
                             await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
                             setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
-                            Notification("Xóa thành công","success")
+                            Notification("Xóa thành công", "success")
                         } catch (error) {
                             console.error('Error deleting item:', error);
-                            Notification("Xóa thất bại","error")
+                            Notification("Xóa thất bại", "error")
                         }
                     }
                 },
                 {
                     label: 'No',
-                    onClick: () => {}
+                    onClick: () => { }
                 }
             ]
         });
@@ -315,7 +320,7 @@ export default function InvoiceDetail() {
                                 <td className="px-4 py-2">{detail.chiTietSanPham.mauSac.ten}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.soLuong}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.soLuong * detail.chiTietSanPham.gia + 'VND'}</td>
-                                <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.trangThai ?"Còn hàng":"Hết hàng"}</td>
+                                <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.trangThai ? "Còn hàng" : "Hết hàng"}</td>
                                 <td className="px-4 py-2 flex gap-2">
                                     <button
                                         onClick={() => handleDelete(detail.idHoaDonChiTiet)}
@@ -328,7 +333,7 @@ export default function InvoiceDetail() {
                     </tbody>
                 </table>
             </div>
-            <ToastContainer/>
+            <ToastContainer />
         </div >
     )
 }

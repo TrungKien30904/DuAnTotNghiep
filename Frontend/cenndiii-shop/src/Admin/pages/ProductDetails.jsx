@@ -158,7 +158,8 @@ export default function ProductDetails() {
     category: "",
     description: ""
   });
-
+  useEffect(() => {
+  },[]);
   useEffect(() => {
     fetchData("/admin/san-pham/hien-thi/true", setProducts);
     fetchData("/admin/co-giay/hien-thi/true", setShoeCollars);
@@ -220,18 +221,19 @@ export default function ProductDetails() {
   }, [shoeCollars, shoeSoles, shoeToes, materials, brands, suppliers, categories]);
 
   const handleAddColor = async () => {
+    if (!newColor.trim()) return;
     try {
-      const response = await api.post(`/admin/${type}/them`, {
-        ten: inputValue,
+      const response = await api.post("/admin/mau-sac/them", {
+        ten: newColor,
       });
-      console.log("Response data màu sắc:", response.data);
-      const newOption = { value: response.data.idMauSac, label: response.data.ten };
-      setSelectedColors((prevSelected) => [...prevSelected, newOption]);
-      setIsAddingColor(false);
-      Notification("Thêm màu sắc thành công", "success");
-      await fetchData("/admin/mau-sac/hien-thi/true", setColors);
+      const newOption = { value: response.data.idKichCo, label: response.data.ten };
+      setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
+      setIsAddingSize(false);
+      setNewColor("");
+      Notification("Thêm kích cỡ thành công", "success");
+      await fetchData("/admin/mau-sac/hien-thi/true", setSizes);
     } catch (error) {
-      Notification("Lỗi khi thêm màu sắc!", "error");
+      Notification("Lỗi khi thêm mau-sac!", "error");
     }
   };
 
@@ -900,12 +902,12 @@ export default function ProductDetails() {
 
                   </thead>
                   <tbody>
-                    {Object.values(groupedVariants).map((group) => {
+                    {Object.values(groupedVariants).map((group,index) => {
                       const colorName = group.colorName;
                       const variantsGroup = group.variants;
                       return (
-                        <>
-                          {variantsGroup.map((variant, idx) => {
+                        // <>
+                          variantsGroup.map((variant, idx) => {
                             const variantId = `${variant.colorId}-${variant.sizeId}`;
                             return (
                               <tr key={variantId} className="border-t">
@@ -926,7 +928,7 @@ export default function ProductDetails() {
                                     }}
                                   />
                                 </td>
-                                {idx === 0 && (<td className="p-2 text-center " rowSpan={variantsGroup.length} ></td>)}
+                                {idx === 0 && (<td className="p-2 text-center " rowSpan={variantsGroup.length} >{index + 1}</td>)}
                                 <td className="p-2">
                                   {productSelected && productSelected.label
                                     ? `${productSelected.label} [${variant.colorName} - ${variant.sizeName}]`
@@ -1016,8 +1018,9 @@ export default function ProductDetails() {
                                 )}
                               </tr>
                             );
-                          })}
-                        </>
+                          })
+                        // }
+                        
                       );
                     })}
                   </tbody>

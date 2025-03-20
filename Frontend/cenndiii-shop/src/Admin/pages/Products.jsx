@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 // import Alert from "../../components/Alert";
 import api from "../../security/Axios";
 import { formatDateFromArray } from "../../untils/FormatDate";
+import { hasPermission } from "../../security/DecodeJWT";
 export default function ProductManagement() {
   const navigate = useNavigate();
   // const [filters, setFilters] = useState({ search: "", trangThai: "all", soLuong: "all" });
@@ -20,7 +21,11 @@ export default function ProductManagement() {
 
   // const [alertOpen, setAlertOpen] = useState(false); // mở alert
   // const [alertMessage, setAlertMessage] = useState(''); // thông báo alert
-
+  useEffect(() => {
+      if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+          navigate("/admin/login");
+      }
+  }, [navigate]);
   useEffect(() => {
     fetchSanPhams();
   }, []);
@@ -29,8 +34,6 @@ export default function ProductManagement() {
     try {
         const response = await api.get("/admin/san-pham/hien-thi");
         setSanPhams(response.data);
-        console.log("Danh sách sản phẩm:", response.data);
-        
     } catch (error) {
         console.error("Lỗi khi lấy sản phẩm:", error);
     }
@@ -156,7 +159,7 @@ const handleSaveChanges = async (id) => {
           </thead>
           <tbody>
             {sanPhams.map((sanPham, index) => (
-              <tr key={sanPham.idSanPham} className="border-t">
+              <tr key={index} className="border-t">
                 <td className="p-2">{index + 1}</td>
                 <td className="p-2">{sanPham.maSanPham}</td>
                 <td className="p-2">{sanPham.ten}</td>

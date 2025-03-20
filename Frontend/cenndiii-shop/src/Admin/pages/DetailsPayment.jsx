@@ -21,7 +21,7 @@ import {
 import CustomerDialog from "./AddCustomerDialog";
 import Delivery from "./Delivery";
 import api from "../../security/Axios";
-
+import { hasPermission } from "../../security/DecodeJWT";
 const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
@@ -82,7 +82,11 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
     };
     // >
 
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const token = localStorage.getItem("token") || "";
     const headersGHN = {
         token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
@@ -160,7 +164,10 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
-
+        
+        console.log(requestData, totalItem,selectedCustomer.hoTen);
+        
+        handlePrint(requestData, totalItem,selectedCustomer.hoTen);
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
@@ -712,6 +719,67 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
     const selectedCustomer = getSelectedCustomer();
 
+    const handlePrint = (invoiceData, listItems, hoTenKhach) => {
+        const printWindow = window.open('', '', 'width=800,height=600');
+    
+        printWindow.document.write(`
+          <html>
+          <head>
+            <style>
+              body { font-family: "Arial", sans-serif; padding: 20px; text-align: center; }
+              .invoice-container { max-width: 350px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left; }
+              .shop-logo { width: 80px; display: block; margin: 0 auto 10px; }
+              h2 { margin-bottom: 5px; font-size: 18px; text-align: center; }
+              h3 { font-size: 16px; margin-bottom: 10px; text-align: center; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+              th, td { border-bottom: 1px dashed #000; padding: 6px; }
+              th { background-color: #f2f2f2; text-align: left; }
+              .total-row, .info-row { display: flex; justify-content: space-between; font-size: 14px; margin: 5px 0; }
+              .total { font-weight: bold; font-size: 16px; }
+              .footer { margin-top: 15px; font-size: 12px; font-style: italic; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <div class="invoice-container">
+              <img src="/logo.png" alt="Cenndii Shop Logo" class="shop-logo" />
+              <h2>CENNDII SHOP</h2>
+              <h3>HÓA ĐƠN BÁN HÀNG</h3>
+              
+              <div class="info-row"><strong>Mã hóa đơn:</strong> <span>${invoiceData.maHoaDon}</span></div>
+              <div class="info-row"><strong>Khách hàng:</strong> <span>${hoTenKhach || "Khách lẻ"}</span></div>
+              <div class="info-row"><strong>Ngày:</strong> <span>${new Date().toLocaleString()}</span></div>
+              
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sản phẩm</th>
+                    <th>SL</th>
+                    <th>Giá</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${listItems?.map(item => `
+                    <tr>
+                      <td>${item.tenSanPham}</td>
+                      <td>${item.soLuongMua}</td>
+                      ${item.giaDuocTinh != item.giaBan ? `<td>${item.giaDuocTinh} VND</td>` : `<td>${item.donGia} VND</td>`}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              <div class="total-row"><strong>Tổng cộng:</strong> <span>${invoiceData.tongTien} VND</span></div>
+              <div class="total-row"><strong>Phí vận chuyển:</strong> <span>${invoiceData.phiVanChuyen} VND</span></div>
+              <div class="total-row"><strong>Ghi chú:</strong> <span>${invoiceData.ghiChu}</span></div>
+              <p class="footer">Cảm ơn quý khách đã mua hàng tại Cenndii Shop!</p>
+            </div>
+          </body>
+          </html>
+        `);
+    
+        printWindow.document.close();
+        printWindow.print();
+    };
+    
     return (
         <div>
             <div

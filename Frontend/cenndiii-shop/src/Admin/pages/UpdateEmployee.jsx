@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import "../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
 import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
+
 export default function EditEmployee() {
     const { id } = useParams(); // Lấy ID từ URL
     const navigate = useNavigate();
@@ -22,7 +24,11 @@ export default function EditEmployee() {
         diachi: ""
     });
     const [errors, setErrors] = useState({});
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const [loading, setLoading] = useState(false); // Trạng thái loading
 
     const handleSuccess = () => {

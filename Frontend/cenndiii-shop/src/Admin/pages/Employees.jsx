@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
 export default function EmployeeManagement() {
   const [filters, setFilters] = useState({ search: "", trangThai: "all", dob: "" });
   const [employees, setEmployees] = useState([]);
@@ -15,7 +16,11 @@ export default function EmployeeManagement() {
   useEffect(() => {
     fetchEmployees(); // Gọi lại khi trang thay đổi
   }, [currentPage]); // Chỉ gọi lại khi currentPage thay đổi
-
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+        navigate("/admin/login");
+    }
+}, [navigate]);
   // lấy danh sách phân trang
   // const fetchEmployees = async () => {
   //   try {

@@ -1,44 +1,41 @@
 import axios from "axios";
-import {refreshToken} from "./RefreshToken";
+import { refreshToken } from "./RefreshToken";
 
 const BASE_URL = "http://localhost:8080";
 
 const api = axios.create({
     baseURL: BASE_URL,
-    headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
+    headers: { "Content-Type": "application/json" },
 });
 
-// Thêm Interceptor để kiểm tra lỗi 401
+// 🔹 Luôn lấy token trước mỗi request
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        } else {
+            console.warn("⚠️ Không tìm thấy token, API có thể bị lỗi!");
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// 🔹 Xử lý lỗi 401 và refresh token
 api.interceptors.response.use(
-    response => response, // Trả về response nếu thành công
+    response => response,
     async (error) => {
         if (error.response && error.response.status === 401) {
             const refreshed = await refreshToken();
             if (refreshed) {
-                // Nếu refresh thành công, thử gửi lại request
-                error.config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+                const newToken = localStorage.getItem("token"); // Lấy token mới
+                error.config.headers.Authorization = `Bearer ${newToken}`;
                 return api(error.config);
-            } else {
-                logoutUser();
             }
         }
         return Promise.reject(error);
     }
 );
-
-// Hàm logout người dùng
-const logoutUser = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-
-    if (window.location.pathname.startsWith("/admin")) {
-        window.location.href = "/admin/login";
-    } else {
-        window.location.href = "/login";
-    }
-};
 
 export default api;

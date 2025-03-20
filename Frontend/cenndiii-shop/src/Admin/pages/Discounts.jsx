@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Eye, Plus } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate} from "react-router-dom";
 import axios from "axios";
 import api from "../../security/Axios";
 import moment from "moment";
@@ -8,7 +8,9 @@ import { ToastContainer } from "react-toastify";
 import Loading from "../../components/Loading";
 import Notification from "../../components/Notification";
 import { formatDateFromArray } from "../../untils/FormatDate";
+import { hasPermission } from "../../security/DecodeJWT";
 export default function Discounts() {
+  const navigate = useNavigate();
   const [loading, setLoadingState] = useState(false);
   const [filters, setFilters] = useState({
     tenDotGiamGia: "",
@@ -23,7 +25,11 @@ export default function Discounts() {
   const [skip, setSkip] = useState(0); // Vị trí bắt đầu
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
-
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   useEffect(() => {
     // const timeoutId = setTimeout(() => {
     fetchdotGiamGias(skip, limit);
@@ -57,8 +63,6 @@ export default function Discounts() {
 
       // setLoadingState(true);
       const response = await api.get(apiDS);
-console.log(response.data);
-
       if (response?.data?.data) {
         setLoadingState(false);
       }
@@ -382,8 +386,8 @@ console.log(response.data);
             onClick={prevPage}
             disabled={currentPage === 1}
             className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === 1
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-gray-200"
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-200"
               }`}
           >
             ◀
@@ -397,8 +401,8 @@ console.log(response.data);
             onClick={nextPage}
             disabled={currentPage === totalPages}
             className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === totalPages
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-gray-200"
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-200"
               }`}
           >
             ▶

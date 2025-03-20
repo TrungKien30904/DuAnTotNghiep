@@ -7,8 +7,8 @@ import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { formatDateFromArray } from "../../untils/FormatDate";
-const statuses = ['Tất cả', 'Chờ xử lý','Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã Thanh toán', 'Hoàn thành', 'Đã xóa'];
-
+const statuses = ['Tất cả', 'Chờ xử lý','Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã thanh toán', 'Hoàn thành', 'Hủy'];
+import { hasPermission } from "../../security/DecodeJWT";
 export default function Invoices() {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState([]);
@@ -20,6 +20,12 @@ export default function Invoices() {
         startDate: '',
         endDate: '',
     });
+    
+        useEffect(() => {
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
+        }, [navigate]);
     const [statistics, setStatistics] = useState({
         totalInvoices: 0,
     });
@@ -253,9 +259,9 @@ export default function Invoices() {
                             <tr key={invoice.idHoaDon} className="border-b hover:bg-gray-100">
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
-                                <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
-                                <td className="px-4 py-2">{invoice.nhanVien?.ten || ""}</td>
-                                <td className="px-4 py-2">{invoice.tongTien}</td>
+                                <td className="px-4 py-2">{invoice.khachHang?.ten || "Không có"}</td>
+                                <td className="px-4 py-2">{invoice.nhanVien?.ten || "Không có"}</td>
+                                <td className="px-4 py-2">{invoice.tongTien?? "0"}</td>
                                 <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>
                                 <td className="px-4 py-2">{invoice.loaiDon}</td>
                                 <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"

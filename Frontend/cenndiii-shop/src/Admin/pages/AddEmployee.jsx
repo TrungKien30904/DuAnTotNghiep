@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
+import { hasPermission } from "../../security/DecodeJWT";
 import api from "../../security/Axios";
 export default function AddEmployee() {
   const navigate = useNavigate();
@@ -24,7 +25,11 @@ export default function AddEmployee() {
   const [errors, setErrors] = useState({});
 
   const [loading, setLoading] = useState(false); // Trạng thái loading
-
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   const handleSuccess = () => {
     toast.success("Thêm nhân viên thành công!", {
       position: "top-right",
@@ -147,7 +152,7 @@ export default function AddEmployee() {
   };
 
 
-// địa chỉ 
+  // địa chỉ 
   const [soNha, setSoNha] = useState("");
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);

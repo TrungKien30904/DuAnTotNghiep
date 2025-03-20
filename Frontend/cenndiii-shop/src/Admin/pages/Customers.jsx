@@ -6,7 +6,10 @@ import * as XLSX from "xlsx";
 // import { useLoading } from "../components/ui/spinner/LoadingContext";
 // import Spinner from "../components/ui/spinner/Spinner";
 import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
+
 export default function Coupons() {
+  const navigate = useNavigate();
   // const { setLoadingState, loading } = useLoading();
   const [filters, setFilters] = useState({
     keyword: "",
@@ -17,7 +20,11 @@ export default function Coupons() {
   });
   const [customers, setKhachHangs] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
-
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   const exportToExcel = async () => {
     try {
       // setLoadingState(true);
@@ -91,8 +98,6 @@ export default function Coupons() {
     }
     setFilters({ ...filters, [name]: newValue, currentPage: 0 });
   };
-
-  const navigate = useNavigate();
 
   const renderPageNumbers = () => {
     let pageNumbers = [];

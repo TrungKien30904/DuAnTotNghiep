@@ -29,7 +29,7 @@ public class MuiGiayController {
     public ResponseEntity<?> themMuiGiay(@RequestBody MuiGiay mg) {
         return ResponseEntity.ok(muiGiayService.themMuiGiay(mg));
     }
-
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaMuiGiay(@RequestBody MuiGiay mg, @PathVariable Integer id) {
         return ResponseEntity.ok(muiGiayService.suaMuiGiay(mg, id));

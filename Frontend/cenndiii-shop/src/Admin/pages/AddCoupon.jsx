@@ -1,13 +1,14 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import {useNavigate, useLocation} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import moment from "moment";
-import {ChevronLeft, ChevronRight, Search} from "lucide-react";
-import {Dialog} from "@headlessui/react";
-import {ToastContainer} from "react-toastify";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Dialog } from "@headlessui/react";
+import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Notification from "../../components/Notification";
 import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
 function AddCoupon() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -28,10 +29,14 @@ function AddCoupon() {
     const [errors, setErrors] = useState({});
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({keyword: ""});
+    const [filters, setFilters] = useState({ keyword: "" });
 
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const searchKhachHangs = useCallback(async () => {
         try {
             const formattedKeyword = filters.keyword.replace(/\s+/g, '').toLowerCase();
@@ -61,7 +66,7 @@ function AddCoupon() {
     }, [currentPage]);
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         setFormData(prevState => ({
             ...prevState,
             [name]: value
@@ -99,7 +104,7 @@ function AddCoupon() {
     };
 
     const validateField = (name, value) => {
-        let tempErrors = {...errors};
+        let tempErrors = { ...errors };
         const now = new Date();
         const startDate = new Date(formData.ngayBatDau);
         const maxTenKhuyenMaiLength = 255;
@@ -137,9 +142,9 @@ function AddCoupon() {
                 break;
 
             case 'dieuKien':
-                const dieuKienNumber=Number(value);
+                const dieuKienNumber = Number(value);
                 if (dieuKienNumber < 0) tempErrors.dieuKien = "Giá Trị Đơn Hàng Tối Thiểu Không Được Âm";
-                else if(formData.hinhThuc==="VNĐ" && (dieuKienNumber<formData.giaTri)) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu phải lớn hơn Giá Trị Giảm";
+                else if (formData.hinhThuc === "VNĐ" && (dieuKienNumber < formData.giaTri)) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu phải lớn hơn Giá Trị Giảm";
                 else delete tempErrors.dieuKien;
                 break;
 
@@ -199,7 +204,7 @@ function AddCoupon() {
         if (formData.hinhThuc === 'VNĐ') {
             formData.giaTriToiDa = ''; // Xóa giá trị giảm tối đa khi chuyển sang VNĐ
         }
-        const dieuKienNumber=Number(formData.dieuKien);
+        const dieuKienNumber = Number(formData.dieuKien);
         if (formData.hinhThuc === 'VNĐ' && (dieuKienNumber < formData.giaTri)) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu phải lớn hơn Giá Trị Giảm";
 
         setErrors(tempErrors);
@@ -215,8 +220,8 @@ function AddCoupon() {
         setIsConfirmOpen(false);
     };
 
-    
-    
+
+
     const fetchCustomers = async (page) => {
         try {
             const response = await api.get(`/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
@@ -227,23 +232,23 @@ function AddCoupon() {
             Notification("Lỗi khi lấy danh sách khách hàng", "error");
         }
     };
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         if (!validate()) {
             Notification("Vui lòng kiểm tra lại thông tin", "error");
             return;
         }
-    
+
         let phieuGiamGiaChiTiet = [];
-    
+
         if (formData.loai === "Cá Nhân") {
             phieuGiamGiaChiTiet = selectedCustomers.map((customerId) => ({
                 khachHang: { idKhachHang: customerId },
             }));
         }
-    
+
         const requestData = {
             ...formData,
             dieuKien: formData.dieuKien === "" ? 0 : formData.dieuKien,
@@ -251,7 +256,7 @@ function AddCoupon() {
             ngayBatDau: moment(formData.ngayBatDau).format("DD/MM/YYYY HH:mm"),
             ngayKetThuc: moment(formData.ngayKetThuc).format("DD/MM/YYYY HH:mm"),
         };
-    
+
         try {
             await api.post("/admin/phieu-giam-gia/them", requestData);
             navigate("/admin/coupons", { state: { message: "Thêm phiếu giảm giá thành công" } });
@@ -266,7 +271,7 @@ function AddCoupon() {
             }
         }
     };
-    
+
 
     const handleConfirmSubmit = async () => {
         await handleSubmit({
@@ -282,7 +287,7 @@ function AddCoupon() {
         const maxPagesToShow = 6;
 
         if (totalPages <= maxPagesToShow) {
-            pageNumbers = Array.from({length: totalPages}, (_, index) => index);
+            pageNumbers = Array.from({ length: totalPages }, (_, index) => index);
         } else {
             if (currentPage <= 3) {
                 pageNumbers = [0, 1, 2, 3, 4, '...', totalPages - 1];
@@ -323,9 +328,9 @@ function AddCoupon() {
 
     return (
         <div className="p-6 space-y-4">
-            <ToastContainer/>
+            <ToastContainer />
             <Dialog open={isConfirmOpen} onClose={closeModal}
-                    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                 <div className="flex items-center justify-center min-h-screen px-4">
                     <div className="bg-white rounded-lg shadow-md max-w-md w-full p-6">
                         <Dialog.Title className="text-lg font-semibold">Xác nhận thêm phiếu giảm giá</Dialog.Title>
@@ -355,7 +360,7 @@ function AddCoupon() {
             </div>
             <div className="flex space-x-4">
                 <div className="bg-white p-4 rounded-lg shadow-md"
-                     style={{width: formData.loai === 'Cá Nhân' ? '60%' : '100%'}}>
+                    style={{ width: formData.loai === 'Cá Nhân' ? '60%' : '100%' }}>
                     <form onSubmit={(e) => {
                         e.preventDefault();
                         openModal();
@@ -546,17 +551,17 @@ function AddCoupon() {
                     </form>
                 </div>
                 {formData.loai === 'Cá Nhân' && (
-                    <div className="bg-white flex flex-col p-4 rounded-lg shadow-md" style={{width: '40%'}}>
+                    <div className="bg-white flex flex-col p-4 rounded-lg shadow-md" style={{ width: '40%' }}>
                         <div className="relative text-sm col-span-2">
                             <label className="block text-sm font-semibold mb-2">Tìm Kiếm</label>
                             <div className="relative">
                                 <Search
-                                    className="absolute left-3 top-1/3 -mx-1 transform -translate-y-1/2 text-gray-400"/>
+                                    className="absolute left-3 top-1/3 -mx-1 transform -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
                                     name="keyword"
                                     value={filters.keyword}
-                                    onChange={(e) => setFilters({...filters, keyword: e.target.value})}
+                                    onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
                                     placeholder="Tìm theo tên hoặc số điện thoại, email"
                                     className="w-full pl-10 mb-4 p-2 border rounded-md"
                                 />
@@ -566,36 +571,36 @@ function AddCoupon() {
                         <div className="flex-grow overflow-auto">
                             <table className="w-full border-collapse text-sm">
                                 <thead>
-                                <tr className="bg-gray-100 text-left">
-                                    <th className="p-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedCustomers.length === customers.length}
-                                            onChange={handleSelectAll}
-                                        />
-                                    </th>
-                                    <th className="p-2">STT</th>
-                                    <th className="p-2">Tên</th>
-                                    <th className="p-2">Số Điện Thoại</th>
-                                    <th className="p-2">Email</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {customers.map((customer, index) => (
-                                    <tr key={customer.idKhachHang} className="border-t">
-                                        <td className="p-2">
+                                    <tr className="bg-gray-100 text-left">
+                                        <th className="p-2">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedCustomers.includes(customer.idKhachHang)}
-                                                onChange={() => handleCustomerSelect(customer.idKhachHang)}
+                                                checked={selectedCustomers.length === customers.length}
+                                                onChange={handleSelectAll}
                                             />
-                                        </td>
-                                        <td className="p-2">{index + 1}</td>
-                                        <td className="p-2">{customer.hoTen}</td>
-                                        <td className="p-2">{customer.soDienThoai}</td>
-                                        <td className="p-2">{customer.email}</td>
+                                        </th>
+                                        <th className="p-2">STT</th>
+                                        <th className="p-2">Tên</th>
+                                        <th className="p-2">Số Điện Thoại</th>
+                                        <th className="p-2">Email</th>
                                     </tr>
-                                ))}
+                                </thead>
+                                <tbody>
+                                    {customers.map((customer, index) => (
+                                        <tr key={customer.idKhachHang} className="border-t">
+                                            <td className="p-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCustomers.includes(customer.idKhachHang)}
+                                                    onChange={() => handleCustomerSelect(customer.idKhachHang)}
+                                                />
+                                            </td>
+                                            <td className="p-2">{index + 1}</td>
+                                            <td className="p-2">{customer.hoTen}</td>
+                                            <td className="p-2">{customer.soDienThoai}</td>
+                                            <td className="p-2">{customer.email}</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                             {errors.selectedCustomers &&
@@ -607,7 +612,7 @@ function AddCoupon() {
                                 onClick={() => setCurrentPage(currentPage - 1)}
                                 disabled={currentPage === 0}
                             >
-                                <ChevronLeft size={21} stroke="black"/>
+                                <ChevronLeft size={21} stroke="black" />
                             </button>
                             {renderPageNumbers()}
                             <button
@@ -615,7 +620,7 @@ function AddCoupon() {
                                 onClick={() => setCurrentPage(currentPage + 1)}
                                 disabled={currentPage >= totalPages - 1}
                             >
-                                <ChevronRight size={21} stroke="black"/>
+                                <ChevronRight size={21} stroke="black" />
                             </button>
                         </div>
                     </div>

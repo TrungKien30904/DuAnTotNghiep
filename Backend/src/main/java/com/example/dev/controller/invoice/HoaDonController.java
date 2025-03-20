@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
 
@@ -55,10 +56,12 @@ public class HoaDonController {
     @PutMapping("/update-voucher/{idHoaDon}")
     public ResponseEntity<?> updateVoucherForOrder(
             @PathVariable("idHoaDon") Integer idHoaDon,
-            @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body,
+            Authentication auth
+    ) {
         try {
             Integer voucherId = body.get("voucherId"); // Lấy voucherId từ body gửi lên
-            hoaDonService.updateVoucher(idHoaDon, voucherId);
+            hoaDonService.updateVoucher(idHoaDon, voucherId,auth);
             return ResponseEntity.ok("Cập nhật voucher thành công!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Có lỗi khi cập nhật voucher: " + e.getMessage());
@@ -85,20 +88,20 @@ public class HoaDonController {
     }
 
     @PutMapping("/{maHoaDon}/xac-nhan")
-    public ResponseEntity<Object> xacNhan(@PathVariable String maHoaDon) {
-        HoaDon hoaDon = hoaDonService.xacnhan(maHoaDon);
+    public ResponseEntity<Object> xacNhan(@PathVariable String maHoaDon,Authentication auth) {
+        HoaDon hoaDon = hoaDonService.xacnhan(maHoaDon,auth);
         return ResponseEntity.ok(hoaDon);
     }
 
     @PutMapping("/{maHoaDon}/huy")
-    public ResponseEntity<Object> huy(@PathVariable String maHoaDon) {
-        HoaDon hoaDon = hoaDonService.huy(maHoaDon);
+    public ResponseEntity<Object> huy(@PathVariable String maHoaDon,Authentication auth) {
+        HoaDon hoaDon = hoaDonService.huy(maHoaDon,auth);
         return ResponseEntity.ok(hoaDon);
     }
 
     @PutMapping("/{maHoaDon}/quay-lai")
-    public ResponseEntity<Object> quayLai(@PathVariable String maHoaDon) {
-        HoaDon hoaDon = hoaDonService.quaylai(maHoaDon);
+    public ResponseEntity<Object> quayLai(@PathVariable String maHoaDon,Authentication auth) {
+        HoaDon hoaDon = hoaDonService.quaylai(maHoaDon,auth);
         return ResponseEntity.ok(hoaDon);
     }
 
@@ -120,8 +123,8 @@ public class HoaDonController {
     //l123
 
     @PostMapping("/create")
-    public ResponseEntity<?> createHoaDon(@RequestBody HoaDon hoaDon) {
-        HoaDon savedHoaDon = hoaDonService.createHoaDon(hoaDon);
+    public ResponseEntity<?> createHoaDon(@RequestBody HoaDon hoaDon,Authentication auth) {
+        HoaDon savedHoaDon = hoaDonService.createHoaDon(hoaDon,auth);
         return ResponseEntity.ok(savedHoaDon);
     }
 
@@ -137,9 +140,9 @@ public class HoaDonController {
     }
 
     @GetMapping("/delete/{idHoaDon}")
-    public ResponseEntity<String> deleteHoaDon(@PathVariable Integer idHoaDon) {
+    public ResponseEntity<String> deleteHoaDon(@PathVariable Integer idHoaDon,Authentication auth) {
         try {
-            hoaDonService.deleteById(idHoaDon);
+            hoaDonService.deleteById(idHoaDon,auth);
             return ResponseEntity.ok("Xóa hóa đơn thành công!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -147,10 +150,10 @@ public class HoaDonController {
     }
 
     @PostMapping("/thanh-toan")
-    public ResponseEntity<?> thanhToan(@RequestBody HoaDonResponse hoaDon) {
+    public ResponseEntity<?> thanhToan(@RequestBody HoaDonResponse hoaDon,Authentication auth) {
         try {
-            hoaDonService.pay(hoaDon);
-            return ResponseEntity.ok("Xóa hóa đơn thành công!");
+            hoaDonService.pay(hoaDon,auth);
+            return ResponseEntity.ok("thanh toán hóa đơn thành công!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

@@ -7,7 +7,7 @@ import { Dialog } from "@headlessui/react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import api from "../../security/Axios";
-
+import { hasPermission } from "../../security/DecodeJWT";
 export default function Coupons() {
     const [filters, setFilters] = useState({ keyword: "", trangThai: "all", startDate: "", endDate: "" });
     const [phieuGiamGias, setPhieuGiamGias] = useState([]);
@@ -23,18 +23,21 @@ export default function Coupons() {
     const location = useLocation();
 
     useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
+    useEffect(() => {
         if (location.state && location.state.message) {
             toast.success(location.state.message);
         }
     }, [location.state]);
     const fetchPhieuGiamGias = async () => {
         try {
-            console.log("Fetching initial data...");
             const response = await api.get("/admin/phieu-giam-gia/hien-thi");
             if (Array.isArray(response.data)) {
                 setPhieuGiamGias(response.data);
             }
-            console.log("Initial data fetched:", response.data);
         } catch (error) {
             console.error("Error fetching initial data:", error);
             toast.error("Lỗi khi lấy dữ liệu ban đầu");
@@ -51,7 +54,6 @@ export default function Coupons() {
         }
         try {
             const formattedKeyword = filters.keyword.replace(/\s+/g, '').toLowerCase();
-            console.log("Searching data with filters:", filters, "and currentPage:", currentPage);
             const response = await api.get("/admin/phieu-giam-gia/tim-kiem", {
                 params: {
                     keyword: formattedKeyword,
@@ -79,7 +81,6 @@ export default function Coupons() {
     const handleStatusToggle = async () => {
         if (!selectedId) return;
         try {
-            console.log("Toggling status for id:", selectedId);
             const response = await api.patch(`/admin/phieu-giam-gia/chuyen-doi-trang-thai/${selectedId}`);
             setPhieuGiamGias((prevPhieuGiamGias) => prevPhieuGiamGias.map((phieu) => phieu.id === selectedId ? {
                 ...phieu,
@@ -213,7 +214,6 @@ export default function Coupons() {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value).replace('₫', '');
     };
 
-    console.log("Rendering phieuGiamGias:", phieuGiamGias);
     return (
         <div className="p-6 space-y-4">
             <ToastContainer />

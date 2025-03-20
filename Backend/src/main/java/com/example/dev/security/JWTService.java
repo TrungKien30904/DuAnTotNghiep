@@ -49,6 +49,7 @@ public class JWTService {
 
     public Map<String, Object> buildClaims(UserLogin userLogin) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("id",userLogin.getId());
         claims.put("userName", userLogin.getUsername());
         claims.put("phoneNum", userLogin.getPhoneNum());
         claims.put("permissions", userLogin.getPermissions());
@@ -67,6 +68,7 @@ public class JWTService {
         // Ép kiểu chính xác về List<String>
         List<String> permissions = claims.get("permissions", List.class);
         return UserLogin.builder()
+                .id(Integer.valueOf(claims.get("id").toString()))
                 .userName(claims.getSubject())
                 .permissions(permissions != null ? permissions : new ArrayList<>()) // Đề phòng null
                 .build();

@@ -12,6 +12,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Alert from "../../components/Alert";
 import { ImageList, ImageListItem } from "@mui/material";
 import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
+
 export default function ProductDetails() {
   const { id } = useParams(); // Id lấy từ trang khác
   const [currentPage, setCurrentPage] = useState(0);
@@ -41,6 +43,12 @@ export default function ProductDetails() {
   const [openAlert, setOpenAlert] = useState(false); // trạng thái cho alert
   const [alertMessage, setAlertMessage] = useState(""); // thông báo cho alert
 
+
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   const handleAlertClose = (confirm) => {
     setOpenAlert(false);
     if (confirm) {
@@ -387,7 +395,7 @@ export default function ProductDetails() {
       await api.post(
         `/admin/chi-tiet-san-pham/sua/${selectedProductDetail.idChiTietSanPham}`,
         payload
-    );
+      );
       await handleUploadImages(productSelected.value);
       Notification("Cập nhật thành công", "success");
       closeModal();
@@ -427,16 +435,16 @@ export default function ProductDetails() {
         </div>
         <div className="grid grid-cols-5 gap-4">
           {[
-            { field: "product", options: products, label: "Sản phẩm" },
-            { field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
-            { field: "shoeToe", options: shoeToes, label: "Mũi giày" },
-            { field: "shoeSole", options: shoeSoles, label: "Đế giày" },
-            { field: "material", options: materials, label: "Chất liệu" },
-            { field: "brand", options: brands, label: "Thương hiệu" },
-            { field: "supplier", options: suppliers, label: "Nhà cung cấp" },
-            { field: "category", options: categories, label: "Danh mục" },
-            { field: "color", options: colors, label: "Màu sắc" },
-            { field: "size", options: sizes, label: "Kích cỡ" },
+            { id:0,field: "product", options: products, label: "Sản phẩm" },
+            { id:1,field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
+            { id:2,field: "shoeToe", options: shoeToes, label: "Mũi giày" },
+            { id:3,field: "shoeSole", options: shoeSoles, label: "Đế giày" },
+            { id:4,field: "material", options: materials, label: "Chất liệu" },
+            { id:5,field: "brand", options: brands, label: "Thương hiệu" },
+            { id:6,field: "supplier", options: suppliers, label: "Nhà cung cấp" },
+            { id:7,field: "category", options: categories, label: "Danh mục" },
+            { id:8,field: "color", options: colors, label: "Màu sắc" },
+            { id:9,field: "size", options: sizes, label: "Kích cỡ" },
           ].map(({ field, options, label, index }) => (
             <div key={index} className="relative text-sm">
               <select

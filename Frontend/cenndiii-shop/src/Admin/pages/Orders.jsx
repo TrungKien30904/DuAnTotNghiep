@@ -99,13 +99,13 @@ export default function Orders() {
             window.location.href = "/login"; // Điều hướng về trang đăng nhập
             return;
         }
-    
+
         const fetchOrders = async () => {
             try {
                 const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
                 const ordersData = response.data;
                 setOrders(ordersData);
-    
+
                 // Create tabs from the orders data
                 const newTabs = ordersData.map((order) => ({
                     id: order.idHoaDon,
@@ -114,13 +114,13 @@ export default function Orders() {
                     content: `Hóa đơn ${order.maHoaDon}` // Mỗi tab sẽ có một nội dung riêng
                 }));
                 setTabs(newTabs);
-    
+
             } catch (error) {
                 console.error('Error fetching orders:', error);
             }
         };
         fetchOrders();
-    
+
         const dataProduct = async () => {
             try {
                 const response = await api.get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1"); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
@@ -130,7 +130,7 @@ export default function Orders() {
             }
         };
         dataProduct();
-    
+
     }, []);
 
     useEffect(() => {
@@ -148,12 +148,10 @@ export default function Orders() {
             window.location.href = "/login"; // Điều hướng về trang đăng nhập
             return;
         }
-    
+
         try {
             const response = await api.get(`/admin/hdct/get-cart/${idHoaDon}`); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
             setOrderItemsByTab(response.data);
-            console.log(response.data);
-            
         } catch (error) {
             console.error("Error fetching product details:", error);
         }
@@ -164,7 +162,7 @@ export default function Orders() {
             Notification('Bạn chỉ có thể tạo tối đa 10 hóa đơn chờ.', "error");
             return;
         }
-    
+
         try {
             const response = await api.post("/admin/hoa-don/create", {}, { headers }); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
             const createdOrder = response.data;
@@ -175,7 +173,7 @@ export default function Orders() {
             setOrderId(newTabId);
             setInvoiceId(createdOrder);
             getProductFromDetailsInvoice(createdOrder.idHoaDon);
-    
+
         } catch (error) {
             console.error("Error creating new order:", error);
         }
@@ -238,14 +236,14 @@ export default function Orders() {
             return;
         }
         api
-        .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
-        .then((response) => {
-          setProductDetails(response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching product details:", error);
-        });
-      
+            .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
+            .then((response) => {
+                setProductDetails(response.data);
+            })
+            .catch((error) => {
+                console.error("Error fetching product details:", error);
+            });
+
         setOpenDialog(true);
     };
 
@@ -281,24 +279,24 @@ export default function Orders() {
                 "/admin/chi-tiet-san-pham/them-sp",
                 requestData,
                 { headers }
-              );
-              
-              if (response.status === 200) {
+            );
+
+            if (response.status === 200) {
                 getProductFromDetailsInvoice(orderId);
                 Notification(`Sản phẩm ${productDetailSelected.sanPham} đã được thêm thành công!`, "success");
-              
+
                 api
-                  .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
-                  .then((response) => {
-                    setProductDetails(response.data);
-                  })
-                  .catch((error) => {
-                    console.error("Error fetching product details:", error);
-                  });
-              
+                    .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
+                    .then((response) => {
+                        setProductDetails(response.data);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching product details:", error);
+                    });
+
                 setOpenSelectQuantity(false);
-              }
-              
+            }
+
         } catch (error) {
             console.error("Error adding product:", error);
             Notification("Đã có lỗi xảy ra khi thêm sản phẩm, vui lòng thử lại!", "error");
@@ -383,7 +381,7 @@ export default function Orders() {
             const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
             const ordersData = response.data;
             setOrders(ordersData);
-    
+
             // Create tabs from the orders data
             const newTabs = ordersData.map((order) => ({
                 id: order.idHoaDon,
@@ -497,9 +495,9 @@ export default function Orders() {
                                                     <TableBody>
                                                         {orderItemsByTab && orderItemsByTab.length > 0 ? (
                                                             orderItemsByTab.map((item, index) => (
-                                                                <TableRow key={item.idHoaDonChiTiet} className='relative'>
+                                                                <TableRow key={item.idHoaDonChiTiet} className=''>
                                                                     <TableCell align="center">
-                                                                        <div className='flex justify-content-center '>
+                                                                        <div className='flex justify-content-center relative'>
                                                                             <div>
                                                                                 <img
                                                                                     src={item.lienKet}
@@ -510,7 +508,13 @@ export default function Orders() {
                                                                             <div className='ms-1'>
                                                                                 {item.tenSanPham}
                                                                             </div>
-
+                                                                            {!item.trangThai ? (
+                                                                                <p className='text-red-500 absolute -bottom-5 left-0 w-[500px] text-left'>*Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán !</p>
+                                                                            ) : (
+                                                                                item.giaDuocTinh && (
+                                                                                    <p className='text-red-500 absolute -bottom-5 left-0 w-[500px] text-left'>*Sản phẩm có sự thay đổi về giá {item.donGia.toLocaleString()} đ -&gt; {item.giaDuocTinh.toLocaleString()} đ</p>
+                                                                                )
+                                                                            )}
                                                                         </div>
 
                                                                     </TableCell>
@@ -577,13 +581,7 @@ export default function Orders() {
                                                                             <Trash size={16} className="text-red-600" />
                                                                         </Button>
                                                                     </TableCell>
-                                                                    {!item.trangThai ? (
-                                                                        <p className='text-red-500 absolute bottom-0 left-10 w-[500px]'>*Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán !</p>
-                                                                    ) : (
-                                                                        item.giaDuocTinh && (
-                                                                            <p className='text-red-500 absolute bottom-0 left-10 w-[500px]'>*Sản phẩm có sự thay đổi về giá !</p>
-                                                                        )
-                                                                    )}
+
                                                                 </TableRow>
                                                             ))) : (
                                                             <TableRow>

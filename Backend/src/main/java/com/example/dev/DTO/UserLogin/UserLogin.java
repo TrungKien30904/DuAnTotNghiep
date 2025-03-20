@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 public class UserLogin implements UserDetails {
-
+    private Integer id;
     private String userName;
     private String phoneNum;
     private List<String> permissions;

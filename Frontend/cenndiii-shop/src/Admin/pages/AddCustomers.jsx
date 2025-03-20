@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
 // import { useToast } from '../utils/ToastContext';
 import api from '../../security/Axios';
+import { hasPermission } from "../../security/DecodeJWT";
 function AddCustomers() {
     const [formData, setFormData] = useState({
         maKhachHang: '',
@@ -16,9 +17,9 @@ function AddCustomers() {
         provinceId: 0,
         districtId: 0,
         wardId: 0,
-        addressDetails: "", 
-        provinceName: "", 
-        districtName: "", 
+        addressDetails: "",
+        provinceName: "",
+        districtName: "",
         wardName: ""
     });
     const [successMessage, setSuccessMessage] = useState(null); // For confirmation message
@@ -30,9 +31,13 @@ function AddCustomers() {
     const [wards, setWards] = useState([]);
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const handleFileChange = (e) => {
-        
+
         const selectedFile = e.target.files[0];
         if (selectedFile) {
             const filePreviewUrl = URL.createObjectURL(selectedFile);
@@ -89,7 +94,7 @@ function AddCustomers() {
         }
     }, [formData]);
 
-//   const { setLoadingState, loading } = useLoading();
+    //   const { setLoadingState, loading } = useLoading();
     const handleSelectedProvince = (event) => {
         var provicneName = provinces.find((e) => e.id == event.target.value).name ?? "";
         setFormData({ ...formData, provinceId: event.target.value, districtId: 0, wardId: 0, provinceName: provicneName, districtName: "", wardName: "" });
@@ -105,7 +110,7 @@ function AddCustomers() {
     useEffect(() => { fetchWards(); }, [formData, fetchWards]);
     const handleSelectedWard = (event) => {
         var name = wards.find((e) => e.id == event.target.value).name ?? "";
-        setFormData({ ...formData, wardId: event.target.value, wardName: name});
+        setFormData({ ...formData, wardId: event.target.value, wardName: name });
     }
 
     useEffect(() => {
@@ -127,7 +132,7 @@ function AddCustomers() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
-    
+
         const newErrors = {};
         if (!formData.maKhachHang) newErrors.maKhachHang = "Mã khách hàng không được để trống";
         if (!formData.hoTen) newErrors.hoTen = "Họ tên không được để trống";
@@ -136,12 +141,12 @@ function AddCustomers() {
         if (!formData.provinceId || formData.provinceId === 0) newErrors.provinceId = "Vui lòng chọn tỉnh/thành phố";
         if (!formData.districtId || formData.districtId === 0) newErrors.districtId = "Vui lòng chọn quận/huyện";
         if (!formData.wardId || formData.wardId === 0) newErrors.wardId = "Vui lòng chọn xã/phường";
-    
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
-    
+
         try {
             const userJson = JSON.stringify(formData);
             const forms = new FormData();
@@ -151,9 +156,9 @@ function AddCustomers() {
             }
             forms.append('user', userJson);
             forms.append('fileImage', file);
-    
+
             const response = await api.post('/admin/khach-hang/them', forms);
-            
+
             const data = await response.json();
             if (data) {
                 if (data.code > 0) {
@@ -179,9 +184,9 @@ function AddCustomers() {
 
             <div className="bg-white p-4 rounded-lg shadow-md">
                 <form onSubmit={handleSubmit}>
-                    
-                <h2 className="ml-1 font-bold">Thông tin cá nhân</h2>
-                        <hr className="border-t-2 border-gray-300 my-4" />
+
+                    <h2 className="ml-1 font-bold">Thông tin cá nhân</h2>
+                    <hr className="border-t-2 border-gray-300 my-4" />
                     <div className='grid grid-cols-12 gap-4'>
                         <div className='col-span-4'>
                             <div className="flex justify-center mb-2">

@@ -10,6 +10,7 @@ import { ToastContainer } from 'react-toastify';
 // import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
 import Loading from '../../components/Loading';
 import Notification from '../../components/Notification';
+import { hasPermission } from "../../security/DecodeJWT";
 function EditCustomer() {
     // const { setLoadingState, loading } = useLoading();
     const [loading, setLoadingState] = useState(false);
@@ -33,11 +34,11 @@ function EditCustomer() {
         imageBase64: ""
     });
     const navigate = useNavigate();
-     const [previewUrl, setPreviewUrl] = useState(null);
-         const [file, setFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [file, setFile] = useState(null);
 
-     const handleFileChange = (e) => {
-        
+    const handleFileChange = (e) => {
+
         const selectedFile = e.target.files[0];
         if (selectedFile) {
             const filePreviewUrl = URL.createObjectURL(selectedFile);
@@ -46,7 +47,11 @@ function EditCustomer() {
             convertToBase64(selectedFile);
         }
     };
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const fetchCustomerById = async () => {
         try {
             const response = await axios.get(
@@ -67,17 +72,17 @@ function EditCustomer() {
     const [base64, setBase64] = useState(null);
     const convertToBase64 = (file) => {
         const reader = new FileReader();
-        
+
         reader.onloadend = () => {
-          setBase64(reader.result); // Set the Base64 string to state
+            setBase64(reader.result); // Set the Base64 string to state
         };
-    
+
         reader.onerror = (error) => {
-          console.error("Error converting file to Base64", error);
+            console.error("Error converting file to Base64", error);
         };
-    
+
         reader.readAsDataURL(file); // Read file as Base64
-      };
+    };
 
     const [address, setAddress] = useState([{ id: 0, customerId: 0, nameReceive: "", phoneNumber: "", provinceId: "", districtId: "", wardId: "", addressDetail: "", note: "", status: false, districts: [], wards: [], stage: 1, visiable: true }]);
     const addNewForm = () => {
@@ -213,18 +218,18 @@ function EditCustomer() {
                 {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',  
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(formData)
                 }
             ).then((response) => response.json())
                 .then((data) => {
-                    
+
                     if (data) {
-                        if(data.code > 0){
+                        if (data.code > 0) {
                             Notification("Update customer successfully", "success");
                             navigate('/admin/customers');
-                        }else{
+                        } else {
                             Notification(data.message, "error");
                         }
                     } else {
@@ -562,7 +567,7 @@ function EditCustomer() {
                     </div>
                 </form>
             </div>
-            <ToastContainer/>
+            <ToastContainer />
         </div>
     );
 }

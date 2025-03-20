@@ -26,8 +26,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JWTConfig {
     private final JWTFilter jwtFilter;
-    private final JwtAuthEntryPoint jwtAuthEntryPoint;
-
     private static final String[] PUBLIC_URL = {
             "/api/cart/**",
             "/admin/mau-sac/hien-thi",
@@ -36,7 +34,7 @@ public class JWTConfig {
             "/hinh-anh/**",
             "/admin/chi-tiet-san-pham/hien-thi/online/**",
             "/admin/chi-tiet-san-pham/dot-giam/hien-thi/**",
-            "/auth/*"
+            "/auth/**"
     };
 
 
@@ -69,7 +67,8 @@ public class JWTConfig {
                             .anyRequest().authenticated()
                 )
 //                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntryPoint))
+                .exceptionHandling(handing -> handing.authenticationEntryPoint(((request, response, authException) -> response
+                        .sendError(HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED: " + authException.getMessage()))))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

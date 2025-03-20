@@ -1,14 +1,15 @@
-import React, {useState, useEffect, useCallback} from "react";
-import {useParams, useNavigate} from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
-import {ChevronLeft, ChevronRight, Search} from "lucide-react";
-import {Dialog} from "@headlessui/react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Dialog } from "@headlessui/react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
 export default function CouponDetails() {
-    const {id} = useParams();
+    const { id } = useParams();
     const [coupon, setCoupon] = useState(null);
     const [customers, setCustomers] = useState([]);
     const [selectedCustomers, setSelectedCustomers] = useState([]);
@@ -18,9 +19,13 @@ export default function CouponDetails() {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const navigate = useNavigate();
-    const [filters, setFilters] = useState({keyword: ""});
+    const [filters, setFilters] = useState({ keyword: "" });
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     useEffect(() => {
         const fetchCouponDetails = async () => {
             try {
@@ -31,21 +36,21 @@ export default function CouponDetails() {
                     ngayBatDau: moment(couponData.ngayBatDau, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DDTHH:mm'),
                     ngayKetThuc: moment(couponData.ngayKetThuc, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DDTHH:mm'),
                 });
-    
+
                 if (couponData.loai === "Cá Nhân" && couponData.danhSachKhachHang) {
                     setSelectedCustomers(couponData.danhSachKhachHang.map(kh => kh.khachHang.idKhachHang));
                 }
-    
+
                 fetchCustomers(0); // Fetch initial customers
             } catch (error) {
                 console.error("Lỗi khi lấy chi tiết phiếu giảm giá:", error);
                 toast.error("Lỗi khi lấy chi tiết phiếu giảm giá");
             }
         };
-    
+
         fetchCouponDetails();
     }, [id]);
-    
+
     const fetchCustomers = async (page) => {
         try {
             const response = await api.get(`/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
@@ -56,7 +61,7 @@ export default function CouponDetails() {
             toast.error('Lỗi khi lấy danh sách khách hàng');
         }
     };
-    
+
     const searchKhachHangs = useCallback(async () => {
         try {
             const response = await api.get("/admin/phieu-giam-gia/tim-kiem-khach-hang", {
@@ -75,7 +80,7 @@ export default function CouponDetails() {
             toast.error("Lỗi khi tìm kiếm khách hàng");
         }
     }, [filters, currentPage]);
-    
+
     const handleUpdateCoupon = async () => {
         if (validate()) {
             let phieuGiamGiaChiTiet = [];
@@ -84,7 +89,7 @@ export default function CouponDetails() {
                     khachHang: { idKhachHang: customerId },
                 }));
             }
-    
+
             const requestData = {
                 ...coupon,
                 dieuKien: coupon.dieuKien === '' ? 0 : coupon.dieuKien,
@@ -92,7 +97,7 @@ export default function CouponDetails() {
                 ngayBatDau: moment(coupon.ngayBatDau).format('DD/MM/YYYY HH:mm'),
                 ngayKetThuc: moment(coupon.ngayKetThuc).format('DD/MM/YYYY HH:mm')
             };
-    
+
             try {
                 setIsUpdating(true);
                 await api.post(`/admin/phieu-giam-gia/sua/${id}`, requestData);
@@ -114,7 +119,7 @@ export default function CouponDetails() {
         }
         closeModal();
     };
-    
+
     useEffect(() => {
         searchKhachHangs();
     }, [filters, currentPage, searchKhachHangs]);
@@ -124,8 +129,8 @@ export default function CouponDetails() {
     }, [currentPage]);
 
     const handleInputChange = (e) => {
-        const {name, value} = e.target;
-        setCoupon((prevCoupon) => ({...prevCoupon, [name]: value}));
+        const { name, value } = e.target;
+        setCoupon((prevCoupon) => ({ ...prevCoupon, [name]: value }));
         validateField(name, value);
     };
 
@@ -159,7 +164,7 @@ export default function CouponDetails() {
     };
 
     const validateField = (name, value) => {
-        let tempErrors = {...errors};
+        let tempErrors = { ...errors };
         const startDate = new Date(coupon.ngayBatDau);
         const maxTenKhuyenMaiLength = 255;
 
@@ -256,7 +261,7 @@ export default function CouponDetails() {
         }
         const dieuKienNumber = Number(coupon.dieuKien);
         if (coupon.hinhThuc === 'VNĐ') {
-            if (dieuKienNumber < coupon.giaTri ) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu không được nhỏ hơn Giá Trị Giảm";
+            if (dieuKienNumber < coupon.giaTri) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu không được nhỏ hơn Giá Trị Giảm";
         }
 
         setErrors(tempErrors);
@@ -264,7 +269,7 @@ export default function CouponDetails() {
     };
 
 
-    
+
 
     const handleCreateNewCoupon = () => {
         const newCouponData = {
@@ -272,11 +277,11 @@ export default function CouponDetails() {
             id: undefined,
             ngayBatDau: moment().add(2, 'minutes').format('YYYY-MM-DDTHH:mm'),
             ngayKetThuc: moment().add(1, 'days').format('YYYY-MM-DDTHH:mm'),
-            soLuong:undefined,
+            soLuong: undefined,
             ngaySua: undefined,
             trangThai: 2,
         };
-        navigate('/admin/add-coupon', {state: {couponData: newCouponData}});
+        navigate('/admin/add-coupon', { state: { couponData: newCouponData } });
     };
 
     const isCouponEnded = coupon ? coupon.trangThai === 0 : false;
@@ -368,7 +373,7 @@ export default function CouponDetails() {
             </Dialog>
             <div className="flex space-x-4">
                 <div className="bg-white p-4 rounded-lg shadow-md"
-                     style={{width: coupon.loai === 'Cá Nhân' ? '60%' : '100%'}}>
+                    style={{ width: coupon.loai === 'Cá Nhân' ? '60%' : '100%' }}>
                     <form onSubmit={(e) => {
                         e.preventDefault();
                         openModal();
@@ -561,7 +566,7 @@ export default function CouponDetails() {
                                 <input
                                     type="text"
                                     name="nguoiSua"
-                                    value={coupon.nguoiSua|| ""}
+                                    value={coupon.nguoiSua || ""}
                                     onKeyDown={handleKeyDown}
                                     readOnly
                                     className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
@@ -628,13 +633,13 @@ export default function CouponDetails() {
                             <div className="flex justify-end mt-4 gap-4">
                                 <button
                                     className="w-28 py-2 border-2 border-gray-500 text-black bg-white rounded-md hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
-                                     onClick={() => navigate("/admin/coupons")}
+                                    onClick={() => navigate("/admin/coupons")}
                                 >
                                     Quay lại
                                 </button>
                                 <button
                                     className="w-28 py-2 border-2 border-green-500 bg-green-500 text-white rounded-md text-center hover:bg-green-700 hover:border-green-700 transition duration-300"
-                                      onClick={handleCreateNewCoupon}
+                                    onClick={handleCreateNewCoupon}
                                 >
                                     Tạo Nhanh
                                 </button>
@@ -643,17 +648,17 @@ export default function CouponDetails() {
                     </form>
                 </div>
                 {coupon.loai === 'Cá Nhân' && (
-                    <div className="bg-white flex flex-col p-4 rounded-lg shadow-md" style={{width: '40%'}}>
+                    <div className="bg-white flex flex-col p-4 rounded-lg shadow-md" style={{ width: '40%' }}>
                         <div className="relative text-sm col-span-2">
                             <label className="block text-sm font-semibold mb-2">Tìm Kiếm</label>
                             <div className="relative">
                                 <Search
-                                    className="absolute left-3 top-1/3 -mx-1 transform -translate-y-1/2 text-gray-400"/>
+                                    className="absolute left-3 top-1/3 -mx-1 transform -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
                                     name="keyword"
                                     value={filters.keyword}
-                                    onChange={(e) => setFilters({...filters, keyword: e.target.value})}
+                                    onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
                                     placeholder="Tìm theo tên hoặc số điện thoại, email"
                                     className="w-full pl-10 mb-4 p-2 border rounded-md"
                                 />
@@ -663,36 +668,36 @@ export default function CouponDetails() {
                         <div className="flex-grow overflow-auto">
                             <table className="w-full border-collapse text-sm">
                                 <thead>
-                                <tr className="bg-gray-100 text-left">
-                                    <th className="p-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedCustomers.length === customers.length}
-                                            onChange={handleSelectAll}
-                                        />
-                                    </th>
-                                    <th className="p-2">STT</th>
-                                    <th className="p-2">Tên</th>
-                                    <th className="p-2">Số Điện Thoại</th>
-                                    <th className="p-2">Email</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {customers.map((customer, index) => (
-                                    <tr key={customer.idKhachHang} className="border-t">
-                                        <td className="p-2">
+                                    <tr className="bg-gray-100 text-left">
+                                        <th className="p-2">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedCustomers.includes(customer.idKhachHang)}
-                                                onChange={() => handleCustomerSelect(customer.idKhachHang)}
+                                                checked={selectedCustomers.length === customers.length}
+                                                onChange={handleSelectAll}
                                             />
-                                        </td>
-                                        <td className="p-2">{index + 1}</td>
-                                        <td className="p-2">{customer.hoTen}</td>
-                                        <td className="p-2">{customer.soDienThoai}</td>
-                                        <td className="p-2">{customer.email}</td>
+                                        </th>
+                                        <th className="p-2">STT</th>
+                                        <th className="p-2">Tên</th>
+                                        <th className="p-2">Số Điện Thoại</th>
+                                        <th className="p-2">Email</th>
                                     </tr>
-                                ))}
+                                </thead>
+                                <tbody>
+                                    {customers.map((customer, index) => (
+                                        <tr key={customer.idKhachHang} className="border-t">
+                                            <td className="p-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCustomers.includes(customer.idKhachHang)}
+                                                    onChange={() => handleCustomerSelect(customer.idKhachHang)}
+                                                />
+                                            </td>
+                                            <td className="p-2">{index + 1}</td>
+                                            <td className="p-2">{customer.hoTen}</td>
+                                            <td className="p-2">{customer.soDienThoai}</td>
+                                            <td className="p-2">{customer.email}</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -704,7 +709,7 @@ export default function CouponDetails() {
                                 onClick={() => setCurrentPage(currentPage - 1)}
                                 disabled={currentPage === 0}
                             >
-                                <ChevronLeft size={21} stroke="black"/>
+                                <ChevronLeft size={21} stroke="black" />
                             </button>
                             {renderPageNumbers()}
                             <button
@@ -712,7 +717,7 @@ export default function CouponDetails() {
                                 onClick={() => setCurrentPage(currentPage + 1)}
                                 disabled={currentPage >= totalPages - 1}
                             >
-                                <ChevronRight size={21} stroke="black"/>
+                                <ChevronRight size={21} stroke="black" />
                             </button>
                         </div>
                     </div>

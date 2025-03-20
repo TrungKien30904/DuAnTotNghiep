@@ -33,6 +33,7 @@ public class AuthImpl implements AuthService{
             if (khachHang != null) {
                 if (passwordEncoder.matches(password,khachHang.getMatKhau())){
                     UserLogin userLogin = UserLogin.builder()
+                            .id(khachHang.getIdKhachHang())
                             .userName(khachHang.getHoTen())
                             .phoneNum(khachHang.getSoDienThoai())
                             .permissions(List.of("CUSTOMER"))
@@ -48,6 +49,7 @@ public class AuthImpl implements AuthService{
             if (nhanVien != null) {
                 if (passwordEncoder.matches(password,nhanVien.getMatKhau())){
                     UserLogin userLogin = UserLogin.builder()
+                            .id(nhanVien.getIdNhanVien())
                             .userName(nhanVien.getTen())
                             .phoneNum(nhanVien.getSoDienThoai())
                             .permissions(List.of(nhanVien.getVaiTro() ))
