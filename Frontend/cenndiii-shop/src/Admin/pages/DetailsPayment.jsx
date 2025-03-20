@@ -165,9 +165,6 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
         
-        console.log(requestData, totalItem,selectedCustomer.hoTen);
-        
-        handlePrint(requestData, totalItem,selectedCustomer.hoTen);
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
@@ -199,6 +196,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             console.error("Error processing payment:", error);
             navigate("/admin/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
+        handlePrint(requestData, totalItem,selectedCustomer.hoTen);
     };
 
     useEffect(() => {
