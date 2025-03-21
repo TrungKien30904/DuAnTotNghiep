@@ -22,6 +22,7 @@ import CustomerDialog from "./AddCustomerDialog";
 import Delivery from "./Delivery";
 import api from "../../security/Axios";
 import { hasPermission } from "../../security/DecodeJWT";
+import Alert from "../../components/Alert";
 const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
@@ -82,6 +83,27 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
     };
     // >
 
+    const [openPayAlert, setOpenPayAlert] = useState(false);
+    const getConfirm = (confirm) => {
+        setOpenPayAlert(false);
+        if (confirm) {
+            if (!invoiceId) {
+                navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
+                return;
+            }
+            if (paymentMethod === "cahai" && (Number(cashAmount) + Number(transferAmount) !== lastTotal)) {
+                navigate("/admin/orders", { state: { message: "Tổng tiền chưa đủ hoặc đang lớn hơn", type: "error" } });
+                return;
+            }
+            handleSubmit(onSubmit)();
+        }
+    };
+
+    const handleOpenPayAlert = () => {
+        setOpenPayAlert(true);
+    };
+
+
     useEffect(() => {
         if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
             navigate("/admin/login");
@@ -128,14 +150,6 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
 
     const onSubmit = async () => {
-        if (!invoiceId) {
-            navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
-            return;
-        }
-        if (paymentMethod === "cahai" && (Number(cashAmount) + Number(transferAmount) !== lastTotal)) {
-            navigate("/admin/orders", { state: { message: "Tổng tiền chưa đủ hoặc đang lớn hơn", type: "error" } });
-            return;
-        }
 
         const thanhToanHoaDon = [];
         if (paymentMethod === "tienmat") {
@@ -164,7 +178,8 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
-        
+        console.log(requestData);
+
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
@@ -196,7 +211,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             console.error("Error processing payment:", error);
             navigate("/admin/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
-        handlePrint(requestData, totalItem,selectedCustomer.hoTen);
+        handlePrint(requestData, totalItem, selectedCustomer.hoTen);
     };
 
     useEffect(() => {
@@ -719,7 +734,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
     const handlePrint = (invoiceData, listItems, hoTenKhach) => {
         const printWindow = window.open('', '', 'width=800,height=600');
-    
+
         printWindow.document.write(`
           <html>
           <head>
@@ -773,15 +788,15 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
           </body>
           </html>
         `);
-    
+
         printWindow.document.close();
         printWindow.print();
     };
-    
+
     return (
         <div>
             <div
-                onSubmit={handleSubmit(onSubmit)}
+                className="h-[600px] flex flex-col justify-between"
                 style={{
                     maxWidth: "100%",
                     margin: "auto",
@@ -791,8 +806,8 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                 }}
             >
                 <h2 className="font-semibold mb-2">Thông tin khách hàng</h2>
-                <div className='p-5 rounded-lg  border border-gray-300'>
-                    <div className="flex justify-content-center mb-4 gap-2">
+                <div className='p-2 rounded-lg  border border-gray-300 flex-none'>
+                    <div className="flex justify-content-center gap-2 ">
                         <select className="border p-2 rounded w-full h-8" onChange={(e) => {
                             const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
                             handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
@@ -824,7 +839,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                     </div>
                     {selectedCustomer && selectedCustomer.diaChi && (
                         <div className="relative">
-                            <input className="mt-2 text-gray-600 w-full p-2 border rounded "
+                            <input className=" text-gray-600 w-full p-2 border rounded "
                                 readOnly
                                 value={selectedCustomer.diaChi}
                             />
@@ -835,40 +850,43 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                     )}
                 </div>
 
-                <label>
-                    <input
-                        type="radio"
-                        value="taiquay"
-                        checked={deliveryMethod === "taiquay"}
-                        readOnly
-                        onClick={() => {
-                            setDeliveryMethod("taiquay");
-                            setAmount(0);  // Tại quầy thì không có phí ship
-                        }}
-                    />
-                    Tại quầy
-                </label>
+                <div className="flex justify-content-center gap-x-6 ">
+                    <label className="flex justify-content-center gap-x-2">
+                        <input
+                            type="radio"
+                            value="taiquay"
+                            checked={deliveryMethod === "taiquay"}
+                            readOnly
+                            onClick={() => {
+                                setDeliveryMethod("taiquay");
+                                setAmount(0);  // Tại quầy thì không có phí ship
+                            }}
+                        />
+                        <span>Tại quầy</span>
+                    </label>
 
-                <label>
-                    <input
-                        type="radio"
-                        value="giaohang"
-                        checked={deliveryMethod === "giaohang"}
-                        readOnly
-                        onClick={() => {
-                            setDeliveryMethod("giaohang");
-                            if (selectedCustomer?.idKhachHang != -1) {
-                                calculateShippingFee();
-                            } else {
-                                setOpenDeliveryForm(true);
-                            }
-                        }}
-                    />
-                    Giao Hàng
-                </label>
+                    <label className="flex justify-content-center gap-x-2">
+                        <input
+                            type="radio"
+                            value="giaohang"
+                            checked={deliveryMethod === "giaohang"}
+                            readOnly
+                            onClick={() => {
+                                setDeliveryMethod("giaohang");
+                                if (selectedCustomer?.idKhachHang != -1) {
+                                    calculateShippingFee();
+                                } else {
+                                    setOpenDeliveryForm(true);
+                                }
+                            }}
+                        />
+                        <span>Giao Hàng</span>
+                    </label>
+                </div>
 
 
-                <div className="flex items-center gap-2 mb-4">
+
+                <div className="flex items-center gap-2">
                     <input
                         type="text"
                         placeholder="Hãy nhập mã phiếu có 9 ký tự"
@@ -881,7 +899,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                     />
                 </div>
 
-                <div className="p-5 rounded-lg border border-gray-300 max-h-60 overflow-y-auto">
+                <div className="p-4 rounded-lg border border-gray-300 max-h-60 overflow-y-auto">
                     <div className="flex items-center space-x-2 text-gray-700 font-medium">
                         <Ticket size={18} />
                         <span>Phiếu giảm giá</span>
@@ -932,47 +950,47 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                     )}
 
                 </div>
-                <div className="flex items-center justify-between w-full mt-4">
+                <div className="flex items-center justify-between w-full">
                     <div>Hình thức thanh toán:</div>
                     <div className="flex items-center gap-4">
-                        <label>
+                        <label className="flex justify-content-center">
                             <input
                                 type="radio"
                                 value="tienmat"
                                 checked={paymentMethod === "tienmat"}
                                 onChange={() => setPaymentMethod("tienmat")}
                             />
-                            Tiền mặt
+                            <span>Tiền mặt</span>
                         </label>
-                        <label>
+                        <label className="flex justify-content-center">
                             <input
                                 type="radio"
                                 value="chuyenkhoan"
                                 checked={paymentMethod === "chuyenkhoan"}
                                 onChange={() => setPaymentMethod("chuyenkhoan")}
                             />
-                            Chuyển khoản
+                            <span>Chuyển khoản</span>
                         </label>
-                        <label>
+                        <label className="flex justify-content-center">
                             <input
                                 type="radio"
                                 value="cahai"
                                 checked={paymentMethod === "cahai"}
                                 onChange={() => setPaymentMethod("cahai")}
                             />
-                            Cả hai
+                            <span>Cả hai</span>
                         </label>
                     </div>
                 </div>
                 {paymentMethod === "cahai" && (
-                    <div className="flex items-center gap-4 mt-4">
+                    <div className="flex items-center gap-4">
                         <div>
                             <label>Tiền mặt:</label>
                             <input
                                 type="number"
                                 value={cashAmount}
                                 onChange={(e) => setCashAmount(e.target.value)}
-                                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                                style={{ width: "100%", padding: "7px", borderRadius: "8px", border: "1px solid #ccc" }}
                             />
                         </div>
                         <div>
@@ -981,13 +999,13 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                                 type="number"
                                 value={transferAmount}
                                 onChange={(e) => setTransferAmount(e.target.value)}
-                                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                                style={{ width: "100%", padding: "8px", borderRadius: "8px", border: "1px solid #ccc" }}
                             />
                         </div>
                     </div>
                 )}
                 {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-                <div className="mt-4 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                <div className=" p-2 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-700">Tổng tiền:</span>
@@ -1007,7 +1025,13 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                                 <input
                                     type="number"
                                     value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
+                                    onChange={(e) => {
+                                        if (e.target.value >= 0) {
+                                            setAmount(e.target.value)
+                                        }else{
+                                            setAmount(0)
+                                        }
+                                    }}
                                     className="p-2 h-4 w-20 text-right border border-gray-300 rounded"
                                 />
                                 <span className="text-red-500"> đ </span>
@@ -1029,9 +1053,8 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
                 <button
                     type="button"
-                    onClick={handleSubmit(onSubmit)}
+                    onClick={handleOpenPayAlert}
                     style={{
-                        marginTop: "20px",
                         padding: "10px 20px",
                         backgroundColor: "#4CAF50",
                         color: "white",
@@ -1053,6 +1076,11 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                 open={openDeliveryForm}
                 onClose={() => setOpenDeliveryForm(false)}
                 onShippingFeeUpdate={handleShippingFeeUpdate}
+            />
+            <Alert
+                message={"Xác nhận thanh toán ?"}
+                open={openPayAlert}
+                onClose={getConfirm}
             />
         </div>
     );

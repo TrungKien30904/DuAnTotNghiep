@@ -63,7 +63,7 @@ public class ChiTietSanPhamService {
     }
 
     public ChiTietSanPham getChiTietSanPham(Integer id) {
-        return chiTietSanPhamRepo.findById(id).get();
+        return chiTietSanPhamRepo.findById(id).orElse(null);
     }
 
     public Map<String,List<?>> getProductDetailsByColor(Integer idSanPham, Integer idMauSac) {
@@ -217,7 +217,7 @@ public class ChiTietSanPhamService {
                 for (int i = 0; i < file.size(); i++) {
                     //Tao hinh anh
                     HinhAnh anh = new HinhAnh();
-                    anh.setSanPham(sanPhamRepo.findById(idSanPham).get());
+                    anh.setSanPham(sanPhamRepo.findById(idSanPham).orElse(null));
 
                     // du lieu tu fe
                     MultipartFile f = file.get(i);
@@ -302,8 +302,10 @@ public class ChiTietSanPhamService {
         List<HoaDonChiTiet> listHoaDonChiTiet = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
 
         // tìm sp đang thao tác
-        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
-
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).orElse(null);
+        if (ctsp == null) {
+            return null;
+        }
         for(HoaDonChiTiet hdct : listHoaDonChiTiet) {
             if(hdct.getHoaDon().getIdHoaDon().equals(idHoaDon)) {
                 if(hdct.getChiTietSanPham().getIdChiTietSanPham().equals(idChiTietSanPham)) {
@@ -378,52 +380,59 @@ public class ChiTietSanPhamService {
     @Transactional
     public List<HoaDonChiTiet> xoaSp(Integer idHdct, Integer idChiTietSanPham) {
         // tim sp can xoa
-        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
+        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).orElse(null);
 
         // lay sp trong db de cap nhat
-        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).orElse(null);
 
         List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idChiTietSanPham);
-        if (!backTo.isEmpty()) {
-            for (ChiTietSanPham b : backTo) {
-                if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idChiTietSanPham)) {
-                    chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() + hdct.getSoLuong());
+        if (hdct != null && ctsp != null){
+            if (!backTo.isEmpty()) {
+                for (ChiTietSanPham b : backTo) {
+                    if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idChiTietSanPham)) {
+                        chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() + hdct.getSoLuong());
+                    }
                 }
+            }else{
+                chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
             }
-        }else{
-            chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
+            hoaDonChiTietRepository.delete(hdct);
         }
-        hoaDonChiTietRepository.delete(hdct);
+        assert hdct != null;
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hdct.getHoaDon().getIdHoaDon());
     }
 
     public void capNhatSl(Integer idHdct,Integer idCtsp,int slThem,BigDecimal giaDuocTinh){
 
-        HoaDonChiTiet productChange = hoaDonChiTietRepository.findById(idHdct).get();
+        HoaDonChiTiet productChange = hoaDonChiTietRepository.findById(idHdct).orElse(null);
 
-        if (giaDuocTinh == null){
-            if (productChange.getSoLuong() >= 0){
-                productChange.setSoLuong(productChange.getSoLuong() + slThem);
-                productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
-                hoaDonChiTietRepository.save(productChange);
-            }
-            ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).get();
-            if (ctsp.getSoLuong() >= 0){
-                ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
-                chiTietSanPhamRepo.save(ctsp);
-            }
-        }else{
-            if (slThem < 0){
+        if (productChange != null) {
+            if (giaDuocTinh == null){
                 if (productChange.getSoLuong() >= 0){
                     productChange.setSoLuong(productChange.getSoLuong() + slThem);
                     productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
                     hoaDonChiTietRepository.save(productChange);
                 }
-                List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idCtsp);
-                if (!backTo.isEmpty()) {
-                    for (ChiTietSanPham b : backTo) {
-                        if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idCtsp)) {
-                            chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() - slThem);
+                ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).orElse(null);
+                if (ctsp != null) {
+                    if (ctsp.getSoLuong() >= 0){
+                        ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
+                        chiTietSanPhamRepo.save(ctsp);
+                    }
+                }
+            }else{
+                if (slThem < 0){
+                    if (productChange.getSoLuong() >= 0){
+                        productChange.setSoLuong(productChange.getSoLuong() + slThem);
+                        productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
+                        hoaDonChiTietRepository.save(productChange);
+                    }
+                    List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idCtsp);
+                    if (!backTo.isEmpty()) {
+                        for (ChiTietSanPham b : backTo) {
+                            if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idCtsp)) {
+                                chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() - slThem);
+                            }
                         }
                     }
                 }

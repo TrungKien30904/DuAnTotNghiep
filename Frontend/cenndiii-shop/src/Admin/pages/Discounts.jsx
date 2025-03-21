@@ -66,11 +66,11 @@ export default function Discounts() {
       if (response?.data?.data) {
         setLoadingState(false);
       }
-
-      response.data.data.forEach((i) => {
-        i.ngayBatDau = formatDate(i.ngayBatDau);
-        i.ngayKetThuc = formatDate(i.ngayKetThuc);
-      });
+      console.log(response.data.data);
+      // response.data.data.forEach((i) => {
+      //   i.ngayBatDau = formatDate(i.ngayBatDau);
+      //   i.ngayKetThuc = formatDate(i.ngayKetThuc);
+      // });
 
       setDotGiamGias(response.data.data);
       const total = Number(response.data.total) / Number(limit);
@@ -322,17 +322,17 @@ export default function Discounts() {
           <tbody>
             {dotGiamGias.map((dotGiamGia, index) => {
               // Chuyển đổi chuỗi ngày thành đối tượng Date
-              const parseDate = (dateString) => {
-                if (!dateString) return null;
-                const [time, date] = dateString.split(" ");
-                const [hours, minutes, seconds] = time.split(":").map(Number);
-                const [day, month, year] = date.split("/").map(Number);
-                return new Date(year, month - 1, day, hours, minutes, seconds);
-              };
+              // const parseDate = (dateString) => {
+              //   if (!dateString) return null;
+              //   const [time, date] = dateString.split(" ");
+              //   const [hours, minutes, seconds] = time.split(":").map(Number);
+              //   const [day, month, year] = date.split("/").map(Number);
+              //   return new Date(year, month - 1, day, hours, minutes, seconds);
+              // };
 
               const now = new Date();
-              const startDate = parseDate(dotGiamGia.ngayBatDau);
-              const endDate = parseDate(dotGiamGia.ngayKetThuc);
+              const startDate = formatDateFromArray(dotGiamGia.ngayBatDau);
+              const endDate = formatDateFromArray(dotGiamGia.ngayKetThuc);
               return (
                 <tr
                   key={dotGiamGia.idDotGiamGia}
@@ -390,7 +390,7 @@ export default function Discounts() {
               : "hover:bg-gray-200"
               }`}
           >
-            ◀
+            &lt;
           </button>
           {/* Hiển thị số trang */}
           <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
@@ -405,7 +405,7 @@ export default function Discounts() {
               : "hover:bg-gray-200"
               }`}
           >
-            ▶
+            &gt;
           </button>
         </div>
       </div>

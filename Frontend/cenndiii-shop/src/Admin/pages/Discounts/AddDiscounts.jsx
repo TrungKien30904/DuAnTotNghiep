@@ -609,7 +609,7 @@ export default function AddDiscounts() {
                     : "hover:bg-gray-200"
                   }`}
               >
-                ◀
+                &lt;
               </button>
 
               {/* Hiển thị số trang */}
@@ -626,7 +626,7 @@ export default function AddDiscounts() {
                     : "hover:bg-gray-200"
                   }`}
               >
-                ▶
+                &gt;
               </button>
             </div>
           </div>
@@ -719,7 +719,7 @@ export default function AddDiscounts() {
                   : "hover:bg-gray-200"
                 }`}
             >
-              ◀
+              &lt;
             </button>
             {/* Hiển thị số trang */}
             <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
@@ -734,7 +734,7 @@ export default function AddDiscounts() {
                   : "hover:bg-gray-200"
                 }`}
             >
-              ▶
+              &gt;
             </button>
           </div>
         </div>

@@ -14,7 +14,12 @@ const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
-
+  const navLinks = [
+    { link: "home", name: "Trang chủ" },
+    { link: "shop", name: "Sản phẩm" },
+    { link: "contact", name: "Liên hệ" },
+    { link: "about", name: "Về chúng tôi" }
+  ];
   const handleAvatarClick = (event) => {
     if (!user) {
       navigate("/login");
@@ -74,9 +79,9 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="hidden md:flex gap-6 text-lg text-black">
-          {["Home", "Shop", "Blog", "Contact", "About"].map((item, index) => (
-            <Link key={index} to={`/${item.toLowerCase()}`} className="relative group">
-              {item}
+          {navLinks.map((item, index) => (
+            <Link key={index} to={`/${item.link.toLowerCase()}`} className="relative group">
+              {item.name}
               <span className="absolute left-0 bottom-0 w-full h-[2px] bg-black scale-x-0 origin-left transition-transform duration-300 ease-in-out group-hover:scale-x-100"></span>
             </Link>
           ))}
@@ -110,7 +115,7 @@ const Navbar = () => {
             <MenuItem disabled>
               {user?.username}
             </MenuItem>
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
           </Menu>
         </div>
       </Toolbar>

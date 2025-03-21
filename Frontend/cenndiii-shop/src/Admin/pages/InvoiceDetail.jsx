@@ -9,6 +9,10 @@ import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { hasPermission } from "../../security/DecodeJWT";
 import { useNavigate } from 'react-router-dom';
+import { formatDateFromArray } from '../../untils/FormatDate';
+import Alert from '../../components/Alert';
+import { set } from 'react-hook-form';
+
 export default function InvoiceDetail() {
     const { id } = useParams();
     const [invoice, setInvoice] = useState();
@@ -17,6 +21,18 @@ export default function InvoiceDetail() {
     const [histories, setHistories] = useState([]);
     const [invoiceDetails, setInvoiceDetails] = useState([]);
     const navigate = useNavigate();
+    const [productDetailsId, setProductDetailsId] = useState(-1);
+    const [openDeleteProductDialog, setOpenDeleteProductDialog] = useState(false);
+    const handleCloseDialog = (confirm) => {
+        setOpenDeleteProductDialog(false);
+        if (confirm) {
+            handleDelete(productDetailsId);
+        }
+    }
+    const handleOpenDialog = (id) => {
+        setProductDetailsId(id);
+        setOpenDeleteProductDialog(true);
+    }
     useEffect(() => {
         if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
             navigate("/admin/login");
@@ -57,6 +73,8 @@ export default function InvoiceDetail() {
         try {
             const response = await api.get(`/admin/hdct/listHoaDonChiTiet?maHoaDon=${id}`);
             setInvoiceDetails(response.data);
+            console.log(response.data);
+
         } catch (error) {
             console.error('Error fetching invoice details:', error);
         }
@@ -86,30 +104,15 @@ export default function InvoiceDetail() {
         console.log(`Edit item with id: ${id}`);
     };
 
-    const handleDelete = (id) => {
-        confirmAlert({
-            title: 'Xác nhận xóa',
-            message: 'Bạn có chắc chắn muốn xóa mục này?',
-            buttons: [
-                {
-                    label: 'Yes',
-                    onClick: async () => {
-                        try {
-                            await axios.get(`http://localhost:8080/admin/hdct/delete/${id}`);
-                            setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
-                            Notification("Xóa thành công", "success")
-                        } catch (error) {
-                            console.error('Error deleting item:', error);
-                            Notification("Xóa thất bại", "error")
-                        }
-                    }
-                },
-                {
-                    label: 'No',
-                    onClick: () => { }
-                }
-            ]
-        });
+    const handleDelete =(id) => {
+        try {
+            // api.get(`/admin/hdct/delete/${id}`);
+            setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
+            Notification("Xóa thành công", "success")
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            Notification("Xóa thất bại", "error")
+        }
     };
 
     const handleAdd = () => {
@@ -220,7 +223,7 @@ export default function InvoiceDetail() {
                                 <td className="px-4 py-2 ">{payment.id}</td>
                                 <td className="px-4 py-2 ">{payment.ghiChu}</td>
                                 <td className="px-4 py-2 ">{payment.hinhThucThanhToan}</td>
-                                <td className="px-4 py-2 ">{payment.ngayTao}</td>
+                                <td className="px-4 py-2 ">{formatDateFromArray(payment.ngayTao)}</td>
                                 <td className="px-4 py-2 ">{payment.soTienThanhToan}</td>
                                 <td className="px-4 py-2 ">{payment.trangThai ? 'Đã thanh toán' : 'Chưa thanh toán'}</td>
                             </tr>
@@ -314,25 +317,32 @@ export default function InvoiceDetail() {
                         {invoiceDetails.map((detail, index) => (
                             <tr key={detail.idHoaDonChiTiet} className="border-b hover:bg-gray-100">
                                 <td className="px-4 py-2">{index + 1}</td>
-                                <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.tenSanPham}</td>
+                                <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.ten}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.kichCo.ten}</td>
 
                                 <td className="px-4 py-2">{detail.chiTietSanPham.mauSac.ten}</td>
-                                <td className="px-4 py-2">{detail.chiTietSanPham.soLuong}</td>
-                                <td className="px-4 py-2">{detail.chiTietSanPham.soLuong * detail.chiTietSanPham.gia + 'VND'}</td>
+                                <td className="px-4 py-2">{detail.soLuong}</td>
+                                <td className="px-4 py-2">{detail.soLuong * detail.chiTietSanPham.gia + 'VND'}</td>
                                 <td className="px-4 py-2">{detail.chiTietSanPham.sanPham.trangThai ? "Còn hàng" : "Hết hàng"}</td>
                                 <td className="px-4 py-2 flex gap-2">
-                                    <button
-                                        onClick={() => handleDelete(detail.idHoaDonChiTiet)}
-                                        className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-400 dark:hover:bg-red-500 focus:outline-none dark:focus:ring-red-600">
-                                        Xóa
-                                    </button>
+                                    {invoice.trangThai === 'Chờ xác nhận' && (
+                                        <button
+                                            onClick={(e) => handleOpenDialog(detail.idHoaDonChiTiet)}
+                                            className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-400 dark:hover:bg-red-500 focus:outline-none dark:focus:ring-red-600">
+                                            Xóa
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            <Alert
+                open={openDeleteProductDialog}
+                message={"Bạn có chắc chắn muốn xóa sản phẩm này không?"}
+                onClose={handleCloseDialog}
+            />
             <ToastContainer />
         </div >
     )

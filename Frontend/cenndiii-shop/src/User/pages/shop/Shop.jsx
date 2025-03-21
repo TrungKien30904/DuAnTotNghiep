@@ -79,7 +79,7 @@ export default function Shop() {
                 <div className="w-3/4">
                     {/* Header */}
                     <div className="flex justify-between items-center border-b pb-2 mb-4">
-                        <p className="text-gray-600">Showing 1-9 of 252 result</p>
+                        {/* <p className="text-gray-600">Showing 1-9 of 252 result</p> */}
                         <select className="border px-3 py-2 rounded-md bg-gray-100 focus:ring focus:ring-gray-300">
                             <option value="">Default sort</option>
                             <option value="">Sort by price: Low - High</option>

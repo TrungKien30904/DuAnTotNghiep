@@ -226,9 +226,9 @@ export default function ProductDetails() {
       const response = await api.post("/admin/mau-sac/them", {
         ten: newColor,
       });
-      const newOption = { value: response.data.idKichCo, label: response.data.ten };
-      setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
-      setIsAddingSize(false);
+      const newOption = { value: response.data.idMauSac, label: response.data.ten };
+      setSelectedColors((prevSelected) => [...prevSelected, newOption]);
+      setIsAddingColor(false);
       setNewColor("");
       Notification("Thêm kích cỡ thành công", "success");
       await fetchData("/admin/mau-sac/hien-thi/true", setSizes);

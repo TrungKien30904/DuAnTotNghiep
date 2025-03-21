@@ -22,6 +22,7 @@ import {
     TextField,
     Badge,
     Box,
+    TablePagination
 } from "@mui/material";
 import { Trash, Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
@@ -49,10 +50,7 @@ export default function Orders() {
     const navigate = useNavigate();
     const location = useLocation();
     const token = localStorage.getItem("token") || "";
-    const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-    };
+
     useEffect(() => {
         if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
             navigate("/admin/login");
@@ -164,7 +162,7 @@ export default function Orders() {
         }
 
         try {
-            const response = await api.post("/admin/hoa-don/create", {}, { headers }); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
+            const response = await api.get("/admin/hoa-don/create");
             const createdOrder = response.data;
             const newTabId = createdOrder.idHoaDon;
             setTabs([...tabs, { id: newTabId, label: `${createdOrder.maHoaDon}`, maHoaDon: createdOrder.maHoaDon, content: `Hóa đơn ${createdOrder.maHoaDon}` }]);
@@ -196,7 +194,7 @@ export default function Orders() {
         if (!tabToRemove) return;
 
         try {
-            const response = await api.get(`/admin/hoa-don/delete/${tabId}`, { headers });
+            const response = await api.get(`/admin/hoa-don/delete/${tabId}`);
 
 
             // Sau khi xóa, cập nhật lại danh sách orders và tabs
@@ -236,7 +234,7 @@ export default function Orders() {
             return;
         }
         api
-            .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
+            .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
             .then((response) => {
                 setProductDetails(response.data);
             })
@@ -277,8 +275,8 @@ export default function Orders() {
 
             const response = await api.post(
                 "/admin/chi-tiet-san-pham/them-sp",
-                requestData,
-                { headers }
+                requestData
+
             );
 
             if (response.status === 200) {
@@ -286,7 +284,7 @@ export default function Orders() {
                 Notification(`Sản phẩm ${productDetailSelected.sanPham} đã được thêm thành công!`, "success");
 
                 api
-                    .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1", { headers })
+                    .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
                     .then((response) => {
                         setProductDetails(response.data);
                     })
@@ -313,7 +311,7 @@ export default function Orders() {
                 idChiTietSanPham: idCtsp
             };
 
-            await api.post("/admin/chi-tiet-san-pham/xoa-sp", requestData, { headers });
+            await api.post("/admin/chi-tiet-san-pham/xoa-sp", requestData);
 
 
             getProductFromDetailsInvoice(orderId)
@@ -333,7 +331,7 @@ export default function Orders() {
                     giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
-                await api.post("/admin/chi-tiet-san-pham/cap-nhat-sl", requestData, { headers });
+                await api.post("/admin/chi-tiet-san-pham/cap-nhat-sl", requestData);
 
                 getProductFromDetailsInvoice(orderId);
 
@@ -350,7 +348,7 @@ export default function Orders() {
                     giaDuocTinh: giaDuocTinh
                 };
                 // console.log(newQuantity);
-                await api.post("/admin/chi-tiet-san-pham/sua-sp", requestData, { headers });
+                await api.post("/admin/chi-tiet-san-pham/sua-sp", requestData);
 
                 getProductFromDetailsInvoice(orderId);
 
@@ -378,11 +376,10 @@ export default function Orders() {
             return;
         }
         try {
-            const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
+            const response = await api.get('/admin/hoa-don/hd-ban-hang');
             const ordersData = response.data;
             setOrders(ordersData);
 
-            // Create tabs from the orders data
             const newTabs = ordersData.map((order) => ({
                 id: order.idHoaDon,
                 label: `${order.maHoaDon}`,
@@ -398,7 +395,7 @@ export default function Orders() {
     };
 
     return (
-        <div className="p-4 text-xs">
+        <div className="p-4 text-[10px]">
             <nav className="text-gray-500 mb-4">
                 <span className="cursor-pointer hover:underline" onClick={() => navigate("/admin/dashboard")}>Thống kê</span>{" "} &gt;{" "}
                 <span className="font-semibold text-black">Bán hàng</span>
@@ -460,7 +457,7 @@ export default function Orders() {
                     {tabs.length > 0 && tabs.map((tab, index) => (
                         <TabPanel value={activeTab} index={index} key={tab.id}>
                             <div className='flex justify-content-center gap-2'>
-                                <div className="border rounded-md h-[700px] w-3/5">
+                                <div className="border rounded-md h-[600px] w-[66%]">
                                     <div className="p-2">
                                         <div className="flex justify-between items-center">
                                             <h2 className="text-left">{tab.content}</h2>
@@ -478,112 +475,180 @@ export default function Orders() {
                                         </div>
                                         {/* Bảng hóa đơn */}
                                         <div className="my-2">
-                                            <TableContainer component={Paper}>
-                                                <Table>
+                                            <TableContainer component={Paper} sx={{ maxHeight: "530px" }}>
+                                                <Table stickyHeader>
                                                     <TableHead>
-                                                        <TableRow>
-                                                            {/* <TableCell align="center">Ảnh</TableCell> */}
-                                                            <TableCell align="center">Sản phẩm</TableCell>
-                                                            <TableCell align="center">Số lượng</TableCell>
-                                                            <TableCell align="center">Kho</TableCell>
-                                                            <TableCell align="center">Giá hiện tại</TableCell>
-                                                            <TableCell align="center">Giá được tính</TableCell>
-                                                            <TableCell align="center">Tổng</TableCell>
-                                                            <TableCell align="center">Hành động</TableCell>
+                                                        <TableRow sx={{ height: "40px" }}> {/* Giảm chiều cao của header */}
+                                                            {[
+                                                                "Sản phẩm",
+                                                                "Số lượng",
+                                                                "Kho",
+                                                                "Giá hiện tại",
+                                                                "Giá được tính",
+                                                                "Tổng",
+                                                            ].map((header) => (
+                                                                <TableCell
+                                                                    key={header}
+                                                                    align="center"
+                                                                    sx={{
+                                                                        position: "sticky",
+                                                                        top: 0,
+                                                                        backgroundColor: "white",
+                                                                        zIndex: 2,
+                                                                        padding: "8px", // Giảm padding
+                                                                        fontSize: "12px", // Giảm font chữ
+                                                                    }}
+                                                                >
+                                                                    {header}
+                                                                </TableCell>
+                                                            ))}
+                                                            <TableCell
+                                                                align="center"
+                                                                sx={{
+                                                                    width: "10px",
+                                                                    position: "sticky",
+                                                                    top: 0,
+                                                                    backgroundColor: "white",
+                                                                    zIndex: 2,
+                                                                    padding: "8px", // Giảm padding
+                                                                    fontSize: "12px", // Giảm font chữ
+                                                                }}>
+                                                            </TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
                                                         {orderItemsByTab && orderItemsByTab.length > 0 ? (
-                                                            orderItemsByTab.map((item, index) => (
-                                                                <TableRow key={item.idHoaDonChiTiet} className=''>
-                                                                    <TableCell align="center">
-                                                                        <div className='flex justify-content-center relative'>
+                                                            orderItemsByTab.map((item) => (
+                                                                <TableRow key={item.idHoaDonChiTiet}>
+                                                                    <TableCell align="center" sx={{ width: "200px" }}>
+                                                                        <div className="flex justify-content-center relative">
                                                                             <div>
                                                                                 <img
                                                                                     src={item.lienKet}
                                                                                     alt={item.tenSanPham}
-                                                                                    className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
+                                                                                    className="w-12 h-12 object-cover inset-0 rounded-md inline-block"
                                                                                 />
                                                                             </div>
-                                                                            <div className='ms-1'>
-                                                                                {item.tenSanPham}
+                                                                            <div className="ms-1">
+                                                                                <p>{item.tenSanPham}</p>
+                                                                                <p className="text-[10px] text-[#8d8674]">{item.tenMau}</p>
+                                                                                <p className="text-[10px] text-[#8d8674]">{item.tenKichCo}</p>
                                                                             </div>
                                                                             {!item.trangThai ? (
-                                                                                <p className='text-red-500 absolute -bottom-5 left-0 w-[500px] text-left'>*Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán !</p>
+                                                                                <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
+                                                                                    *Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán!
+                                                                                </p>
                                                                             ) : (
                                                                                 item.giaDuocTinh && (
-                                                                                    <p className='text-red-500 absolute -bottom-5 left-0 w-[500px] text-left'>*Sản phẩm có sự thay đổi về giá {item.donGia.toLocaleString()} đ -&gt; {item.giaDuocTinh.toLocaleString()} đ</p>
+                                                                                    <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
+                                                                                        *Sản phẩm có sự thay đổi về giá {item.donGia.toLocaleString()} đ →{" "}
+                                                                                        {item.giaDuocTinh.toLocaleString()} đ
+                                                                                    </p>
                                                                                 )
                                                                             )}
                                                                         </div>
+                                                                    </TableCell>
+                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>
+                                                                        <div className='relative'>
+                                                                            <div className='absolute -left-3 top-0 bottom-0'>
+                                                                                {item.trangThai && (
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            if (Number(item.soLuongMua) > 1) {
+                                                                                                handleQuantityChange(
+                                                                                                    item.idHoaDonChiTiet,
+                                                                                                    item.idChiTietSanPham,
+                                                                                                    "tru",
+                                                                                                    item.giaDuocTinh
+                                                                                                );
+                                                                                            } else {
+                                                                                                Notification("Đã là số lượng nhỏ nhất !", "warning");
+                                                                                                return;
+                                                                                            }
+                                                                                        }}
+                                                                                    >
+                                                                                        <Remove sx={{ fontSize: 15 }} />
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                            <div>
+                                                                                {item.trangThai ? (
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={item.soLuongMua}
+                                                                                        onChange={(e) => {
+                                                                                            if (
+                                                                                                e.target.value > 0 &&
+                                                                                                e.target.value <= item.soLuongMua + item.kho
+                                                                                            ) {
+                                                                                                if (e.target.value - item.soLuongMua <= item.kho) {
+                                                                                                    handleQuantityChange(
+                                                                                                        item.idHoaDonChiTiet,
+                                                                                                        item.idChiTietSanPham,
+                                                                                                        e.target.value,
+                                                                                                        item.giaDuocTinh
+                                                                                                    );
+                                                                                                }
+                                                                                            } else {
+                                                                                                Notification("Chọn số lượng hợp lệ", "error");
+                                                                                                return;
+                                                                                            }
+                                                                                        }}
+                                                                                        className="text-center w-8"
+                                                                                    />
+                                                                                ) : (
+                                                                                    <span>{item.soLuongMua}</span>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className='absolute -right-3 top-0 bottom-0'>
+                                                                                {item.trangThai && (
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            if (item.kho > 0) {
+                                                                                                if (!item.giaDuocTinh) {
+                                                                                                    handleQuantityChange(
+                                                                                                        item.idHoaDonChiTiet,
+                                                                                                        item.idChiTietSanPham,
+                                                                                                        "cong",
+                                                                                                        item.giaDuocTinh
+                                                                                                    );
+                                                                                                } else {
+                                                                                                    Notification(
+                                                                                                        "Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!",
+                                                                                                        "warning"
+                                                                                                    );
+                                                                                                }
+                                                                                            } else {
+                                                                                                Notification("Đã hết hàng trong kho!", "warning");
+                                                                                                return;
+                                                                                            }
+                                                                                        }}
+                                                                                    >
+                                                                                        <Add sx={{ fontSize: 15 }} />
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
 
                                                                     </TableCell>
-                                                                    {/* <TableCell align="center">{item.tenSanPham}</TableCell> */}
-                                                                    <TableCell align="center">
-                                                                        {item.trangThai && (
-                                                                            <button onClick={() => {
-                                                                                if (Number(item.soLuongMua) > 1) {
-                                                                                    handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "tru", item.giaDuocTinh)
-                                                                                } else {
-                                                                                    Notification("Đã là số lượng nhỏ nhất !", "warning")
-                                                                                    return;
-                                                                                }
+                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>{item.kho}</TableCell>
+                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>{item.donGia.toLocaleString()} đ</TableCell>
+                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>
+                                                                        {(item.giaDuocTinh ?? item.donGia).toLocaleString()} đ
+                                                                    </TableCell>
+                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>{item.thanhTien.toLocaleString()} đ</TableCell>
+                                                                    <TableCell sx={{ width: "10px" ,padding:"4px",}}>
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                handleRemoveOrderItem(item.idHoaDonChiTiet, item.idChiTietSanPham)
                                                                             }
-                                                                            }>
-                                                                                <Remove sx={{ fontSize: 15 }} />
-                                                                            </button>
-                                                                        )}
-
-                                                                        {item.trangThai ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={item.soLuongMua}
-                                                                                onChange={(e) => {
-                                                                                    if (e.target.value > 0 && e.target.value <= (item.soLuongMua + item.kho)) {
-                                                                                        if ((e.target.value - item.soLuongMua) <= item.kho) {
-                                                                                            handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, e.target.value, item.giaDuocTinh)
-                                                                                        }
-                                                                                    } else {
-                                                                                        Notification("Chọn số lượng hợp lệ", "error")
-                                                                                        return;
-                                                                                    }
-                                                                                }}
-                                                                                className='text-center w-8'
-                                                                            />
-                                                                        ) : (
-                                                                            <span>{item.soLuongMua}</span>
-                                                                        )}
-                                                                        {item.trangThai && (
-                                                                            <button onClick={() => {
-                                                                                if (item.kho > 0) {
-                                                                                    if (!item.giaDuocTinh) {
-                                                                                        handleQuantityChange(item.idHoaDonChiTiet, item.idChiTietSanPham, "cong", item.giaDuocTinh)
-                                                                                    } else {
-                                                                                        Notification("Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!", "warning")
-                                                                                    }
-                                                                                } else {
-                                                                                    Notification("Đã hết hàng trong kho!", "warning")
-                                                                                    return;
-                                                                                }
-                                                                            }}>
-                                                                                <Add sx={{ fontSize: 15 }} />
-                                                                            </button>
-                                                                        )}
-                                                                    </TableCell>
-                                                                    <TableCell align="center">{item.kho}</TableCell>
-                                                                    <TableCell align="center">{item.donGia.toLocaleString()} đ</TableCell>
-                                                                    <TableCell align="center">{(item.giaDuocTinh ?? item.donGia).toLocaleString()} đ</TableCell>
-                                                                    <TableCell align="center">{item.thanhTien.toLocaleString()} đ</TableCell>
-                                                                    <TableCell align="center">
-                                                                        <Button
-                                                                            onClick={() => handleRemoveOrderItem(item.idHoaDonChiTiet, item.idChiTietSanPham)}
                                                                         >
-                                                                            <Trash size={16} className="text-red-600" />
-                                                                        </Button>
+                                                                            <Trash size={16} sx={{ width: "10px"}} className="text-red-600" />
+                                                                        </button>
                                                                     </TableCell>
-
                                                                 </TableRow>
-                                                            ))) : (
+                                                            ))
+                                                        ) : (
                                                             <TableRow>
                                                                 <TableCell colSpan={7} align="center">
                                                                     Chưa có sản phẩm nào
@@ -593,10 +658,11 @@ export default function Orders() {
                                                     </TableBody>
                                                 </Table>
                                             </TableContainer>
+
                                         </div>
                                     </div>
                                 </div>
-                                <div className='w-2/5'>
+                                <div className='w-[33%]'>
                                     <DetailsPayment
                                         total={total}
                                         invoiceId={invoiceId}
@@ -608,14 +674,19 @@ export default function Orders() {
                         </TabPanel>
                     ))}
                 </div>
-                <div className="top-0 right-0 absolute z-3">
-                    <button
-                        onClick={handleAdd}
-                        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                    >
-                        Tạo hóa đơn chờ
-                    </button>
-                </div>
+                {hasPermission("ADMIN") || hasPermission("STAFF") ? (
+
+                    <div className="top-7 right-10 absolute z-3">
+                        <button
+                            onClick={handleAdd}
+                            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                        >
+                            Tạo hóa đơn chờ
+                        </button>
+                    </div>
+                ) : (
+                    <div></div>
+                )}
             </div>
             <Dialog
                 open={openDialog}
@@ -626,21 +697,22 @@ export default function Orders() {
                 <DialogTitle>Danh sách sản phẩm</DialogTitle>
                 <DialogContent>
                     <TableContainer component={Paper}>
-                        <Table>
-                            <TableHead>
+                        <Table >
+                            <TableHead >
                                 <TableRow>
-                                    <TableCell>Ảnh</TableCell>
-                                    <TableCell>Sản phẩm</TableCell>
-                                    <TableCell>Mã</TableCell>
-                                    <TableCell>Cổ giày</TableCell>
+                                    {/* <TableCell>Ảnh</TableCell> */}
+                                    <TableCell sx={{ width: "400px" }}>Sản phẩm</TableCell>
+                                    <TableCell>Màu sắc</TableCell>
+                                    <TableCell>Kích cỡ</TableCell>
+                                    {/* <TableCell>Cổ giày</TableCell>
                                     <TableCell>Mũi giày</TableCell>
                                     <TableCell>Thương hiệu</TableCell>
                                     <TableCell>Chất liệu</TableCell>
                                     <TableCell>Nhà cung cấp</TableCell>
-                                    <TableCell>Danh mục sản phẩm</TableCell>
-                                    <TableCell>Giá</TableCell>
-                                    <TableCell>Số lượng</TableCell>
-                                    <TableCell>Hành động</TableCell>
+                                    <TableCell>Danh mục sản phẩm</TableCell> */}
+                                    <TableCell sx={{ width: "150px", textAlign: "center" }}>Giá</TableCell>
+                                    <TableCell sx={{ width: "50px", textAlign: "center" }}>Số lượng</TableCell>
+                                    <TableCell sx={{ width: "10px", textAlign: "center" }}>Hành động</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -649,44 +721,45 @@ export default function Orders() {
                                         item.trangThai && (
                                             !item.giaDuocTinh && (
                                                 Number(item.soLuong) > 0 && (
-                                                    <TableRow key={item.idChiTietSanPham}>
-                                                        <TableCell className="relative">
-                                                            {/* {item.listAnh.map((anh, index) => (
-                                                    <div key={index}>
-                                                        <img
-                                                            src={anh}
-                                                            alt={item.sanPham.ten}
-                                                            style={{ left: index * 5 + "px" }}
-                                                            className={`w-8 h-8 object-cover inset-0 absolute rounded-md inline-block z-${index}`}
-                                                        />
-                                                    </div>
-                                                ))} */}
-                                                            <img
-                                                                src={item.lienKet}
-                                                                alt={item.sanPham.ten}
-                                                                className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
-                                                            />
+                                                    <TableRow key={item.idChiTietSanPham} >
+                                                        <TableCell sx={{ width: "400px" }}>
+                                                            <div className='flex justify-content-center gap-x-2'>
+                                                                <img
+                                                                    src={item.lienKet}
+                                                                    alt={item.sanPham.ten}
+                                                                    className={`w-12 h-12 object-cover inset-0 rounded-md inline-block`}
+                                                                />
+                                                                {item.sanPham}
+                                                                {/* <span className="flex items-center space-x-2">
+                                                                    <span>{item.sanPham} &#91;</span>
+                                                                    <span
+                                                                        className="w-4 h-4 rounded-full"
+                                                                        style={{ backgroundColor: item.mauSac }}
+                                                                    ></span>
+                                                                    <span>{item.kichCo} &#93;</span>
+                                                                </span> */}
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell>
                                                             <span className="flex items-center space-x-2">
-                                                                <span>{item.sanPham} &#91;</span>
                                                                 <span
                                                                     className="w-4 h-4 rounded-full"
                                                                     style={{ backgroundColor: item.mauSac }}
                                                                 ></span>
-                                                                <span>{item.kichCo} &#93;</span>
+                                                                <span className=''> {item.mauSac}</span>
                                                             </span>
                                                         </TableCell>
-                                                        <TableCell>{item.coGiay}</TableCell>
+                                                        <TableCell>{item.kichCo}</TableCell>
+                                                        {/* <TableCell>{item.coGiay}</TableCell>
                                                         <TableCell>{item.muiGiay}</TableCell>
                                                         <TableCell>{item.deGiay}</TableCell>
                                                         <TableCell>{item.thuongHieu}</TableCell>
                                                         <TableCell>{item.chatLieu}</TableCell>
                                                         <TableCell>{item.nhaCungCap}</TableCell>
-                                                        <TableCell>{item.danhMucSanPham}</TableCell>
-                                                        <TableCell>{item.giaSauGiam.toLocaleString()} đ</TableCell>
-                                                        <TableCell>{item.soLuong}</TableCell>
-                                                        <TableCell>
+                                                        <TableCell>{item.danhMucSanPham}</TableCell> */}
+                                                        <TableCell sx={{ textAlign: "center" }}>{item.giaSauGiam.toLocaleString()} đ</TableCell>
+                                                        <TableCell sx={{ textAlign: "center" }}>{item.soLuong}</TableCell>
+                                                        <TableCell sx={{ width: "10px", textAlign: "center" }}>
                                                             <Button
                                                                 variant="contained"
                                                                 onClick={() => {

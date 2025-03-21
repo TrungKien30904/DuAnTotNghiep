@@ -42,58 +42,40 @@ const ImageSlider = () => {
         ></div>
         <SwiperSlide className="mt-24">
           <div className="title" data-swiper-parallax="-300">
-            Slide 1
+            Cửa hàng của chúng tôi
           </div>
           <div className="subtitle" data-swiper-parallax="-200">
-            Subtitle
+            {/* Subtitle */}
           </div>
           <div className="text" data-swiper-parallax="-100">
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-              dictum mattis velit, sit amet faucibus felis iaculis nec. Nulla
-              laoreet justo vitae porttitor porttitor. Suspendisse in sem justo.
-              Integer laoreet magna nec elit suscipit, ac laoreet nibh euismod.
-              Aliquam hendrerit lorem at elit facilisis rutrum. Ut at
-              ullamcorper velit. Nulla ligula nisi, imperdiet ut lacinia nec,
-              tincidunt ut libero. Aenean feugiat non eros quis feugiat.
+              Chào mừng bạn đến với cửa hàng của chúng tôi! Với hàng loạt sản phẩm chất lượng, phong cách đa dạng và dịch vụ tận tâm, chúng tôi tự hào mang đến cho bạn trải nghiệm mua sắm tuyệt vời nhất. Hãy ghé thăm và khám phá ngay hôm nay!
             </p>
           </div>
         </SwiperSlide>
         <SwiperSlide className="mt-24">
           <div className="title" data-swiper-parallax="-300">
-            Slide 2
+            Chất lượng hàng đầu
           </div>
           <div className="subtitle" data-swiper-parallax="-200">
-            Subtitle
+            {/* Subtitle */}
           </div>
           <div className="text" data-swiper-parallax="-100">
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-              dictum mattis velit, sit amet faucibus felis iaculis nec. Nulla
-              laoreet justo vitae porttitor porttitor. Suspendisse in sem justo.
-              Integer laoreet magna nec elit suscipit, ac laoreet nibh euismod.
-              Aliquam hendrerit lorem at elit facilisis rutrum. Ut at
-              ullamcorper velit. Nulla ligula nisi, imperdiet ut lacinia nec,
-              tincidunt ut libero. Aenean feugiat non eros quis feugiat.
+              Chúng tôi cam kết mang đến những sản phẩm chất lượng cao, được chọn lọc kỹ lưỡng từ những thương hiệu uy tín. Mỗi sản phẩm đều trải qua quy trình kiểm tra nghiêm ngặt để đảm bảo sự hài lòng tuyệt đối cho khách hàng.
             </p>
           </div>
         </SwiperSlide>
-        <SwiperSlide className="mt-24 text-right"> 
+        <SwiperSlide className="mt-24 text-right">
           <div className="title" data-swiper-parallax="-300">
-            Slide 3
+            Ưu đãi hấp dẫn
           </div>
           <div className="subtitle" data-swiper-parallax="-200">
-            Subtitle
+            {/* Subtitle */}
           </div>
           <div className="text float-right" data-swiper-parallax="-100">
             <p className="">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-              dictum mattis velit, sit amet faucibus felis iaculis nec. Nulla
-              laoreet justo vitae porttitor porttitor. Suspendisse in sem justo.
-              Integer laoreet magna nec elit suscipit, ac laoreet nibh euismod.
-              Aliquam hendrerit lorem at elit facilisis rutrum. Ut at
-              ullamcorper velit. Nulla ligula nisi, imperdiet ut lacinia nec,
-              tincidunt ut libero. Aenean feugiat non eros quis feugiat.
+              Đừng bỏ lỡ những chương trình khuyến mãi siêu hấp dẫn từ chúng tôi! Giảm giá sốc, quà tặng độc quyền và nhiều ưu đãi đặc biệt đang chờ đón bạn. Mua sắm ngay để không bỏ lỡ cơ hội này!
             </p>
           </div>
         </SwiperSlide>

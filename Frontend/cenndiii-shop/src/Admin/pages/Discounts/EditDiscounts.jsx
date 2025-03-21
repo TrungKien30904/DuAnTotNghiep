@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../../../security/Axios";
+import { formatDateFromArray } from "../../../untils/FormatDate";
 export default function EditDiscounts() {
   const { idDGG } = useParams();
   const [filters, setFilters] = useState({ search: "" });
@@ -103,7 +104,7 @@ export default function EditDiscounts() {
           pediting: "10px 20px",
         },
       });
-        navigate("/admin/discounts"); // Chuyển hướng sau 1 giây
+      navigate("/admin/discounts"); // Chuyển hướng sau 1 giây
     } else {
       toast.error("Cập nhật không thành công, vui lòng thử lại!", {
         position: "top-right",
@@ -173,24 +174,25 @@ export default function EditDiscounts() {
   useEffect(() => {
     fetchdotGiamGia();
     fetchSanPham(skip, limit);
-  }, []);
+  }, [skip, limit]); 
 
   useEffect(() => {
-    // if (!filters.search) return;
     if (!filters.search.trim()) {
       fetchSanPham(0, 4); // Hiển thị dữ liệu gốc thay vì gọi API
       return;
     }
     const timeoutId = setTimeout(() => {
       fetchSanPham(0, 4);
-    }, 500); // Đợi 1 giây trước khi gọi hàm
-
+    }, 500); // Đợi 0.5 giây trước khi gọi hàm
+  
     return () => clearTimeout(timeoutId);
   }, [filters.search]);
 
   useEffect(() => {
-    if (!selectedIds || (selectedIds && selectedIds.length <= 0))
-      return setSanPhamChiTiets([]);
+    if (!selectedIds || (selectedIds && selectedIds.length <= 0)) {
+      setSanPhamChiTiets([]);
+      return;
+    }
     fetchChiTietSanPhams(0, 5);
     setCurrentPageCt(1);
     setSkipCt(0);
@@ -225,66 +227,70 @@ export default function EditDiscounts() {
 
   const fetchdotGiamGia = async () => {
     try {
-        const [response, response2] = await Promise.all([
-            api.get(`/admin/dot-giam-gia/chi-tiet-dgg/${idDGG}`),
-            api.get(`/admin/dot-giam-gia/get-list-id-san-pham-chi-tiet/${idDGG}`)
-        ]);
+      const [response, response2] = await Promise.all([
+        api.get(`/admin/dot-giam-gia/chi-tiet-dgg/${idDGG}`),
+        api.get(`/admin/dot-giam-gia/get-list-id-san-pham-chi-tiet/${idDGG}`)
+      ]);
 
-        const body = response2.data;
-        const response3 = await api.post("/admin/dot-giam-gia/get-list-id-san-pham", body);
+      const body = response2.data;
+      const response3 = await api.post("/admin/dot-giam-gia/get-list-id-san-pham", body);
 
-        editDGG(response.data);
-        setSelectedIds(response3.data);
-        setSelectedIdsCt(response2.data);
+      editDGG(prevState => ({
+        ...prevState,
+        ...response.data,
+        ngayBatDau: formatDateFromArray(response.data.ngayBatDau),
+        ngayKetThuc: formatDateFromArray(response.data.ngayKetThuc)
+      }));
+      setSelectedIds(response3.data);
+      setSelectedIdsCt(response2.data);
     } catch (error) {
-        console.error("Lỗi khi lấy đợt giảm giá:", error);
+      console.error("Lỗi khi lấy đợt giảm giá:", error);
     }
-};
+  };
 
-const editDotGiamGias = async () => {
+  const editDotGiamGias = async () => {
     try {
-        const body = {
-            dotGiamGia: { ...editMaDGG },
-            idSanPhamChiTietList: selectedIdsCt,
-        };
-        const response = await api.put("/admin/dot-giam-gia/cap-nhat-dgg", body);
-        return response?.status === 200 ? { status: 1 } : { status: 0 };
+      const body = {
+        dotGiamGia: { ...editMaDGG },
+        idSanPhamChiTietList: selectedIdsCt,
+      };
+      const response = await api.put("/admin/dot-giam-gia/cap-nhat-dgg", body); // Bỏ {} quanh body
+      return response?.status === 200 ? { status: 1 } : { status: 0 };
     } catch (error) {
-        console.error("Lỗi khi cập nhật đợt giảm giá:", error);
-        return { status: 0 };
+      console.error("Lỗi khi cập nhật đợt giảm giá:", error);
+      return { status: 0 };
     }
-};
+  };
 
-const fetchChiTietSanPhams = async (skip, limit) => {
+  const fetchChiTietSanPhams = async (skip, limit) => {
     try {
-        const response = await api.post(
-            `/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skip}&limit=${limit}`,
-            { idSanPham: selectedIds }
-        );
+      const response = await api.post(
+        `/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skip}&limit=${limit}`,
+        { idSanPham: selectedIds }
+      );
 
-        setSanPhamChiTiets(response.data.data);
-        const total = Number(response.data.total) / Number(limit);
-        setTotalPagesCt(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
+      setSanPhamChiTiets(response.data.data);
+      const total = Number(response.data.total) / Number(limit);
+      setTotalPagesCt(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
     } catch (error) {
-        console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
+      console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
     }
-};
+  };
 
-const fetchSanPham = async (skip, limit) => {
+  const fetchSanPham = async (skip, limit) => {
     try {
-        const response = await api.get(
-            `/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}${
-                filters.search ? `&tenSanPham=${filters.search}` : ""
-            }`
-        );
+      const response = await api.get(
+        `/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}${filters.search ? `&tenSanPham=${filters.search}` : ""
+        }`
+      );
 
-        setSanPhams(response.data.data);
-        const total = Number(response.data.total) / Number(limit);
-        setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
+      setSanPhams(response.data.data);
+      const total = Number(response.data.total) / Number(limit);
+      setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
     } catch (error) {
-        console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+      console.error("Lỗi khi lấy danh sách sản phẩm:", error);
     }
-};
+  };
 
 
   const nextPage = () => {
@@ -373,9 +379,8 @@ const fetchSanPham = async (skip, limit) => {
               onChange={(e) =>
                 editDGG({ ...editMaDGG, tenDotGiamGia: e.target.value })
               }
-              className={`w-full p-2 border rounded-md ${
-                errorName ? "border-red-500" : ""
-              }`}
+              className={`w-full p-2 border rounded-md ${errorName ? "border-red-500" : ""
+                }`}
             />
             {errorName && (
               <span className="text-red-500 text-sm">
@@ -466,9 +471,8 @@ const fetchSanPham = async (skip, limit) => {
                   e.preventDefault(); // Ngừng hành động nhập
                 }
               }}
-              className={`w-full p-2 border rounded-md ${
-                errorGiaTri ? "border-red-500" : ""
-              }`}
+              className={`w-full p-2 border rounded-md ${errorGiaTri ? "border-red-500" : ""
+                }`}
               min="1"
             />
             {errorGiaTri && (
@@ -492,9 +496,8 @@ const fetchSanPham = async (skip, limit) => {
                   name="ngayBatDau"
                   value={editMaDGG.ngayBatDau}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${
-                    errorNBT ? "border-red-500" : ""
-                  }`}
+                  className={`w-full p-2 border rounded-md ${errorNBT ? "border-red-500" : ""
+                    }`}
                   min={new Date().toISOString().slice(0, 16)} // Chặn ngày quá khứ
                 />
                 {errorNBT && (
@@ -515,9 +518,8 @@ const fetchSanPham = async (skip, limit) => {
                   name="ngayKetThuc"
                   value={editMaDGG.ngayKetThuc}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${
-                    errorNKT ? "border-red-500" : ""
-                  }`}
+                  className={`w-full p-2 border rounded-md ${errorNKT ? "border-red-500" : ""
+                    }`}
                   min={
                     editMaDGG.ngayBatDau || new Date().toISOString().slice(0, 16)
                   } // Chặn ngày quá khứ và nhỏ hơn ngày bắt đầu
@@ -619,13 +621,12 @@ const fetchSanPham = async (skip, limit) => {
               <button
                 onClick={prevPage}
                 disabled={currentPage === 1}
-                className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                  currentPage === 1
+                className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === 1
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-gray-200"
-                }`}
+                  }`}
               >
-                ◀
+                &lt;
               </button>
 
               {/* Hiển thị số trang */}
@@ -637,13 +638,12 @@ const fetchSanPham = async (skip, limit) => {
               <button
                 onClick={nextPage}
                 disabled={currentPage === totalPages}
-                className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                  currentPage === totalPages
+                className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === totalPages
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-gray-200"
-                }`}
+                  }`}
               >
-                ▶
+                &gt;
               </button>
             </div>
           </div>
@@ -716,7 +716,7 @@ const fetchSanPham = async (skip, limit) => {
                   </td>
                   <td className="p-2">{index + skipCt + 1}</td>
                   <td className="p-2">{sanPhamChiTiet.sanPham.maSanPham}</td>
-                  <td className="p-2">{sanPhamChiTiet.sanPham.tenSanPham}</td>
+                  <td className="p-2">{sanPhamChiTiet.sanPham.ten}</td>
                   <td className="p-2">{sanPhamChiTiet.danhMucSanPham.ten}</td>
                   <td className="p-2">{sanPhamChiTiet.thuongHieu.ten}</td>
                   <td className="p-2">{sanPhamChiTiet.chatLieu.ten}</td>
@@ -732,13 +732,12 @@ const fetchSanPham = async (skip, limit) => {
             <button
               onClick={prevPageCt}
               disabled={currentPageCt === 1}
-              className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                currentPageCt === 1
+              className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPageCt === 1
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-gray-200"
-              }`}
+                }`}
             >
-              ◀
+              &lt;
             </button>
             {/* Hiển thị số trang */}
             <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
@@ -748,13 +747,12 @@ const fetchSanPham = async (skip, limit) => {
             <button
               onClick={nextPageCt}
               disabled={currentPageCt === totalPagesCt}
-              className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                currentPageCt === totalPagesCt
+              className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPageCt === totalPagesCt
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-gray-200"
-              }`}
+                }`}
             >
-              ▶
+              &gt;
             </button>
           </div>
         </div>

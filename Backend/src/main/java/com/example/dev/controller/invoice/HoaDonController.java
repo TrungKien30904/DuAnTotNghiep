@@ -122,10 +122,9 @@ public class HoaDonController {
 
     //l123
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createHoaDon(@RequestBody HoaDon hoaDon,Authentication auth) {
-        HoaDon savedHoaDon = hoaDonService.createHoaDon(hoaDon,auth);
-        return ResponseEntity.ok(savedHoaDon);
+    @GetMapping("/create")
+    public ResponseEntity<?> createHoaDon(Authentication auth) {
+        return ResponseEntity.ok(hoaDonService.createHoaDon(auth));
     }
 
     @GetMapping("/listHoaDon")

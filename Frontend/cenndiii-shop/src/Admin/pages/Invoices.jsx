@@ -7,7 +7,7 @@ import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { formatDateFromArray } from "../../untils/FormatDate";
-const statuses = ['Tất cả', 'Chờ xử lý','Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã thanh toán', 'Hoàn thành', 'Hủy'];
+const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 import { hasPermission } from "../../security/DecodeJWT";
 export default function Invoices() {
     const navigate = useNavigate();
@@ -215,12 +215,6 @@ export default function Invoices() {
                             <div className='flex gap-2'>
                                 <FileSpreadsheet className="mr-2" />
                                 <span>Xuất Excel</span>
-                            </div>
-                        </button>
-                        <button className="p-2 bg-red-500 text-white rounded mb-4">
-                            <div className='flex gap-2'>
-                                <ShoppingCart className="mr-2" />
-                                <span>Tạo đơn hàng</span>
                             </div>
                         </button>
                     </div>
