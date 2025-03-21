@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/dot-giam-gia")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class DotGiamGiaController {
     @Autowired
     DotGiamGiaService dotGiamGiaService;

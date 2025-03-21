@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import axios from "axios";
+import api from "../../../security/Axios";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
@@ -200,19 +201,6 @@ export default function AddDiscounts() {
     setSkipCt(0);
   }, [selectedIds]);
 
-  const fetchMaDGG = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/admin/dot-giam-gia/lay-ma-dgg"
-      );
-      // const maDGG = `DGG${String(response.data + 1).padStart(6, '0')}`
-      const maDGG = `DGG-${response.data + 1}`;
-      addDGG({ ...addMaDGG, maDotGiamGia: maDGG });
-    } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     addDGG((prev) => ({ ...prev, [name]: value }));
@@ -240,59 +228,56 @@ export default function AddDiscounts() {
     }
   };
 
+  const fetchMaDGG = async () => {
+    try {
+      const response = await api.get("/admin/dot-giam-gia/lay-ma-dgg");
+      const maDGG = `DGG-${response.data + 1}`;
+      addDGG({ ...addMaDGG, maDotGiamGia: maDGG });
+    } catch (error) {
+      console.error("Lỗi khi lấy mã đợt giảm giá:", error);
+    }
+  };
+
   const addDotGiamGias = async () => {
     try {
-      // const sanPhamChiTietTrue = sanPhamChiTiets.filter((i) => i.isSelected);
-      // const idChiTietSanPham = sanPhamChiTietTrue.map((i) => i.idChiTietSanPham);
       const body = {
         dotGiamGia: { ...addMaDGG },
         idSanPhamChiTietList: selectedIdsCt,
       };
-      const response = await axios.post(
-        "http://localhost:8080/admin/dot-giam-gia/them-dgg",
-        body
-      );
-      if (response && response.status === 200) {
-        return { status: 1 }; // Trả về thành công
-      } else {
-        return { status: 0 }; // Trường hợp không thành công
-      }
+      const response = await api.post("/admin/dot-giam-gia/them-dgg", body);
+      return response?.status === 200 ? { status: 1 } : { status: 0 };
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
-      return { status: 0 }; // Trả về thất bại khi có lỗi
+      console.error("Lỗi khi thêm đợt giảm giá:", error);
+      return { status: 0 };
     }
   };
 
   const fetchChiTietSanPhams = async (skipCt, limitCt) => {
     try {
-      const response = await axios.post(
-        `http://localhost:8080/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skipCt}&limit=${limitCt}`,
-        {
-          idSanPham: selectedIds, // Truyền mảng vào trong body
-        }
+      const response = await api.post(
+        `/admin/dot-giam-gia/get-san-pham-chi-tiet?skip=${skipCt}&limit=${limitCt}`,
+        { idSanPham: selectedIds }
       );
       setSanPhamChiTiets(response.data.data);
       const total = Number(response.data.total) / Number(limitCt);
       setTotalPagesCt(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
+      console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
     }
   };
 
   const fetchSanPham = async (skip, limit) => {
-    let response;
-    if (filters.search) {
-      response = await axios.get(
-        `http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}&tenSanPham=${filters.search}`
+    try {
+      const response = await api.get(
+        `/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}${filters.search ? `&tenSanPham=${filters.search}` : ""
+        }`
       );
-    } else {
-      response = await axios.get(
-        `http://localhost:8080/admin/dot-giam-gia/get-san-pham?skip=${skip}&limit=${limit}`
-      );
+      setSanPhams(response.data.data);
+      const total = Number(response.data.total) / Number(limit);
+      setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0));
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách sản phẩm:", error);
     }
-    setSanPhams(response.data.data);
-    const total = Number(response.data.total) / Number(limit);
-    setTotalPages(Math.trunc(total) + (total % 1 !== 0 ? 1 : 0)); // Tính tổng số trang
   };
 
   const nextPage = () => {
@@ -380,9 +365,8 @@ export default function AddDiscounts() {
                 addDGG({ ...addMaDGG, tenDotGiamGia: e.target.value })
               }
               // className="w-full p-2 border rounded-md"
-              className={`w-full p-2 border rounded-md ${
-                errorName ? "border-red-500" : ""
-              }`}
+              className={`w-full p-2 border rounded-md ${errorName ? "border-red-500" : ""
+                }`}
             />
             {errorName && (
               <span className="text-red-500 text-sm">
@@ -473,9 +457,8 @@ export default function AddDiscounts() {
                   e.preventDefault(); // Ngừng hành động nhập
                 }
               }}
-              className={`w-full p-2 border rounded-md ${
-                errorGiaTri ? "border-red-500" : ""
-              }`}
+              className={`w-full p-2 border rounded-md ${errorGiaTri ? "border-red-500" : ""
+                }`}
               min="1"
             />
             {errorGiaTri && (
@@ -499,9 +482,8 @@ export default function AddDiscounts() {
                   name="ngayBatDau"
                   value={addMaDGG.ngayBatDau}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${
-                    errorNBT ? "border-red-500" : ""
-                  }`}
+                  className={`w-full p-2 border rounded-md ${errorNBT ? "border-red-500" : ""
+                    }`}
                   min={new Date().toISOString().slice(0, 16)} // Chặn ngày quá khứ
                 />
                 {errorNBT && (
@@ -522,9 +504,8 @@ export default function AddDiscounts() {
                   name="ngayKetThuc"
                   value={addMaDGG.ngayKetThuc}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${
-                    errorNKT ? "border-red-500" : ""
-                  }`}
+                  className={`w-full p-2 border rounded-md ${errorNKT ? "border-red-500" : ""
+                    }`}
                   min={
                     addMaDGG.ngayBatDau || new Date().toISOString().slice(0, 16)
                   } // Chặn ngày quá khứ và nhỏ hơn ngày bắt đầu
@@ -623,13 +604,12 @@ export default function AddDiscounts() {
               <button
                 onClick={prevPage}
                 disabled={currentPage === 1}
-                className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                  currentPage === 1
+                className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === 1
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-gray-200"
-                }`}
+                  }`}
               >
-                ◀
+                &lt;
               </button>
 
               {/* Hiển thị số trang */}
@@ -641,13 +621,12 @@ export default function AddDiscounts() {
               <button
                 onClick={nextPage}
                 disabled={currentPage === totalPages}
-                className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                  currentPage === totalPages
+                className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPage === totalPages
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-gray-200"
-                }`}
+                  }`}
               >
-                ▶
+                &gt;
               </button>
             </div>
           </div>
@@ -735,13 +714,12 @@ export default function AddDiscounts() {
             <button
               onClick={prevPageCt}
               disabled={currentPageCt === 1}
-              className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                currentPageCt === 1
+              className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPageCt === 1
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-gray-200"
-              }`}
+                }`}
             >
-              ◀
+              &lt;
             </button>
             {/* Hiển thị số trang */}
             <span className="w-10 h-10 flex items-center justify-center border rounded-full font-semibold">
@@ -751,13 +729,12 @@ export default function AddDiscounts() {
             <button
               onClick={nextPageCt}
               disabled={currentPageCt === totalPagesCt}
-              className={`w-10 h-10 flex items-center justify-center border rounded-full ${
-                currentPageCt === totalPagesCt
+              className={`w-10 h-10 flex items-center justify-center border rounded-full ${currentPageCt === totalPagesCt
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-gray-200"
-              }`}
+                }`}
             >
-              ▶
+              &gt;
             </button>
           </div>
         </div>

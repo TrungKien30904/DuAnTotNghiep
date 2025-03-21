@@ -4,7 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-
+import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
 export default function EmployeeManagement() {
   const [filters, setFilters] = useState({ search: "", trangThai: "all", dob: "" });
   const [employees, setEmployees] = useState([]);
@@ -15,7 +16,11 @@ export default function EmployeeManagement() {
   useEffect(() => {
     fetchEmployees(); // Gọi lại khi trang thay đổi
   }, [currentPage]); // Chỉ gọi lại khi currentPage thay đổi
-
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+        navigate("/admin/login");
+    }
+}, [navigate]);
   // lấy danh sách phân trang
   // const fetchEmployees = async () => {
   //   try {
@@ -55,7 +60,7 @@ export default function EmployeeManagement() {
       } else if (search.trim() !== "") {
         params.ten = search;
       }
-      const response = await axios.get("http://localhost:8080/admin/nhan-vien/search", { params });
+      const response = await api.get("/admin/nhan-vien/search", { params });
       setEmployees(response.data.content); // Lấy danh sách nhân viên từ response
       setTotalPages(response.data.totalPages); // Lưu tổng số trang
     } catch (error) {
@@ -66,7 +71,7 @@ export default function EmployeeManagement() {
   // lấy ds không phân trang
   const fetchAllEmployees = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/admin/nhan-vien/hien-thi");
+      const response = await api.get("/admin/nhan-vien/hien-thi");
       console.log(response.data); // Kiểm tra phản hồi từ API
       return response.data; // Trả về chỉ phần content
     } catch (error) {

@@ -15,4 +15,5 @@ public interface DiaChiRepo extends JpaRepository<DiaChi, Integer> {
     List<DiaChi> getExistAddressByInfor(List<Long> provinceId, List<Long> districtId, List<Long> wardIds, Integer customerId);
     @Query(value = "select * from dia_chi d where d.stage =1 and d.id_khach_hang in ?1", nativeQuery = true)
     List<DiaChi> getByCustomerId(List<Integer> customerIds);
+    DiaChi findByIdKhachHangAndMacDinhTrue(Integer idKhachHang);
 }

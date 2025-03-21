@@ -1,5 +1,6 @@
 package com.example.dev.service;
 
+import com.example.dev.DTO.UserLogin.UserLogin;
 import com.example.dev.DTO.request.ChiTietSanPham.ChiTietSanPhamRequest;
 import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.DTO.response.ChiTietSanPham.BienTheResponse;
@@ -23,13 +24,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -41,7 +42,7 @@ public class ChiTietSanPhamService {
     private final HinhAnhRepo hinhAnhRepo;
     private final SanPhamRepo sanPhamRepo;
     private final MauSacRepo mauSacRepo;
-//    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
+    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final LichSuRepo lichSuRepo;
@@ -62,13 +63,28 @@ public class ChiTietSanPhamService {
     }
 
     public ChiTietSanPham getChiTietSanPham(Integer id) {
-        return chiTietSanPhamRepo.findById(id).get();
+        return chiTietSanPhamRepo.findById(id).orElse(null);
     }
 
-    public List<ChiTietSanPham> getProductDetailsByColor(Integer idSanPham,Integer idMauSac) {
-        return chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac);
+    public Map<String,List<?>> getProductDetailsByColor(Integer idSanPham, Integer idMauSac) {
+        Map<String, List<?>> data = new HashMap<>();
+        data.put("chiTietSanPham",chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac));
+        data.put("listAnh",hinhAnhRepo.findHinhAnhBySanPham_IdSanPhamAndMauSac_IdMauSac(idSanPham,idMauSac));
+        return data;
     }
-    public Integer themChiTietSanPham(ChiTietSanPhamResponse dto) {
+//    public List<ChiTietSanPhamRequest> getProductDetailsByColor(Integer idSanPham,Integer idMauSac) {
+//        List<ChiTietSanPhamRequest> listRequest = new ArrayList<>();
+//
+//        List<String> lienKet = hinhAnhRepo.findHinhAnhBySanPham_IdSanPhamAndMauSac_IdMauSac(idSanPham,idMauSac).stream()
+//                .map(HinhAnh::getLienKet).toList();
+//        for (ChiTietSanPham ctsp : chiTietSanPhamRepo.getAllProductByColor(idSanPham,idMauSac)){
+//            ChiTietSanPhamRequest request = chiTietSanPhamMapper.entityToDto(ctsp);
+//            request.setListAnh(lienKet);
+//            listRequest.add(request);
+//        }
+//        return listRequest;
+//    }
+    public Integer themChiTietSanPham(ChiTietSanPhamResponse dto, Authentication auth) {
         ChiTietSanPham ctsp = null;
         List<ChiTietSanPham> chiTietSanPhams = getListChiTietSanPham();
         for (BienTheResponse dt : dto.getBienThe()) {
@@ -83,7 +99,8 @@ public class ChiTietSanPhamService {
             ctsp.setDanhMucSanPham(dto.getDanhMuc());
             ctsp.setMoTa(dto.getMoTa());
             ctsp.setNgayTao(LocalDateTime.now());
-            ctsp.setNguoiTao("Admin");
+            UserLogin userLogin = (UserLogin) auth.getPrincipal();
+            ctsp.setNguoiTao(userLogin.getUsername());
             ctsp.setMauSac(dt.getMauSac());
             ctsp.setKichCo(dt.getKichCo());
             ctsp.setGia(dt.getGia());
@@ -111,25 +128,28 @@ public class ChiTietSanPhamService {
         return ctsp.getSanPham().getIdSanPham();
     }
 
-    public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id) {
+    public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id,Authentication auth) {
         try {
             ChiTietSanPham find = chiTietSanPhamRepo.findById(id).orElseThrow();
 
             if (isEqual(ctsp, find)) {
                 ctsp.setIdChiTietSanPham(id);
                 ctsp.setNgaySua(LocalDateTime.now());
-                ctsp.setNguoiTao("Admin");
+                UserLogin userLogin = (UserLogin) auth.getPrincipal();
+                ctsp.setNguoiSua(userLogin.getUsername());
                 chiTietSanPhamRepo.save(ctsp);
                 log.info("Update ProductDetails > {}", ctsp.toString());
 //                historyImpl.saveHistory(find,ctsp, BaseConstant.Action.UPDATE.getValue(), id,"Admin");
             }else{
 //              thêm sản phẩm mới từ id sp cũ
                 ctsp.setNgayTao(LocalDateTime.now());
-                ctsp.setNguoiTao("Admin");
+                UserLogin userLogin = (UserLogin) auth.getPrincipal();
+                ctsp.setNguoiTao(userLogin.getUsername());
                 ctsp.setMa(ctsp.getMauSac().getTen() + ctsp.getKichCo().getTen());
                 ctsp.setTaoBoi(find.getIdChiTietSanPham());
                 chiTietSanPhamRepo.save(ctsp);
 
+                // sua sp cu
                 find.setSoLuong(0);
                 find.setGiaDuocTinh(find.getGia());
                 find.setGia(ctsp.getGia());
@@ -189,7 +209,7 @@ public class ChiTietSanPhamService {
     }
 
     @Transactional
-    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham) {
+    public void uploadImage(final List<MultipartFile> file, List<String> listTenMau, Integer idSanPham,Authentication auth) {
             if (!file.isEmpty()) {
 //            for(String publicId : hinhAnhRepo.publicId(idSanPham)) {
 //                this.cloudinaryService.deleteImage(publicId);
@@ -197,7 +217,7 @@ public class ChiTietSanPhamService {
                 for (int i = 0; i < file.size(); i++) {
                     //Tao hinh anh
                     HinhAnh anh = new HinhAnh();
-                    anh.setSanPham(sanPhamRepo.findById(idSanPham).get());
+                    anh.setSanPham(sanPhamRepo.findById(idSanPham).orElse(null));
 
                     // du lieu tu fe
                     MultipartFile f = file.get(i);
@@ -220,7 +240,8 @@ public class ChiTietSanPhamService {
                     anh.setIdHinhAnh(response.getPublicId());
                     anh.setLienKet(response.getUrl());
                     anh.setNgayTao(LocalDateTime.now());
-                    anh.setNguoiTao("admin");
+                    UserLogin userLogin = (UserLogin) auth.getPrincipal();
+                    anh.setNguoiTao(userLogin.getUsername());
                     anh.setTrangThai(true);
                     this.hinhAnhRepo.save(anh);
                 }
@@ -281,8 +302,10 @@ public class ChiTietSanPhamService {
         List<HoaDonChiTiet> listHoaDonChiTiet = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
 
         // tìm sp đang thao tác
-        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
-
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).orElse(null);
+        if (ctsp == null) {
+            return null;
+        }
         for(HoaDonChiTiet hdct : listHoaDonChiTiet) {
             if(hdct.getHoaDon().getIdHoaDon().equals(idHoaDon)) {
                 if(hdct.getChiTietSanPham().getIdChiTietSanPham().equals(idChiTietSanPham)) {
@@ -357,52 +380,59 @@ public class ChiTietSanPhamService {
     @Transactional
     public List<HoaDonChiTiet> xoaSp(Integer idHdct, Integer idChiTietSanPham) {
         // tim sp can xoa
-        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).get();
+        HoaDonChiTiet hdct = hoaDonChiTietRepository.findById(idHdct).orElse(null);
 
         // lay sp trong db de cap nhat
-        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).get();
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idChiTietSanPham).orElse(null);
 
         List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idChiTietSanPham);
-        if (!backTo.isEmpty()) {
-            for (ChiTietSanPham b : backTo) {
-                if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idChiTietSanPham)) {
-                    chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() + hdct.getSoLuong());
+        if (hdct != null && ctsp != null){
+            if (!backTo.isEmpty()) {
+                for (ChiTietSanPham b : backTo) {
+                    if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idChiTietSanPham)) {
+                        chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() + hdct.getSoLuong());
+                    }
                 }
+            }else{
+                chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
             }
-        }else{
-            chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() + hdct.getSoLuong());
+            hoaDonChiTietRepository.delete(hdct);
         }
-        hoaDonChiTietRepository.delete(hdct);
+        assert hdct != null;
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hdct.getHoaDon().getIdHoaDon());
     }
 
     public void capNhatSl(Integer idHdct,Integer idCtsp,int slThem,BigDecimal giaDuocTinh){
 
-        HoaDonChiTiet productChange = hoaDonChiTietRepository.findById(idHdct).get();
+        HoaDonChiTiet productChange = hoaDonChiTietRepository.findById(idHdct).orElse(null);
 
-        if (giaDuocTinh == null){
-            if (productChange.getSoLuong() >= 0){
-                productChange.setSoLuong(productChange.getSoLuong() + slThem);
-                productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
-                hoaDonChiTietRepository.save(productChange);
-            }
-            ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).get();
-            if (ctsp.getSoLuong() >= 0){
-                ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
-                chiTietSanPhamRepo.save(ctsp);
-            }
-        }else{
-            if (slThem < 0){
+        if (productChange != null) {
+            if (giaDuocTinh == null){
                 if (productChange.getSoLuong() >= 0){
                     productChange.setSoLuong(productChange.getSoLuong() + slThem);
                     productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
                     hoaDonChiTietRepository.save(productChange);
                 }
-                List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idCtsp);
-                if (!backTo.isEmpty()) {
-                    for (ChiTietSanPham b : backTo) {
-                        if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idCtsp)) {
-                            chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() - slThem);
+                ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(idCtsp).orElse(null);
+                if (ctsp != null) {
+                    if (ctsp.getSoLuong() >= 0){
+                        ctsp.setSoLuong(ctsp.getSoLuong() - slThem);
+                        chiTietSanPhamRepo.save(ctsp);
+                    }
+                }
+            }else{
+                if (slThem < 0){
+                    if (productChange.getSoLuong() >= 0){
+                        productChange.setSoLuong(productChange.getSoLuong() + slThem);
+                        productChange.setThanhTien(productChange.getDonGia().multiply(BigDecimal.valueOf(productChange.getSoLuong())));
+                        hoaDonChiTietRepository.save(productChange);
+                    }
+                    List<ChiTietSanPham> backTo = chiTietSanPhamRepo.findAllByTaoBoi(idCtsp);
+                    if (!backTo.isEmpty()) {
+                        for (ChiTietSanPham b : backTo) {
+                            if (b.getGiaDuocTinh() == null && b.getTaoBoi().equals(idCtsp)) {
+                                chiTietSanPhamRepo.updateQuantity(b.getIdChiTietSanPham(), b.getSoLuong() - slThem);
+                            }
                         }
                     }
                 }

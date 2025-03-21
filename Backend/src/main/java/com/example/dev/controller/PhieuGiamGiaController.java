@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin/phieu-giam-gia")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class PhieuGiamGiaController {
     @Autowired
     PhieuGiamGiaService phieuGiamGiaService;

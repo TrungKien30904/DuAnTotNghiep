@@ -19,6 +19,9 @@ public class NhanVienService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailNhanVienService emailService;
+
     public Page<NhanVien> getAllEmployees(Pageable pageable) {
         return nhanVienRepo.findAll(pageable);
     }
@@ -41,6 +44,7 @@ public class NhanVienService {
 
     public List<NhanVien> themNv(NhanVien nhanVien){
         nhanVien.setMatKhau(passwordEncoder.encode(nhanVien.getMatKhau()));
+        emailService.sendAccount(nhanVien);
         nhanVienRepo.save(nhanVien);
         return getNv();
     }

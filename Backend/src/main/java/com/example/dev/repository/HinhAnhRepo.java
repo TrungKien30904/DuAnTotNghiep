@@ -34,4 +34,6 @@ public interface HinhAnhRepo extends JpaRepository<HinhAnh,String> {
 SELECT * FROM ranked_images WHERE rn = 1;
 """,nativeQuery = true)
     List<HinhAnh> findImageByProduct(@Param("idSanPham") Integer idSanPham);
+
+    List<HinhAnh> findHinhAnhBySanPham_IdSanPhamAndMauSac_IdMauSac(Integer idSanPham, Integer idMauSac);
 }

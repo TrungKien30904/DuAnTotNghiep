@@ -4,10 +4,12 @@ import { NavLink, useNavigate } from "react-router-dom"; // Import useNavigate
 import { Dialog } from "@headlessui/react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
-import Notification from "../components/Notification";
+import Notification from '../../components/Notification';
 import "react-toastify/dist/ReactToastify.css";
-// import Alert from "../components/Alert";
-
+// import Alert from "../../components/Alert";
+import api from "../../security/Axios";
+import { formatDateFromArray } from "../../untils/FormatDate";
+import { hasPermission } from "../../security/DecodeJWT";
 export default function ProductManagement() {
   const navigate = useNavigate();
   // const [filters, setFilters] = useState({ search: "", trangThai: "all", soLuong: "all" });
@@ -19,34 +21,39 @@ export default function ProductManagement() {
 
   // const [alertOpen, setAlertOpen] = useState(false); // mở alert
   // const [alertMessage, setAlertMessage] = useState(''); // thông báo alert
-
+  useEffect(() => {
+      if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+          navigate("/admin/login");
+      }
+  }, [navigate]);
   useEffect(() => {
     fetchSanPhams();
   }, []);
 
   const fetchSanPhams = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/admin/san-pham/hien-thi");
-      setSanPhams(response.data);
+        const response = await api.get("/admin/san-pham/hien-thi");
+        setSanPhams(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
+        console.error("Lỗi khi lấy sản phẩm:", error);
     }
-  };
+};
 
-  const handleSaveChanges = async (id) => {
-    // Handle saving the new name and status (this could involve an API call to update the product)
+const handleSaveChanges = async (id) => {
     try {
-      const response = await axios.post(`http://localhost:8080/admin/san-pham/sua/${id}`, {
-        ten: newProductName,
-        trangThai: newProductStatus,
-      });
-      setSanPhams(response.data);
-      Notification("Sửa sản phẩm thành công", "success");
+        const response = await api.post(`/admin/san-pham/sua/${id}`, {
+            ten: newProductName,
+            trangThai: newProductStatus,
+        });
+
+        setSanPhams(response.data);
+        Notification("Sửa sản phẩm thành công", "success");
     } catch (error) {
-      Notification("Sửa sản phẩm thất bại", "error");
+        Notification("Sửa sản phẩm thất bại", "error");
     }
     setIsEditModalOpen(false);
-  };
+};
+
 
   const formatDate = (date) => {
     if (!date) return "Chưa có"; // Handle cases where the date is missing
@@ -152,13 +159,13 @@ export default function ProductManagement() {
           </thead>
           <tbody>
             {sanPhams.map((sanPham, index) => (
-              <tr key={sanPham.idSanPham} className="border-t">
+              <tr key={index} className="border-t">
                 <td className="p-2">{index + 1}</td>
                 <td className="p-2">{sanPham.maSanPham}</td>
                 <td className="p-2">{sanPham.ten}</td>
                 <td className="p-2">{sanPham.soLuong ?? 0}</td>
-                <td className="p-2">{formatDate(sanPham.ngayTao)}</td>
-                <td className="p-2">{formatDate(sanPham.ngaySua)}</td>
+                <td className="p-2">{formatDateFromArray(sanPham.ngayTao)}</td>
+                <td className="p-2">{formatDateFromArray(sanPham.ngaySua)}</td>
                 <td className="p-2">
                   <span className={`px-2 py-1 rounded text-white w-28 inline-block text-center ${Number(sanPham.trangThai) === 1 ? "bg-green-500" : "bg-red-500"}`}>
                     {Number(sanPham.trangThai) === 1 ? "Đang Bán" : "Ngừng Bán"}

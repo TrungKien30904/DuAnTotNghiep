@@ -5,6 +5,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
+import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
 
 export default function EditEmployee() {
     const { id } = useParams(); // Lấy ID từ URL
@@ -22,7 +24,11 @@ export default function EditEmployee() {
         diachi: ""
     });
     const [errors, setErrors] = useState({});
-
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const [loading, setLoading] = useState(false); // Trạng thái loading
 
     const handleSuccess = () => {
@@ -42,7 +48,7 @@ export default function EditEmployee() {
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/admin/nhan-vien/detail/${id}`);
+                const response = await api.get(`/admin/nhan-vien/detail/${id}`);
                 const data = response.data;
                 data.ngaySinh = data.ngaySinh ? data.ngaySinh.split("T")[0] : "";
                 setFormData(data);
@@ -130,7 +136,7 @@ export default function EditEmployee() {
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/admin/nhan-vien/detail/${id}`);
+                const response = await api.get(`/admin/nhan-vien/detail/${id}`);
                 const data = response.data;
                 data.ngaySinh = data.ngaySinh ? data.ngaySinh.split("T")[0] : "";
 
@@ -252,7 +258,7 @@ export default function EditEmployee() {
         setLoading(true);
 
         try {
-            const response = await axios.put(`http://localhost:8080/admin/nhan-vien/sua/${id}`, formData);
+            const response = await api.put(`/admin/nhan-vien/sua/${id}`, formData);
             if (response.status === 200) {
                 toast.success("Cập nhật nhân viên thành công!", {
                     position: "top-right",

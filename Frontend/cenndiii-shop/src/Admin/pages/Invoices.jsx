@@ -3,11 +3,12 @@ import axios from 'axios';
 import { FileText, ShoppingCart, Home, EyeIcon, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FileSpreadsheet } from "lucide-react";
-import Notification from '../components/Notification';
+import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
-
-const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Thanh toán', 'Hoàn thành', 'Hủy'];
-
+import api from '../../security/Axios';
+import { formatDateFromArray } from "../../untils/FormatDate";
+const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
+import { hasPermission } from "../../security/DecodeJWT";
 export default function Invoices() {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState([]);
@@ -19,13 +20,19 @@ export default function Invoices() {
         startDate: '',
         endDate: '',
     });
+    
+        useEffect(() => {
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
+        }, [navigate]);
     const [statistics, setStatistics] = useState({
         totalInvoices: 0,
     });
 
     const fetchInvoices = async (filterParams = {}) => {
         try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don', {
+            const response = await api.get('/admin/hoa-don', {
                 params: {
                     loaiDon: filterParams.loaiDon || filter.loaiDon,
                     startDate: filterParams.startDate || filter.startDate,
@@ -38,16 +45,34 @@ export default function Invoices() {
             console.error('Error fetching invoices:', error);
         }
     };
-
+    
     const fetchInvoiceStatistics = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don/thong-ke');
+            const response = await api.get('/admin/hoa-don/thong-ke');
             setStatistics(response.data);
         } catch (error) {
             console.error('Error fetching statistics:', error);
         }
     };
-
+    
+    const exportExcel = async () => {
+        try {
+            const response = await api.get('/admin/hoa-don/export-excel', {
+                responseType: 'blob', // Important for downloading files
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'FileExcel.xlsx'); // or any other extension
+            document.body.appendChild(link);
+            link.click();
+            Notification("Xuất hóa đơn thành công", "success");
+        } catch (error) {
+            console.error('Error exporting Excel:', error);
+            Notification("Xuất hóa đơn thất bại", "error");
+        }
+    };
+    
     const changePageHandler = (page) => {
         if (page > totalPage || page < 1) {
             return;
@@ -70,24 +95,7 @@ export default function Invoices() {
     };
     // Xuất excel
 
-    const exportExcel = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/admin/hoa-don/export-excel', {
-                responseType: 'blob', // Important for downloading files
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'FileExcel.xlsx'); // or any other extension
-            document.body.appendChild(link);
-            link.click();
-            Notification("Xuất hóa đơn thành công","success")
-        } catch (error) {
-            console.error('Error exporting Excel:', error);
-            Notification("Xuất hóa đơn thất bại","error")
-
-        }
-    };
+    
 
     const handleReset = () => {
         setFilter({
@@ -209,12 +217,6 @@ export default function Invoices() {
                                 <span>Xuất Excel</span>
                             </div>
                         </button>
-                        <button className="p-2 bg-red-500 text-white rounded mb-4">
-                            <div className='flex gap-2'>
-                                <ShoppingCart className="mr-2" />
-                                <span>Tạo đơn hàng</span>
-                            </div>
-                        </button>
                     </div>
 
 
@@ -240,12 +242,10 @@ export default function Invoices() {
                             <th className="px-4 py-2 ">Mã hoá đơn</th>
                             <th className="px-4 py-2 ">Tên khách hàng</th>
                             <th className="px-4 py-2 ">Tên nhân viên</th>
-                            <th className="px-4 py-2 ">Số điện thoại</th>
-                            <th className="px-4 py-2 ">Email</th>
                             <th className="px-4 py-2 ">Tổng tiền</th>
                             <th className="px-4 py-2 ">Ngày tạo</th>
                             <th className="px-4 py-2 ">Loại đơn</th>
-                            <th className="px-4 py-2 "></th>
+                            <th className="px-4 py-2 ">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -253,12 +253,10 @@ export default function Invoices() {
                             <tr key={invoice.idHoaDon} className="border-b hover:bg-gray-100">
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
-                                <td className="px-4 py-2">{invoice.tenNguoiNhan}</td>
-                                {/* <td className="px-4 py-2">{invoice.nhanVien.ten}</td> */}
-                                <td className="px-4 py-2">{invoice.soDienThoai}</td>
-                                <td className="px-4 py-2">{invoice.email}</td>
-                                <td className="px-4 py-2">{invoice.tongTien}</td>
-                                <td className="px-4 py-2">{invoice.ngayTao}</td>
+                                <td className="px-4 py-2">{invoice.khachHang?.ten || "Không có"}</td>
+                                <td className="px-4 py-2">{invoice.nhanVien?.ten || "Không có"}</td>
+                                <td className="px-4 py-2">{invoice.tongTien?? "0"}</td>
+                                <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>
                                 <td className="px-4 py-2">{invoice.loaiDon}</td>
                                 <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"
                                     onClick={() => goToDetail(invoice.maHoaDon)} /></td>

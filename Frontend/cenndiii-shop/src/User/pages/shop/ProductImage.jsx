@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function ImageGallery({ images }) {
-    const [selectedImage, setSelectedImage] = useState(images[0]);
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    // Khi images thay đổi, chọn ảnh đầu tiên
+    useEffect(() => {
+        if (images.length > 0) {
+            setSelectedImage(images[0]);
+        }
+    }, [images]);
 
     return (
         <div className="flex">
@@ -12,8 +19,9 @@ export default function ImageGallery({ images }) {
                         key={index}
                         src={img.lienKet}
                         alt={`Thumbnail ${index}`}
-                        className={`w-16 h-16 object-cover cursor-pointer rounded-lg border-2 transition-all duration-300 ${selectedImage === img ? "border-black" : "border-gray-300"
-                            }`}
+                        className={`w-16 h-16 object-cover cursor-pointer rounded-lg border-2 transition-all duration-300 ${
+                            selectedImage?.lienKet === img.lienKet ? "border-black" : "border-gray-300"
+                        }`}
                         onClick={() => setSelectedImage(img)}
                     />
                 ))}
@@ -21,11 +29,15 @@ export default function ImageGallery({ images }) {
 
             {/* Ảnh lớn */}
             <div className="flex-1">
-                <img
-                    src={selectedImage?.lienKet}
-                    alt="Selected"
-                    className="w-full h-[500px] object-cover rounded-lg"
-                />
+                {selectedImage ? (
+                    <img
+                        src={selectedImage.lienKet}
+                        alt="Selected"
+                        className="w-full h-[500px] object-cover rounded-lg"
+                    />
+                ) : (
+                    <p>Loading...</p>
+                )}
             </div>
         </div>
     );

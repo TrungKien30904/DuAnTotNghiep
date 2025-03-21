@@ -2,20 +2,24 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { useCart } from "./CartContext"; // Import context
-
+import axios from "axios";
+import InvoiceForm from "./InvoiceForm";
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
-    const { setCartCount } = useCart(); // Lấy hàm cập nhật giỏ hàng từ context
-
+    const {setCartCount } = useCart(); // Lấy hàm cập nhật giỏ hàng từ context
+    const [totalPrice, setTotalPrice] = useState(0);
 
     useEffect(() => {
         fetch("http://localhost:8080/api/cart", {
             credentials: "include"
         })
             .then(res => res.json())
-            .then(data => setCartItems(data))
+            .then(data => {
+                setCartItems(data)
+                console.log(data);
+            })
             .catch(err => console.error("Lỗi lấy giỏ hàng:", err));
     }, []);
 
@@ -78,9 +82,10 @@ const Cart = () => {
     };
 
 
-    const totalPrice = cartItems
-        .filter(item => selectedItems.includes(item.productId))
-        .reduce((acc, item) => acc + item.gia * item.soLuong, 0);
+    useEffect(() => {
+        const totalPrice = cartItems.reduce((total, item) => total + item.gia * item.soLuong, 0);
+        setTotalPrice(totalPrice);
+    }, [cartItems]);
 
 
     return (
@@ -132,31 +137,10 @@ const Cart = () => {
                         ))}
                     </div>
 
-                    {/* Thông tin đơn hàng */}
-                    <div className="border rounded-lg p-4 space-y-4">
-                        <h3 className="text-xl font-bold">ĐƠN HÀNG</h3>
-                        <div className="flex justify-between">
-                            <span>🎟 Voucher</span>
-                            <Link to="/voucher" className="text-blue-600">Chọn mã giảm giá</Link>
-                        </div>
-                        <hr />
-                        <div className="flex justify-between">
-                            <span>Đơn hàng:</span>
-                            <span>{totalPrice.toLocaleString()} VND</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Giảm:</span>
-                            <span>0 VND</span>
-                        </div>
-                        <hr />
-                        <div className="flex justify-between font-bold text-lg">
-                            <span>Tổng tiền:</span>
-                            <span>{totalPrice.toLocaleString()} VND</span>
-                        </div>
-                        <button className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">
-                            TIẾP TỤC THANH TOÁN
-                        </button>
-                    </div>
+                    <InvoiceForm
+                        total={totalPrice}
+                        cartItem={cartItems}
+                    />
                 </div>
             </div>
         </div>

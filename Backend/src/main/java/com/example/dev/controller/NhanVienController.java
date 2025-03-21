@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/nhan-vien")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class NhanVienController {
     @Autowired
     NhanVienService nhanVienService;
@@ -47,8 +49,6 @@ public class NhanVienController {
         if (!errors.isEmpty()) {
             return ResponseEntity.badRequest().body(errors);
         }
-
-        emailService.sendAccount(nhanVien);
         return ResponseEntity.ok(nhanVienService.themNv(nhanVien));
     }
 

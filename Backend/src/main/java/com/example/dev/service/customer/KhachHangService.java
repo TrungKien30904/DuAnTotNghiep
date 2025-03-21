@@ -15,6 +15,7 @@ import com.example.dev.repository.*;
 import com.example.dev.repository.customer.DiaChiRepo;
 import com.example.dev.repository.customer.KhachHangRepo;
 import com.example.dev.service.CloudinaryService;
+import com.example.dev.service.EmailService;
 import com.example.dev.service.ISendMailService;
 import com.example.dev.util.FileUpLoadUtil;
 import com.example.dev.util.IUtil;
@@ -52,26 +53,42 @@ public class KhachHangService {
     private IProvinceService provinceService;
     @Autowired
     private CloudinaryService cloudinaryService;
-
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private EmailService emailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
 
-    public List<KhachHang> getAllCustomerIsStatusTrue(){
-        List<KhachHang> khachHang = khachHangRepo.findByTrangThaiIsTrue();
-        for (KhachHang kh : khachHang){
-            String[] address = kh.getDiaChi().split(", ");
-            String thanhPho = address[0];
-            String quan = address[1];
-            String xa   = address[2];
+    public List<KhachHang> getAllCustomerIsStatusTrue() {
+        List<KhachHang> khachHangList = khachHangRepo.findByTrangThaiIsTrue();
+
+        for (KhachHang kh : khachHangList) {
+            String diaChi = kh.getDiaChi();
+
+            if (diaChi == null || diaChi.trim().isEmpty()) {
+                continue; // Bỏ qua vòng lặp nếu địa chỉ null hoặc trống
+            }
+
+            String[] address = diaChi.split(", ");
+            String thanhPho = (address.length > 0) ? address[0] : "Không xác định";
+            String quan = (address.length > 1) ? address[1] : "Không xác định";
+            String xa = (address.length > 2) ? address[2] : "Không xác định";
+
         }
-        return khachHangRepo.findByTrangThaiIsTrue();
+
+        return khachHangList;
     }
+
 
     public KhachHang themKhachHang(KhachHang khachHang){
         String password = iUtil.generatePassword();
         khachHang.setMatKhau(passwordEncoder.encode(password));
+        SendMailMapper sendMailMapper = new SendMailMapper();
+        sendMailMapper.setToMail(khachHang.getEmail());
+        sendMailMapper.setSubject("Notice: Register successfully");
+        sendMailMapper.setContent("Welcome to CenciddiShop. Your account: " + khachHang.getSoDienThoai() + " , password: " + password + ". Let login and try with special experience");
+        sendMailService.sendMail(sendMailMapper);
         return khachHangRepo.save(khachHang);
     }
 
@@ -92,7 +109,7 @@ public class KhachHangService {
             khachHang.setTrangThai(model.isTrangThai());
             khachHang.setGioiTinh(model.isGioiTinh());
             khachHang.setSoDienThoai(model.getSoDienThoai());
-            String password = iUtil.generatePassword();
+            String password = passwordEncoder.encode(iUtil.generatePassword());
             khachHang.setMatKhau(password);
             khachHangValidator.validateKhachHang(khachHang, null);
         } catch (Exception e) {
@@ -133,8 +150,8 @@ public class KhachHangService {
         if(modelSave.getIdKhachHang() != null) {
             DiaChi diaChi = new DiaChi();
             diaChi.setDiaChiChiTiet(model.getFullInfo());
-            diaChi.setThanhPho(String.valueOf(model.getProvinceId()));
-            diaChi.setQuanHuyen(String.valueOf(model.getDistrictId()));
+            diaChi.setThanhPho(model.getProvinceId());
+            diaChi.setQuanHuyen(model.getDistrictId());
             diaChi.setXaPhuong(String.valueOf(model.getWardId()));
             diaChi.setSoDienThoai(model.getSoDienThoai());
             diaChi.setIdKhachHang(modelSave.getIdKhachHang());
@@ -227,50 +244,50 @@ public class KhachHangService {
         khachHangRepo.deleteById(id);
     }
 
-    public CustomerMapper detailKhachHang(Integer id) {
-        Optional<KhachHang> model =  khachHangRepo.findById(id);
-        CustomerMapper customerMapper = new CustomerMapper();
-        if(model.isPresent()) {
-            KhachHang modelPresent = model.get();
-            customerMapper = new CustomerMapper();
-            customerMapper.setId(modelPresent.getIdKhachHang());
-            customerMapper.setMaKhachHang(modelPresent.getMaKhachHang());
-            customerMapper.setSoDienThoai(modelPresent.getSoDienThoai());
-            customerMapper.setTrangThai(modelPresent.getTrangThai());
-            customerMapper.setGioiTinh(modelPresent.getGioiTinh());
-            customerMapper.setHoTen(modelPresent.getHoTen());
-            customerMapper.setEmail(modelPresent.getEmail());
-            customerMapper.setImage(modelPresent.getHinhAnh());
-
-            List<DiaChi> diaChis = diaChiRepo.findDiaChiByIdKhachHang(modelPresent.getIdKhachHang());
-
-            List<AddressMapper> addressMappers = new ArrayList<>();
-            if(!diaChis.isEmpty()){
-                for(DiaChi e: diaChis){
-                    ProvinceModel provinceModel = provinceService.getProvinceModel(Integer.parseInt(e.getThanhPho()));
-                    AddressMapper addressMapper = new AddressMapper(e.getQuanHuyen(),
-                            e.getId(),
-                            e.getIdKhachHang(),
-                            e.getTenNguoiNhan(),
-                            e.getSoDienThoai(),
-                            e.getThanhPho(),
-                            e.getXaPhuong(),
-                            e.getDiaChiChiTiet(),
-                            e.getGhiChu(),
-                            e.isMacDinh(),
-                            provinceModel.getName(),
-                            provinceModel.getDistricts().stream().filter(p -> p.getCode() == Integer.parseInt(e.getQuanHuyen())).findFirst().map(DistrictModel::getName).orElse(null),
-                            provinceModel.getDistricts().stream().filter(p -> p.getCode() == Integer.parseInt(e.getQuanHuyen())).findFirst().orElse(null).
-                                    getWards().stream().filter(p -> p.getCode() == Integer.parseInt(e.getXaPhuong())).findFirst().map(WardModel::getName).orElse(null),
-                            e.getStage());
-                    addressMappers.add(addressMapper);
-                }
-
-                customerMapper.setAddressMappers(addressMappers);
-            }
-        }
-        return customerMapper;
-    }
+//    public CustomerMapper detailKhachHang(Integer id) {
+//        Optional<KhachHang> model =  khachHangRepo.findById(id);
+//        CustomerMapper customerMapper = new CustomerMapper();
+//        if(model.isPresent()) {
+//            KhachHang modelPresent = model.get();
+//            customerMapper = new CustomerMapper();
+//            customerMapper.setId(modelPresent.getIdKhachHang());
+//            customerMapper.setMaKhachHang(modelPresent.getMaKhachHang());
+//            customerMapper.setSoDienThoai(modelPresent.getSoDienThoai());
+//            customerMapper.setTrangThai(modelPresent.getTrangThai());
+//            customerMapper.setGioiTinh(modelPresent.getGioiTinh());
+//            customerMapper.setHoTen(modelPresent.getHoTen());
+//            customerMapper.setEmail(modelPresent.getEmail());
+//            customerMapper.setImage(modelPresent.getHinhAnh());
+//
+//            List<DiaChi> diaChis = diaChiRepo.findDiaChiByIdKhachHang(modelPresent.getIdKhachHang());
+//
+//            List<AddressMapper> addressMappers = new ArrayList<>();
+//            if(!diaChis.isEmpty()){
+//                for(DiaChi e: diaChis){
+//                    ProvinceModel provinceModel = provinceService.getProvinceModel(e.getThanhPho());
+//                    AddressMapper addressMapper = new AddressMapper(e.getQuanHuyen(),
+//                            e.getId(),
+//                            e.getIdKhachHang(),
+//                            e.getTenNguoiNhan(),
+//                            e.getSoDienThoai(),
+//                            e.getThanhPho(),
+//                            e.getXaPhuong(),
+//                            e.getDiaChiChiTiet(),
+//                            e.getGhiChu(),
+//                            e.isMacDinh(),
+//                            provinceModel.getName(),
+//                            provinceModel.getDistricts().stream().filter(p -> Objects.equals(p.getCode(), e.getQuanHuyen())).findFirst().map(DistrictModel::getName).orElse(null),
+//                            provinceModel.getDistricts().stream().filter(p -> Objects.equals(p.getCode(), e.getQuanHuyen())).findFirst().orElse(null).
+//                                    getWards().stream().filter(p -> p.getCode() == Integer.parseInt(e.getXaPhuong())).findFirst().map(WardModel::getName).orElse(null),
+//                            e.getStage());
+//                    addressMappers.add(addressMapper);
+//                }
+//
+//                customerMapper.setAddressMappers(addressMappers);
+//            }
+//        }
+//        return customerMapper;
+//    }
 
     public BaseListResponse<CustomerMapper> timKiem(String keyword, Boolean gioiTinh, Boolean trangThai, String soDienThoai, Pageable pageable) {
 

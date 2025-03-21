@@ -5,7 +5,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
-
+import { hasPermission } from "../../security/DecodeJWT";
+import api from "../../security/Axios";
 export default function AddEmployee() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -24,7 +25,11 @@ export default function AddEmployee() {
   const [errors, setErrors] = useState({});
 
   const [loading, setLoading] = useState(false); // Trạng thái loading
-
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   const handleSuccess = () => {
     toast.success("Thêm nhân viên thành công!", {
       position: "top-right",
@@ -125,7 +130,7 @@ export default function AddEmployee() {
       };
       console.log("Dữ liệu gửi lên server:", newFormData);
 
-      const response = await axios.post("http://localhost:8080/admin/nhan-vien/them", newFormData);
+      const response = await api.post("/admin/nhan-vien/them", newFormData);
 
       if (response.status === 200) {
         toast.success("Thêm nhân viên thành công!", {
@@ -147,7 +152,7 @@ export default function AddEmployee() {
   };
 
 
-// địa chỉ 
+  // địa chỉ 
   const [soNha, setSoNha] = useState("");
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);

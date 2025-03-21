@@ -1,5 +1,6 @@
 package com.example.dev.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +26,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JWTConfig {
     private final JWTFilter jwtFilter;
+    private static final String[] PUBLIC_URL = {
+            "/api/cart/**",
+            "/admin/mau-sac/hien-thi",
+            "/admin/kich-co/hien-thi",
+            "/admin/san-pham/hien-thi/online/**",
+            "/hinh-anh/**",
+            "/admin/chi-tiet-san-pham/hien-thi/online/**",
+            "/admin/chi-tiet-san-pham/dot-giam/hien-thi/**",
+            "/auth/**"
+    };
 
-    private static final String PUBLIC_URL="/**";
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -36,9 +46,10 @@ public class JWTConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Chỉ định domain cụ thể
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","PATCH","OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -50,9 +61,14 @@ public class JWTConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests ->
-                    authorizeRequests.requestMatchers(PUBLIC_URL).permitAll().anyRequest().authenticated()
+                    authorizeRequests
+                            .requestMatchers(PUBLIC_URL).permitAll()
+                            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "STAFF")
+                            .anyRequest().authenticated()
                 )
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(handing -> handing.authenticationEntryPoint(((request, response, authException) -> response
+                        .sendError(HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED: " + authException.getMessage()))))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

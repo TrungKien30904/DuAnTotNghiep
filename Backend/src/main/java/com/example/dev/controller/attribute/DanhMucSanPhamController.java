@@ -5,6 +5,7 @@ import com.example.dev.entity.attribute.DanhMucSanPham;
 import com.example.dev.service.attribute.DanhMucService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,11 +23,14 @@ public class DanhMucSanPhamController {
     public ResponseEntity<?> hienThiDangBan(){
         return ResponseEntity.ok(danhMucService.getDanhMucSanPhamBan());
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
     public ResponseEntity<?> themDanhMucSanPham(@RequestBody DanhMucSanPham dmsp){
         return ResponseEntity.ok(danhMucService.themDanhMucSanPham(dmsp));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaDanhMucSanPham(@RequestBody DanhMucSanPham dmsp,@PathVariable Integer id){
         return ResponseEntity.ok(danhMucService.suaDanhMucSanPham(dmsp,id));

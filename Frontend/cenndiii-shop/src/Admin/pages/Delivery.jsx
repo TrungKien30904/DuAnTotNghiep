@@ -47,17 +47,17 @@ const Delivery = ({ onShippingFeeUpdate, open, onClose }) => {
             onShippingFeeUpdate(false, null, { message: "Vui lòng chọn đầy đủ địa chỉ!", type: "error" });
             return;
         }
-    
+
         const diaChi = `${selectedProvince.ProvinceName}, ${selectedDistrict.DistrictName}, ${selectedWard.WardName}`;
         onShippingFeeUpdate(true, { ...formData, amount, diaChi }, null); // Không có lỗi, gửi dữ liệu
         onClose(); // Đóng dialog sau khi gửi dữ liệu hợp lệ
     };
-    
+
     const handleCancel = () => {
         onShippingFeeUpdate(false, null, null); // Gửi false, không có dữ liệu và lỗi
         onClose();
     };
-    
+
 
     useEffect(() => {
         const fetchProvinces = async () => {
@@ -203,29 +203,39 @@ const Delivery = ({ onShippingFeeUpdate, open, onClose }) => {
                 />
 
                 <FormControl fullWidth margin="dense">
-                    <InputLabel>Tỉnh/Thành phố</InputLabel>
-                    <Select value={selectedProvince?.ProvinceID || ""} onChange={handleProvinceChange}>
-                        {provinces.map((p) => (
-                            <MenuItem key={p.ProvinceID} value={p.ProvinceID}>{p.ProvinceName}</MenuItem>
-                        ))}
+                    <InputLabel id="thanh-pho">
+                        Tỉnh/Thành phố
+                    </InputLabel>
+                    <Select
+                        value={selectedProvince?.ProvinceID || ""} onChange={handleProvinceChange}
+                        labelId="thanh-pho"
+                        label="Tỉnh/Thành phố"
+                    >
+                        {provinces.map((p) => (<MenuItem key={p.ProvinceID} value={p.ProvinceID}>{p.ProvinceName}</MenuItem>))}
                     </Select>
                 </FormControl>
 
-                <FormControl fullWidth margin="dense">
-                    <InputLabel>Quận/Huyện</InputLabel>
-                    <Select value={selectedDistrict?.DistrictID || ""} onChange={handleDistrictChange}>
-                        {districts.map((d) => (
-                            <MenuItem key={d.DistrictID} value={d.DistrictID}>{d.DistrictName}</MenuItem>
-                        ))}
+                <FormControl fullWidth margin="dense" disabled={!selectedProvince}>
+                    <InputLabel id="huyen">Quận/Huyện</InputLabel>
+                    <Select
+                        labelId="huyen"
+                        label="Quận/Huyện"
+                        value={selectedDistrict?.DistrictID || ""}
+                        onChange={handleDistrictChange}
+                    >
+                        {districts.map((d) => (<MenuItem key={d.DistrictID} value={d.DistrictID}>{d.DistrictName}</MenuItem>))}
                     </Select>
                 </FormControl>
 
-                <FormControl fullWidth margin="dense">
-                    <InputLabel>Xã/Phường</InputLabel>
-                    <Select value={selectedWard?.WardCode || ""} onChange={handleWardChange}>
-                        {wards.map((w) => (
-                            <MenuItem key={w.WardCode} value={w.WardCode}>{w.WardName}</MenuItem>
-                        ))}
+                <FormControl fullWidth margin="dense" disabled={!selectedDistrict}>
+                    <InputLabel id="xa">Xã/Phường</InputLabel>
+                    <Select
+                        value={selectedWard?.WardCode || ""}
+                        onChange={handleWardChange}
+                        labelId="xa"
+                        label="Xã/Phường"
+                    >
+                        {wards.map((w) => (<MenuItem key={w.WardCode} value={w.WardCode}>{w.WardName}</MenuItem>))}
                     </Select>
                 </FormControl>
 

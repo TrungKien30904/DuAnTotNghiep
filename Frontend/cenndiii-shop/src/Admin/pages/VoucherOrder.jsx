@@ -5,7 +5,7 @@ import axios from 'axios';
 // import 'react-confirm-alert/src/react-confirm-alert.css';
 // import { toast } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
-import Notification from "../components/Notification"
+import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 export default function Orders() {
     const [orders, setOrders] = useState([]);
@@ -348,7 +348,7 @@ export default function Orders() {
                     </button>
                     <ul ref={tabsRef} className="flex border-b overflow-x-auto scrollbar-hide">
                         {tabs.map(tab => (<li key={tab.id}
-                            className={`mr-1 flex items-center ${activeTab === tab.id ? 'border-blue-500' : ''}`}>
+                                              className={`mr-1 flex items-center ${activeTab === tab.id ? 'border-blue-500' : ''}`}>
                             <button
                                 className={`bg-white inline-block py-2 px-4 text-blue-500 ${activeTab === tab.id ? 'font-semibold' : ''}`}
                                 onClick={() => setActiveTab(tab.id)}>
@@ -365,7 +365,7 @@ export default function Orders() {
                 </div>
                 {tabs.map(tab => (
                     <div key={tab.id} className={`tab-content ${activeTab === tab.id ? 'block' : 'hidden'}`}
-                        style={{ height: '1000px', overflowY: 'auto' }}>
+                         style={{ height: '1000px', overflowY: 'auto' }}>
                         <div className="p-4">
                             <h3 className="text-lg font-semibold">{tab.label}</h3>
 
@@ -379,7 +379,7 @@ export default function Orders() {
                         const selected = customers.find(c => c.idKhachHang === parseInt(e.target.value));
                         handleSelectCustomer(selected || customers.find(c => c.idKhachHang === 0));
                     }}
-                        value={selectedCustomer ? selectedCustomer.idKhachHang : ''}>
+                            value={selectedCustomer ? selectedCustomer.idKhachHang : ''}>
                         {customers.map(customer => (<option key={customer.idKhachHang} value={customer.idKhachHang}>
                             {customer.hoTen} - {customer.soDienThoai}
                         </option>))}

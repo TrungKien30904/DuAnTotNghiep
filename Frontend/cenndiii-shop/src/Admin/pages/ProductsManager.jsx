@@ -7,10 +7,13 @@ import CreatableSelect from "react-select/creatable";
 import Select from "react-select";
 import { Dialog, Switch } from "@headlessui/react";
 import { ToastContainer } from "react-toastify";
-import Notification from "../components/Notification";
+import Notification from '../../components/Notification';
 import "react-toastify/dist/ReactToastify.css";
-import Alert from "../components/Alert";
+import Alert from "../../components/Alert";
 import { ImageList, ImageListItem } from "@mui/material";
+import api from "../../security/Axios";
+import { hasPermission } from "../../security/DecodeJWT";
+
 export default function ProductDetails() {
   const { id } = useParams(); // Id lấy từ trang khác
   const [currentPage, setCurrentPage] = useState(0);
@@ -40,6 +43,12 @@ export default function ProductDetails() {
   const [openAlert, setOpenAlert] = useState(false); // trạng thái cho alert
   const [alertMessage, setAlertMessage] = useState(""); // thông báo cho alert
 
+
+  useEffect(() => {
+    if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   const handleAlertClose = (confirm) => {
     setOpenAlert(false);
     if (confirm) {
@@ -63,24 +72,24 @@ export default function ProductDetails() {
 
 
   useEffect(() => {
-    fetchData("http://localhost:8080/admin/san-pham/hien-thi/true", setProducts);
-    fetchData("http://localhost:8080/admin/co-giay/hien-thi/true", setShoeCollars);
-    fetchData("http://localhost:8080/admin/de-giay/hien-thi/true", setShoeSoles);
-    fetchData("http://localhost:8080/admin/mui-giay/hien-thi/true", setShoeToes);
-    fetchData("http://localhost:8080/admin/chat-lieu/hien-thi/true", setMaterials);
-    fetchData("http://localhost:8080/admin/thuong-hieu/hien-thi/true", setBrands);
-    fetchData("http://localhost:8080/admin/nha-cung-cap/hien-thi/true", setSuppliers);
-    fetchData("http://localhost:8080/admin/danh-muc/hien-thi/true", setCategories);
-    fetchData("http://localhost:8080/admin/mau-sac/hien-thi/true", setColors);
-    fetchData("http://localhost:8080/admin/kich-co/hien-thi/true", setSizes);
+    fetchData("/admin/san-pham/hien-thi/true", setProducts);
+    fetchData("/admin/co-giay/hien-thi/true", setShoeCollars);
+    fetchData("/admin/de-giay/hien-thi/true", setShoeSoles);
+    fetchData("/admin/mui-giay/hien-thi/true", setShoeToes);
+    fetchData("/admin/chat-lieu/hien-thi/true", setMaterials);
+    fetchData("/admin/thuong-hieu/hien-thi/true", setBrands);
+    fetchData("/admin/nha-cung-cap/hien-thi/true", setSuppliers);
+    fetchData("/admin/danh-muc/hien-thi/true", setCategories);
+    fetchData("/admin/mau-sac/hien-thi/true", setColors);
+    fetchData("/admin/kich-co/hien-thi/true", setSizes);
   }, []);
 
-  const fetchData = async (url, setState) => {
+  const fetchData = async (endpoint, setter) => {
     try {
-      const response = await axios.get(url);
-      setState(response.data);
+      const response = await api.get(endpoint);
+      setter(response.data);
     } catch (error) {
-      console.error(`Lỗi khi tải dữ liệu từ ${url}:`, error);
+      console.error(`Lỗi khi lấy dữ liệu từ ${endpoint}:`, error);
     }
   };
 
@@ -121,8 +130,8 @@ export default function ProductDetails() {
 
   const fetchChiTietSanPham = useCallback(async () => {
     try {
-      const response = await axios.post(
-        `http://localhost:8080/admin/chi-tiet-san-pham/phan-trang/${id}`,
+      const response = await api.post(
+        `/admin/chi-tiet-san-pham/phan-trang/${id}`,
         null,
         {
           params: {
@@ -131,8 +140,8 @@ export default function ProductDetails() {
           },
         }
       );
-      const response1 = await axios.get(
-        `http://localhost:8080/admin/chi-tiet-san-pham/total-pages/${id}`
+      const response1 = await api.get(
+        `/admin/chi-tiet-san-pham/total-pages/${id}`
       );
       setChiTietSanPham(response.data);
       setTotalItems(response1.data);
@@ -140,23 +149,22 @@ export default function ProductDetails() {
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
   }, [id, currentPage, pageSize]);
+
   useEffect(() => {
     fetchChiTietSanPham();
   }, [fetchChiTietSanPham]);
 
   const toggleTrangThai = async (productId, productDetailId, currentTrangThai) => {
     try {
-      const response = await axios.post(`http://localhost:8080/admin/chi-tiet-san-pham/doi-trang-thai/${productDetailId}/${productId}/${currentTrangThai}`);
+      const response = await api.post(
+        `/admin/chi-tiet-san-pham/doi-trang-thai/${productDetailId}/${productId}/${currentTrangThai}`
+      );
       setChiTietSanPham((prevChiTietSanPham) =>
-        prevChiTietSanPham.map((item) => {
-          if (item.idChiTietSanPham === productDetailId) {
-            return {
-              ...item,
-              trangThai: currentTrangThai === 1 ? 0 : 1,
-            };
-          }
-          return item;
-        })
+        prevChiTietSanPham.map((item) =>
+          item.idChiTietSanPham === productDetailId
+            ? { ...item, trangThai: currentTrangThai === 1 ? 0 : 1 }
+            : item
+        )
       );
       Notification("Thay đổi trạng thái thành công", "success");
       return response;
@@ -164,6 +172,7 @@ export default function ProductDetails() {
       Notification("Thay đổi trạng thái thất bại", "error");
     }
   };
+
 
   const openModal = (productDetail) => {
     setSelectedProductDetail(productDetail);
@@ -219,7 +228,7 @@ export default function ProductDetails() {
 
   const handleCreateOption = async (type, inputValue) => {
     try {
-      const response = await axios.post(`http://localhost:8080/admin/${type}/them`, {
+      const response = await api.post(`/admin/${type}/them`, {
         ten: inputValue,
       });
       if (type === "san-pham") {
@@ -313,7 +322,7 @@ export default function ProductDetails() {
 
   const fetchProductDetail = async (idChiTietSanPham) => {
     try {
-      const response = await axios.get(`http://localhost:8080/admin/chi-tiet-san-pham/chi-tiet/${idChiTietSanPham}`);
+      const response = await api.get(`/admin/chi-tiet-san-pham/chi-tiet/${idChiTietSanPham}`);
       const data = response.data;
       setImageById(idChiTietSanPham);
       // Set giá trị cho các dropdowns sau khi lấy dữ liệu từ API
@@ -383,11 +392,10 @@ export default function ProductDetails() {
 
 
     try {
-      const response = await axios.post(
-        `http://localhost:8080/admin/chi-tiet-san-pham/sua/${selectedProductDetail.idChiTietSanPham}`,
+      await api.post(
+        `/admin/chi-tiet-san-pham/sua/${selectedProductDetail.idChiTietSanPham}`,
         payload
       );
-
       await handleUploadImages(productSelected.value);
       Notification("Cập nhật thành công", "success");
       closeModal();
@@ -427,17 +435,17 @@ export default function ProductDetails() {
         </div>
         <div className="grid grid-cols-5 gap-4">
           {[
-            { field: "product", options: products, label: "Sản phẩm" },
-            { field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
-            { field: "shoeToe", options: shoeToes, label: "Mũi giày" },
-            { field: "shoeSole", options: shoeSoles, label: "Đế giày" },
-            { field: "material", options: materials, label: "Chất liệu" },
-            { field: "brand", options: brands, label: "Thương hiệu" },
-            { field: "supplier", options: suppliers, label: "Nhà cung cấp" },
-            { field: "category", options: categories, label: "Danh mục" },
-            { field: "color", options: colors, label: "Màu sắc" },
-            { field: "size", options: sizes, label: "Kích cỡ" },
-          ].map(({ field, options, label,index}) => (
+            { id:0,field: "product", options: products, label: "Sản phẩm" },
+            { id:1,field: "shoeCollar", options: shoeCollars, label: "Cổ giày" },
+            { id:2,field: "shoeToe", options: shoeToes, label: "Mũi giày" },
+            { id:3,field: "shoeSole", options: shoeSoles, label: "Đế giày" },
+            { id:4,field: "material", options: materials, label: "Chất liệu" },
+            { id:5,field: "brand", options: brands, label: "Thương hiệu" },
+            { id:6,field: "supplier", options: suppliers, label: "Nhà cung cấp" },
+            { id:7,field: "category", options: categories, label: "Danh mục" },
+            { id:8,field: "color", options: colors, label: "Màu sắc" },
+            { id:9,field: "size", options: sizes, label: "Kích cỡ" },
+          ].map(({ field, options, label, index }) => (
             <div key={index} className="relative text-sm">
               <select
                 name={field}
