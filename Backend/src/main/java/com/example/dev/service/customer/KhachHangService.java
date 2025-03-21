@@ -26,6 +26,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,6 +53,8 @@ public class KhachHangService {
     @Autowired
     private CloudinaryService cloudinaryService;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
 
@@ -68,7 +71,7 @@ public class KhachHangService {
 
     public KhachHang themKhachHang(KhachHang khachHang){
         String password = iUtil.generatePassword();
-        khachHang.setMatKhau(password);
+        khachHang.setMatKhau(passwordEncoder.encode(password));
         return khachHangRepo.save(khachHang);
     }
 
