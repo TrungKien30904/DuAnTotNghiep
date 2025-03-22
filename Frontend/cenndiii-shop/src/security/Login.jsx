@@ -14,7 +14,7 @@ export default function LoginForm() {
   const handleLogin = (e) => {
     e.preventDefault();
     try {
-      axios.post("http://localhost:8080/auth/login", {
+      const res = axios.post("http://localhost:8080/auth/login", {
         username: phoneNum,
         password: password,
         isCustomer: true,
@@ -28,7 +28,7 @@ export default function LoginForm() {
 
           const decodedToken = Decode(token);
 
-          if (decodedToken!=null) {
+          if (decodedToken != null) {
             setUser({
               username: decodedToken.userName,
               permission: decodedToken.permissions[0],

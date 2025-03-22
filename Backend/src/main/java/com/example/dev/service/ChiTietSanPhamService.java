@@ -42,7 +42,7 @@ public class ChiTietSanPhamService {
     private final HinhAnhRepo hinhAnhRepo;
     private final SanPhamRepo sanPhamRepo;
     private final MauSacRepo mauSacRepo;
-    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
+//    private final ChiTietSanPhamMapper chiTietSanPhamMapper;
     private final HoaDonRepository hoaDonRepository;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
     private final LichSuRepo lichSuRepo;
@@ -63,8 +63,20 @@ public class ChiTietSanPhamService {
     }
 
     public ChiTietSanPham getChiTietSanPham(Integer id) {
-        return chiTietSanPhamRepo.findById(id).orElse(null);
+        ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(id).orElse(null);
+        ctsp.setMa(getQRCodeContent(id));
+        return ctsp;
     }
+
+    public String getQRCodeContent(Integer id) {
+        ChiTietSanPham chiTietSanPham = chiTietSanPhamRepo.findById(id).orElseThrow(
+                () -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id)
+        );
+
+        // Giả sử generateQRCodeContent là phương thức bạn đã định nghĩa để tạo mã QR
+        return generateQRCodeContent(chiTietSanPham);
+    }
+
 
     public Map<String,List<?>> getProductDetailsByColor(Integer idSanPham, Integer idMauSac) {
         Map<String, List<?>> data = new HashMap<>();
@@ -105,7 +117,8 @@ public class ChiTietSanPhamService {
             ctsp.setKichCo(dt.getKichCo());
             ctsp.setGia(dt.getGia());
             ctsp.setSoLuong(dt.getSoLuong());
-            ctsp.setMa(dt.getMauSac().getTen() + dt.getKichCo().getTen());
+            String qrContent = generateQRCodeContent(ctsp);
+            ctsp.setMa(qrContent);
             boolean isUpdate = false;
             if (!chiTietSanPhams.isEmpty()) {
                 for (ChiTietSanPham c : getListChiTietSanPham(ctsp.getSanPham().getIdSanPham())) {
@@ -128,6 +141,18 @@ public class ChiTietSanPhamService {
         return ctsp.getSanPham().getIdSanPham();
     }
 
+    private String generateQRCodeContent(ChiTietSanPham ctsp) {
+        // Chế tạo chuỗi dữ liệu cần mã hóa (có thể bao gồm thông tin như mã sản phẩm, giá trị, mô tả, v.v.)
+        String content = "id=" + ctsp.getIdChiTietSanPham();
+
+        // Mã hóa Base64
+        String base64EncodedContent = Base64.getEncoder().encodeToString(content.getBytes());
+
+        // Tạo mã QR từ chuỗi Base64 đã mã hóa
+        return QRCodeUtil.generateQRCode(base64EncodedContent);
+    }
+
+
     public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id,Authentication auth) {
         try {
             ChiTietSanPham find = chiTietSanPhamRepo.findById(id).orElseThrow();
@@ -135,6 +160,7 @@ public class ChiTietSanPhamService {
             if (isEqual(ctsp, find)) {
                 ctsp.setIdChiTietSanPham(id);
                 ctsp.setNgaySua(LocalDateTime.now());
+                ctsp.setMa(getQRCodeContent(id));
                 UserLogin userLogin = (UserLogin) auth.getPrincipal();
                 ctsp.setNguoiSua(userLogin.getUsername());
                 chiTietSanPhamRepo.save(ctsp);
@@ -145,7 +171,7 @@ public class ChiTietSanPhamService {
                 ctsp.setNgayTao(LocalDateTime.now());
                 UserLogin userLogin = (UserLogin) auth.getPrincipal();
                 ctsp.setNguoiTao(userLogin.getUsername());
-                ctsp.setMa(ctsp.getMauSac().getTen() + ctsp.getKichCo().getTen());
+                ctsp.setMa(getQRCodeContent(id));
                 ctsp.setTaoBoi(find.getIdChiTietSanPham());
                 chiTietSanPhamRepo.save(ctsp);
 

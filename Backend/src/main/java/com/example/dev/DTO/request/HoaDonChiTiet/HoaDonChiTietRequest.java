@@ -16,4 +16,5 @@ public interface HoaDonChiTietRequest {
     public Integer getTaoBoi();
     public BigDecimal getThanhTien();
     public boolean getTrangThai();
+    public String getMa();
 }

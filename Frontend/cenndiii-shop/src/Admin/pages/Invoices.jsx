@@ -7,7 +7,6 @@ import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { formatDateFromArray } from "../../untils/FormatDate";
-const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 import { hasPermission } from "../../security/DecodeJWT";
 export default function Invoices() {
     const navigate = useNavigate();
@@ -29,6 +28,7 @@ export default function Invoices() {
     const [statistics, setStatistics] = useState({
         totalInvoices: 0,
     });
+    const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 
     const fetchInvoices = async (filterParams = {}) => {
         try {
