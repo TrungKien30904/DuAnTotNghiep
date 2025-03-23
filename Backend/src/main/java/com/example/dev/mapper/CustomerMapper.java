@@ -1,6 +1,6 @@
 package com.example.dev.mapper;
 
-import com.example.dev.entity.customer.KhachHang;
+import com.example.dev.entity.KhachHang;
 
 import java.util.List;
 
@@ -200,8 +200,8 @@ public class CustomerMapper {
 
     public String getFullInfo(){
         return ((this.addressDetails == null || this.addressDetails.isEmpty()) ? "" : (this.addressDetails + " - "))
-               + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
-               + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
-               + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
+                + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
+                + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
+                + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
     }
 }

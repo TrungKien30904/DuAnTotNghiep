@@ -25,7 +25,7 @@ const useRequest = (prefixPath = '') => {
 	})
 	const [request, setRequest] = useState(() => createRequest())
 	const createGetRequest = useCallback(({ endpoint, params, query, headers, successCallback }) => {
-        
+
 		console.log(endpoint, params);
 		return (
 			request
@@ -51,7 +51,7 @@ const useRequest = (prefixPath = '') => {
 	const createPostRequest = useCallback(({ endpoint, data, headers, ...props }) => {
 		console.log(endpoint, data);
 		try {
-			return ( 
+			return (
 				request
 					.post(endpoint, data, {headers: headers} , { ...props })
 					.then(res => {
@@ -76,14 +76,14 @@ const useRequest = (prefixPath = '') => {
 			console.log(error);
 			alert(error.message)
 		}
-		
+
 	}, [request, t])
 
 
 
 
 	const createPutRequest = useCallback(({ endpoint, data, params, ...props }) => {
-		return ( 
+		return (
 			request
 				.put(endpoint, data, {params: params} , { ...props })
 				.then(res => {
@@ -108,7 +108,7 @@ const useRequest = (prefixPath = '') => {
 
 
 	const createDeleteRequest = useCallback(({ endpoint, params, headers }) => {
-		return ( 
+		return (
 			request
 				.delete(endpoint, {params})
 				.then(res => {
