@@ -4,12 +4,31 @@ import { Trash2 } from "lucide-react";
 import { useCart } from "./CartContext"; // Import context
 import axios from "axios";
 import InvoiceForm from "./InvoiceForm";
+import VoucherModal from "./VoucherModal";
+import { getUserId } from "../../../security/DecodeJWT"; // Import hàm lấy userId
+import Notification from "../../../components/Notification";
+import { ToastContainer } from "react-toastify";
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
-    const {setCartCount } = useCart(); // Lấy hàm cập nhật giỏ hàng từ context
+    const { setCartCount } = useCart(); // Lấy hàm cập nhật giỏ hàng từ context
     const [totalPrice, setTotalPrice] = useState(0);
+    const [voucherList, setVoucherList] = useState([]);
+    const [showVoucherModal, setShowVoucherModal] = useState(false);
+    const [selectedVoucherId, setSelectedVoucherId] = useState(null);
+    const [discountAmount, setDiscountAmount] = useState(0);
+    const [selectedCustomerId, setSelectedCustomerId] = useState(null); // giả định sẽ lấy được từ đâu đó
+    const [bestVoucherId, setBestVoucherId] = useState(null);
+
+
+    useEffect(() => {
+        // Lấy userId từ JWT
+        const userId = getUserId();
+        if (userId) {
+            setSelectedCustomerId(userId);
+        }
+    }, []);
 
     useEffect(() => {
         fetch("http://localhost:8080/api/cart", {
@@ -22,6 +41,90 @@ const Cart = () => {
             })
             .catch(err => console.error("Lỗi lấy giỏ hàng:", err));
     }, []);
+
+
+    useEffect(() => {
+        if (selectedCustomerId != null) {
+            axios.get(`http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher?khachHangId=${selectedCustomerId}`, {
+                withCredentials: true
+            })
+                .then(res => setVoucherList(res.data))
+                .catch(err => console.error("Lỗi khi lấy danh sách voucher:", err));
+        } else {
+            axios.get(`http://localhost:8080/admin/phieu-giam-gia/hien-thi-voucher`, {
+                withCredentials: true
+            })
+                .then(res => setVoucherList(res.data))
+                .catch(err => console.error("Lỗi khi lấy danh sách voucher:", err));
+        }
+    }, [selectedCustomerId]);
+
+    useEffect(() => {
+        if (voucherList.length > 0) {
+            const eligibleVouchers = voucherList.filter(v => totalPrice >= (v.dieuKien || 0));
+            eligibleVouchers.sort((a, b) => {
+                const value = (v) => v.hinhThuc === "%"
+                    ? Math.min(totalPrice * (v.giaTri / 100), v.giaTriToiDa || totalPrice)
+                    : v.giaTri;
+                return value(b) - value(a);
+            });
+            if (eligibleVouchers.length > 0) {
+                setBestVoucherId(eligibleVouchers[0].id);
+            }
+        }
+    }, [voucherList, totalPrice]);
+
+
+    useEffect(() => {
+        const selectedVoucher = voucherList.find(v => v.id === selectedVoucherId);
+        if (selectedVoucher) {
+            if (totalPrice >= (selectedVoucher.dieuKien || 0)) {
+                let discount = 0;
+                if (selectedVoucher.hinhThuc === "%") {
+                    discount = totalPrice * (selectedVoucher.giaTri / 100);
+                    if (selectedVoucher.giaTriToiDa) {
+                        discount = Math.min(discount, selectedVoucher.giaTriToiDa);
+                    }
+                } else {
+                    discount = selectedVoucher.giaTri;
+                }
+                setDiscountAmount(discount);
+            } else {
+                //Không đủ điều kiện -> tự bỏ áp dụng voucher
+                setDiscountAmount(0);
+                setSelectedVoucherId(null);
+                handleRemoveVoucher(); // gọi backend xóa luôn
+            }
+        } else {
+            setDiscountAmount(0);
+        }
+    }, [selectedVoucherId, totalPrice, voucherList]);
+
+
+    useEffect(() => {
+        fetch("http://localhost:8080/api/cart/get-select-voucher", {
+            credentials: "include"
+        })
+            .then(res => res.text())
+            .then(id => {
+                const parsedId = parseInt(id);
+                if (!isNaN(parsedId)) setSelectedVoucherId(parsedId);
+            });
+    }, []);
+
+
+    const handleRemoveVoucher = async () => {
+        try {
+            await fetch("http://localhost:8080/api/cart/remove-voucher", {
+                method: "POST",
+                credentials: "include"
+            });
+            setSelectedVoucherId(null); // reset trên frontend
+        } catch (error) {
+            console.error("Lỗi khi xóa phiếu giảm giá:", error);
+        }
+    };
+
 
     const handleSelectItem = (productId) => {
         if (selectedItems.includes(productId)) {
@@ -42,13 +145,22 @@ const Cart = () => {
     };
 
 
-    const handleQuantityChange = async (id, delta) => {
-        const updated = cartItems.map(item =>
-            item.productId === id ? { ...item, soLuong: Math.max(1, item.soLuong + delta) } : item
-        );
-        setCartItems(updated);
+    const handleQuantityChange = async (id, delta, stock) => {
+        setCartItems(prevCartItems => {
+            return prevCartItems.map(item => {
+                if (item.productId === id) {
+                    const newQuantity = item.soLuong + delta;
+                    if (newQuantity > stock) {
+                       Notification("Số lượng vượt quá số lượng bán", "error");
+                        return item;
+                    }
+                    return { ...item, soLuong: Math.max(1, newQuantity) };
+                }
+                return item;
+            });
+        });
 
-        const cartToSend = updated.map(item => ({
+        const updatedCart = cartItems.map(item => ({
             productId: item.productId,
             soLuong: item.soLuong
         }));
@@ -57,9 +169,11 @@ const Cart = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify(cartToSend),
+            body: JSON.stringify(updatedCart),
         });
     };
+
+
 
     const handleDelete = async (id) => {
         try {
@@ -83,13 +197,20 @@ const Cart = () => {
 
 
     useEffect(() => {
-        const totalPrice = cartItems.reduce((total, item) => total + item.gia * item.soLuong, 0);
-        setTotalPrice(totalPrice);
-    }, [cartItems]);
+        const total = cartItems.reduce((sum, item) => {
+            if (selectedItems.includes(item.productId)) {
+                return sum + item.gia * item.soLuong;
+            }
+            return sum;
+        }, 0);
+        setTotalPrice(total);
+    }, [cartItems, selectedItems]);
+
 
 
     return (
         <div className="mt-[64px] mx-24 flex justify-content-center">
+              <ToastContainer />
             <div className="container mx-auto p-4">
                 <h2 className="text-3xl font-bold text-center mb-16">🛒 Giỏ Hàng</h2>
 
@@ -118,9 +239,9 @@ const Cart = () => {
                                     {/* <p className="text-gray-500 line-through text-sm">Giá: {(item.gia).toLocaleString()} VND</p> thay vào đây giá trước khi giảm */}
                                     <p className="text-red-500 font-medium">{item.trangThai}</p>
                                     <div className="flex items-center mt-2">
-                                        <button onClick={() => handleQuantityChange(item.productId, -1)} className="px-2 border">-</button>
+                                        <button onClick={() => handleQuantityChange(item.productId, -1, item.stock)} className="px-2 border">-</button>
                                         <span className="px-3">{item.soLuong}</span>
-                                        <button onClick={() => handleQuantityChange(item.productId, 1)} className="px-2 border">+</button>
+                                        <button onClick={() => handleQuantityChange(item.productId, 1, item.stock)} className="px-2 border">+</button>
                                     </div>
                                 </div>
                                 <div className="flex flex-col justify-between items-end h-full">
@@ -137,10 +258,41 @@ const Cart = () => {
                         ))}
                     </div>
 
-                    <InvoiceForm
-                        total={totalPrice}
-                        cartItem={cartItems}
-                    />
+                    {showVoucherModal && (
+                        <VoucherModal
+                            voucherList={voucherList}
+                            totalPrice={totalPrice}
+                            selectedVoucherId={selectedVoucherId}
+                            setSelectedVoucherId={setSelectedVoucherId}
+                            onClose={() => setShowVoucherModal(false)}
+                            onApply={(id) => {
+                                setShowVoucherModal(false);
+                                // Gửi lên backend để lưu session
+                                fetch("http://localhost:8080/api/cart/set-select-voucher", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    credentials: "include",
+                                    body: JSON.stringify(id),
+                                });
+                                console.log("Đã áp dụng phiếu id: " + id)
+
+                            }}
+                            customerId={selectedCustomerId}
+                        />
+                    )}
+
+                    <div className="border border-gray-300 rounded-xl p-4 shadow-md">
+                        <InvoiceForm
+                            total={totalPrice}
+                            cartItem={cartItems.filter(item => selectedItems.includes(item.productId))}
+                            selectedVoucher={voucherList.find(v => v.id === selectedVoucherId)}
+                            discountAmount={discountAmount}
+                            bestVoucherId={bestVoucherId}
+                            onOpenVoucherModal={() => setShowVoucherModal(true)}
+                            onRemoveVoucher={handleRemoveVoucher}
+                        />
+                    </div>
+
                 </div>
             </div>
         </div>

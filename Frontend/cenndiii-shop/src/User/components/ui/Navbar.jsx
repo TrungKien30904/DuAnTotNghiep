@@ -33,9 +33,12 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    logout(user?.permission);
+    logout(); // Gọi hàm logout từ AuthContext
     handleClose();
+    navigate("/home"); // Chuyển hướng sau khi logout
   };
+
+
 
   const handleScroll = useCallback(() => {
     requestAnimationFrame(() => setScrolling(window.scrollY > 400));

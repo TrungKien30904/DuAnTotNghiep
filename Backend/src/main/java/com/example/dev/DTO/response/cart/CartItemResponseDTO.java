@@ -12,6 +12,17 @@ public class CartItemResponseDTO {
     private String mauSac;
     private String kichCo;
 
+    private int stock; // Số lượng tồn kho
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+
     public String getMauSac() {
         return mauSac;
     }

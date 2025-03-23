@@ -7,8 +7,8 @@ import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { formatDateFromArray } from "../../untils/FormatDate";
-const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 import { hasPermission } from "../../security/DecodeJWT";
+const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 export default function Invoices() {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState([]);

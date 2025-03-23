@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin/phieu-giam-gia")
-@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
+//@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class PhieuGiamGiaController {
     @Autowired
     PhieuGiamGiaService phieuGiamGiaService;

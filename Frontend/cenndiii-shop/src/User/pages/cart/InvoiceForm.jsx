@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Ticket, Trash2 } from "lucide-react";
+
 import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Typography, Stack } from "@mui/material";
 
-const InvoiceForm = ({ cartItem, total }) => {
+const InvoiceForm = ({ total, cartItem, selectedVoucher, discountAmount, bestVoucherId, onOpenVoucherModal, onRemoveVoucher }) => {
+
+
+    // ...
     const [formData, setFormData] = useState({
         hoTen: '',
         soDienThoai: '',
@@ -120,7 +125,7 @@ const InvoiceForm = ({ cartItem, total }) => {
             }
         }
         getAmount();
-    }, [selectedWard, selectedDistrict,total]);
+    }, [selectedWard, selectedDistrict, total]);
     return (
         <div>
             <Typography variant="h5">Thông Tin Đơn Hàng</Typography>
@@ -170,24 +175,86 @@ const InvoiceForm = ({ cartItem, total }) => {
 
             <TextField fullWidth size="small" margin="dense" label="Ghi chú" multiline rows={3} value={formData.ghiChu} onChange={(e) => setFormData({ ...formData, ghiChu: e.target.value })} />
 
+
+            <div className="mb-6 mt-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span><Ticket size={18} /></span>
+                        <span className="text-lg font-medium">Phiếu giảm giá</span>
+                    </div>
+                    {onOpenVoucherModal && (
+                        <button
+                            onClick={onOpenVoucherModal}
+                            className="text-blue-600 text-sm hover:underline"
+                        >
+                            Chọn mã giảm giá
+                        </button>
+                    )}
+                </div>
+
+                {selectedVoucher && (
+                    <div className="mt-1 text-xs text-gray-700">
+                        <div className="flex items-center justify-between">
+                            <p>
+                                Đã chọn: <b className="text-green-500">
+                                    {selectedVoucher.maKhuyenMai} - Giảm: {selectedVoucher.hinhThuc === "%"
+                                        ? `${selectedVoucher.giaTri}% (tối đa ${selectedVoucher.giaTriToiDa?.toLocaleString()} VND)`
+                                        : `${selectedVoucher.giaTri?.toLocaleString()} VND`}
+                                </b>
+                            </p>
+                            <button
+                                onClick={onRemoveVoucher}
+                                className="text-sm text-red-500 hover:underline ml-2"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+
+                        {selectedVoucher.id === bestVoucherId && (
+                            <p className="text-sm text-red-500 font-semibold mt-1">(*Phiếu giảm tốt nhất)</p>
+                        )}
+                    </div>
+                )}
+
+
+                {/* Đường kẻ ngang sau nội dung */}
+                <div className="border-b mt-2"></div>
+            </div>
+
+
             <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
                     <Typography>Tổng tiền:</Typography>
-                    <Typography><b>{total}</b></Typography>
+                    <Typography><b>{total.toLocaleString()} đ</b></Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                     <Typography>Giá giảm:</Typography>
-                    <Typography><b>50,000đ</b></Typography>
+                    <Typography><b className="text-red-500">-{discountAmount.toLocaleString()} đ</b></Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                     <Typography>Phí vận chuyển:</Typography>
-                    <Typography><b>{amount ? amount.toLocaleString() : 0}</b></Typography>
+                    <Typography><b>{amount.toLocaleString()} đ</b></Typography>
                 </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                    <Typography>Tổng thanh toán:</Typography>
+                    <Typography><b>{(total - discountAmount + amount).toLocaleString()} đ</b></Typography>
+                </Stack>
+
             </Stack>
 
 
 
-            <Button variant="contained" color="primary" fullWidth size="small" className="mt-4">Thanh Toán</Button>
+            <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                size="small"
+                className="mt-4"
+                disabled={cartItem.length === 0}
+            >
+                Thanh Toán
+            </Button>
+
         </div>
     );
 };
