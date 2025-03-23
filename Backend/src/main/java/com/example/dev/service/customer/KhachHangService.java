@@ -1,10 +1,8 @@
 package com.example.dev.service.customer;
 
-import com.example.dev.DTO.response.CloudinaryResponse;
+import com.example.dev.dto.response.CloudinaryResponse;
 import com.example.dev.entity.*;
 import com.example.dev.entity.custom_entity.AddressModelCustom;
-import com.example.dev.entity.customer.DiaChi;
-import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.mapper.AddressMapper;
 import com.example.dev.mapper.CustomerMapper;
 import com.example.dev.mapper.SendMailMapper;
@@ -12,14 +10,10 @@ import com.example.dev.model.DistrictModel;
 import com.example.dev.model.ProvinceModel;
 import com.example.dev.model.WardModel;
 import com.example.dev.repository.*;
-import com.example.dev.repository.customer.DiaChiRepo;
-import com.example.dev.repository.customer.KhachHangRepo;
-import com.example.dev.service.CloudinaryService;
-import com.example.dev.service.ISendMailService;
-import com.example.dev.util.FileUpLoadUtil;
-import com.example.dev.util.IUtil;
-import com.example.dev.util.baseModel.BaseListResponse;
-import com.example.dev.util.baseModel.BaseResponse;
+import com.example.dev.utils.FileUpLoadUtil;
+import com.example.dev.utils.IUtil;
+import com.example.dev.utils.base_model.BaseListResponse;
+import com.example.dev.utils.base_model.BaseResponse;
 import com.example.dev.validator.KhachHangValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -54,28 +48,11 @@ public class KhachHangService {
 
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
-
-    public List<KhachHang> getAllCustomerIsStatusTrue(){
-        List<KhachHang> khachHang = khachHangRepo.findByTrangThaiIsTrue();
-        for (KhachHang kh : khachHang){
-            String[] address = kh.getDiaChi().split(", ");
-            String thanhPho = address[0];
-            String quan = address[1];
-            String xa   = address[2];
-        }
-        return khachHangRepo.findByTrangThaiIsTrue();
-    }
-
-    public KhachHang themKhachHang(KhachHang khachHang){
-        String password = iUtil.generatePassword();
-        khachHang.setMatKhau(password);
-        return khachHangRepo.save(khachHang);
-    }
-
     public List<KhachHang> getAll() {
         return khachHangRepo.findAll();
     }
 
+    @Transactional
     public BaseResponse<Integer> themKhachHang(String userJson, MultipartFile file) {
         BaseResponse<Integer> response = new BaseResponse<>();
         KhachHang khachHang = new KhachHang();
@@ -150,6 +127,7 @@ public class KhachHangService {
         return response;
     }
 
+    @Transactional
     public BaseResponse<KhachHang> suaKhachHang(CustomerMapper model) {
         BaseResponse<KhachHang> baseResponse = new BaseResponse<>();
 

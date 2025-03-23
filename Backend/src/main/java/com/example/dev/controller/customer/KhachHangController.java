@@ -1,10 +1,10 @@
 package com.example.dev.controller.customer;
 
-import com.example.dev.entity.customer.KhachHang;
+import com.example.dev.entity.KhachHang;
 import com.example.dev.mapper.CustomerMapper;
-import com.example.dev.service.customer.KhachHangService;
-import com.example.dev.util.baseModel.BaseListResponse;
-import com.example.dev.util.baseModel.BaseResponse;
+import com.example.dev.service.KhachHangService;
+import com.example.dev.utils.base_model.BaseListResponse;
+import com.example.dev.utils.base_model.BaseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -23,11 +23,6 @@ import java.util.stream.Collectors;
 public class KhachHangController {
     @Autowired
     private KhachHangService khachHangService;
-
-    @GetMapping("/hien-thi-customer")
-    public ResponseEntity<List<KhachHang>> hienThiKhachHang() {
-        return ResponseEntity.ok(khachHangService.getAllCustomerIsStatusTrue());
-    }
 
     @GetMapping("/export-excel")
     public ResponseEntity<List<KhachHang>> hienThi() {
@@ -89,8 +84,4 @@ public class KhachHangController {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    @PostMapping("/them-kh")
-    public ResponseEntity<?> themKh(@RequestBody KhachHang khachHang) {
-        return ResponseEntity.ok(khachHangService.themKhachHang(khachHang));
-    }
 }

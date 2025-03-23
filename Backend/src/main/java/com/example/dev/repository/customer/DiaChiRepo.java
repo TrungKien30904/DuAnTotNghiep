@@ -1,7 +1,7 @@
 package com.example.dev.repository.customer;
 
+import com.example.dev.entity.DiaChi;
 import com.example.dev.entity.custom_entity.AddressModelCustom;
-import com.example.dev.entity.customer.DiaChi;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

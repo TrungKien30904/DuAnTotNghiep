@@ -162,8 +162,8 @@ public class AddressMapper {
             return this.addressDetail;
         }
         return ((this.addressDetail == null || this.addressDetail.isEmpty()) ? "" : (this.addressDetail + " - "))
-               + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
-               + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
-               + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
+                + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
+                + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
+                + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
     }
 }

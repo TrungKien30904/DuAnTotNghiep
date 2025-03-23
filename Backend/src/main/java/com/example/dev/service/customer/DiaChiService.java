@@ -1,9 +1,9 @@
 package com.example.dev.service.customer;
 
-
-import com.example.dev.entity.customer.DiaChi;
+import com.example.dev.entity.DiaChi;
+import com.example.dev.entity.KhachHang;
 import com.example.dev.exception.CustomExceptions;
-import com.example.dev.repository.customer.DiaChiRepo;
+import com.example.dev.repository.DiaChiRepo;
 import com.example.dev.validator.DiaChiValidator;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;

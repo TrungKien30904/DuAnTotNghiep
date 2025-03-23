@@ -1,7 +1,6 @@
 package com.example.dev.repository.customer;
 
-
-import com.example.dev.entity.customer.KhachHang;
+import com.example.dev.entity.KhachHang;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,6 @@
 package com.example.dev.validator;
 
-
-import com.example.dev.entity.customer.DiaChi;
+import com.example.dev.entity.DiaChi;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
