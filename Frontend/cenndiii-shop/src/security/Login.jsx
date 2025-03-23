@@ -43,7 +43,7 @@ export default function LoginForm() {
         }
       });
 
-      console.log(res);
+      //console.log(res);
     } catch (error) {
 
     }

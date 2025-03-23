@@ -146,25 +146,28 @@ const Cart = () => {
 
 
     const handleQuantityChange = async (id, delta, stock) => {
-        setCartItems(prevCartItems => {
-            return prevCartItems.map(item => {
-                if (item.productId === id) {
-                    const newQuantity = item.soLuong + delta;
-                    if (newQuantity > stock) {
-                       Notification("Số lượng vượt quá số lượng bán", "error");
-                        return item;
-                    }
-                    return { ...item, soLuong: Math.max(1, newQuantity) };
+        const updatedItems = cartItems.map(item => {
+            if (item.productId === id) {
+                const newQuantity = item.soLuong + delta;
+                if (newQuantity > stock) {
+                    Notification("Đã là số lượng lớn nhất", "warning");
+                    return item;
                 }
-                return item;
-            });
+                return { ...item, soLuong: Math.max(1, newQuantity) };
+            }
+            return item;
         });
 
-        const updatedCart = cartItems.map(item => ({
+        // Cập nhật lại cartItems để hiển thị đúng trên frontend
+        setCartItems(updatedItems);
+
+        // Lấy cart mới đúng số lượng sau khi đã cập nhật
+        const updatedCart = updatedItems.map(item => ({
             productId: item.productId,
             soLuong: item.soLuong
         }));
 
+        // Gửi cart mới lên backend
         await fetch("http://localhost:8080/api/cart/update", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -172,8 +175,6 @@ const Cart = () => {
             body: JSON.stringify(updatedCart),
         });
     };
-
-
 
     const handleDelete = async (id) => {
         try {
@@ -210,7 +211,7 @@ const Cart = () => {
 
     return (
         <div className="mt-[64px] mx-24 flex justify-content-center">
-              <ToastContainer />
+            <ToastContainer />
             <div className="container mx-auto p-4">
                 <h2 className="text-3xl font-bold text-center mb-16">🛒 Giỏ Hàng</h2>
 

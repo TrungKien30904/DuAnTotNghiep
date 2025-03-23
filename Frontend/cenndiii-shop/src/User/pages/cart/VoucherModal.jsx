@@ -164,7 +164,7 @@ const VoucherModal = ({ voucherList, onClose, onApply, selectedVoucherId, setSel
                         }}
                         disabled={!tempSelectedVoucherId}
                     >
-                        Chọn
+                       Xác Nhận
                     </button>
                 </div>
             </div>
