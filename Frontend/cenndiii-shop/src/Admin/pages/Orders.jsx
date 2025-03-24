@@ -52,8 +52,10 @@ export default function Orders() {
     const token = localStorage.getItem("token") || "";
 
     useEffect(() => {
-        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/admin/login");
+        if(localStorage.getItem("token")){
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
         }
     }, [navigate]);
 
@@ -92,12 +94,6 @@ export default function Orders() {
 
 
     useEffect(() => {
-        if (!token) {
-            console.error("Token không tồn tại.");
-            window.location.href = "/login"; // Điều hướng về trang đăng nhập
-            return;
-        }
-
         const fetchOrders = async () => {
             try {
                 const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
@@ -141,11 +137,6 @@ export default function Orders() {
     }, [orders, isFirstLoad]);
 
     const getProductFromDetailsInvoice = async (idHoaDon) => {
-        if (!token) {
-            console.error("Token không tồn tại.");
-            window.location.href = "/login"; // Điều hướng về trang đăng nhập
-            return;
-        }
 
         try {
             const response = await api.get(`/admin/hdct/get-cart/${idHoaDon}`); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx

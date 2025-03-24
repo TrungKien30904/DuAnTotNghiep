@@ -34,7 +34,8 @@ public class JWTConfig {
             "/hinh-anh/**",
             "/admin/chi-tiet-san-pham/hien-thi/online/**",
             "/admin/chi-tiet-san-pham/dot-giam/hien-thi/**",
-            "/auth/**"
+            "/auth/**",
+            "/api/payment/**"
     };
 
 

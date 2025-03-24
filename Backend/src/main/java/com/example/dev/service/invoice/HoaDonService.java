@@ -128,7 +128,7 @@ public class HoaDonService {
         newInvoice.setNgayTao(LocalDateTime.now());
         newInvoice.setNguoiTao(user.getUsername());
         newInvoice.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        newInvoice.setTrangThai("Chờ xác nhận");
+        newInvoice.setTrangThai("Hóa đơn trống");
         HoaDon n = hoaDonRepository.save(newInvoice);
         lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(n).hanhDong(BaseConstant.Action.CREATE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu("Thêm hóa đơn mới tại cửa hàng").build());
         return n;
@@ -243,7 +243,7 @@ public class HoaDonService {
     }
 
     public List<HoaDon> findAllByStatus() {
-        return hoaDonRepository.findAllByTrangThaiEqualsIgnoreCase("Chờ xác nhận");
+        return hoaDonRepository.findAllByTrangThaiEqualsIgnoreCase("Hóa đơn trống");
     }
 
     public void updateVoucher(Integer idHoaDon, Integer voucherId, Authentication auth) {

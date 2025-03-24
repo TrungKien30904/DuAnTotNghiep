@@ -33,7 +33,7 @@ import InvoiceDetail from "./pages/InvoiceDetail";
 import VoucherOrder from "./pages/VoucherOrder";
 import Test from "./pages/Delivery";
 import LoginPage from "./components/ui/Login"
-
+import PaymentStatus from "./pages/PaymentStatus"
 export default function AdminRoute() {
     return (
         <Routes>
@@ -69,6 +69,7 @@ export default function AdminRoute() {
                 <Route path="add-customer" element={<AddCustomers />} />
                 <Route path="edit-customer/:id" element={<EditCustomer />} />
                 <Route path="invoice-detail/:id" element={<InvoiceDetail />} />
+                <Route path="payment-status" element={<PaymentStatus />} />
                 {/* <Route path="/test" element={<DynamicForm />} /> */}
                 <Route path="test" element={<Test />} />
             </Route>
