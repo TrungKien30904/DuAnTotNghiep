@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Link, Navigate } from "react-router-dom";
+import { CreditCard, Ticket, Trash2 } from "lucide-react";
 import { useCart } from "./CartContext"; // Import context
 import axios from "axios";
-import InvoiceForm from "./InvoiceForm";
 import VoucherModal from "./VoucherModal";
 import { getUserId } from "../../../security/DecodeJWT"; // Import hàm lấy userId
 import Notification from "../../../components/Notification";
 import { ToastContainer } from "react-toastify";
+import Button from "@mui/material/Button";
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
@@ -20,6 +20,10 @@ const Cart = () => {
     const [discountAmount, setDiscountAmount] = useState(0);
     const [selectedCustomerId, setSelectedCustomerId] = useState(null); // giả định sẽ lấy được từ đâu đó
     const [bestVoucherId, setBestVoucherId] = useState(null);
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+    const [customerInfo, setCustomerInfo] = useState(null);
+
+
 
 
     useEffect(() => {
@@ -29,6 +33,20 @@ const Cart = () => {
             setSelectedCustomerId(userId);
         }
     }, []);
+
+    useEffect(() => {
+        if (selectedCustomerId) {
+            axios.get(`http://localhost:8080/admin/khach-hang/detail/${selectedCustomerId}`, {
+                withCredentials: true
+            })
+                .then(res => {
+                    setCustomerInfo(res.data); // Lưu thông tin khách hàng
+                })
+                .catch(err => console.error("Lỗi khi lấy thông tin khách hàng:", err));
+        }
+    }, [selectedCustomerId]);
+
+
 
     useEffect(() => {
         fetch("http://localhost:8080/api/cart", {
@@ -112,6 +130,13 @@ const Cart = () => {
             });
     }, []);
 
+    const handleCheckout = () => {
+        if (selectedItems.length === 0) {
+            Notification("Bạn chưa chọn sản phẩm nào để thanh toán!", "warning");
+            return;
+        }
+        setShouldRedirect(true);
+    };
 
     const handleRemoveVoucher = async () => {
         try {
@@ -281,19 +306,94 @@ const Cart = () => {
                             customerId={selectedCustomerId}
                         />
                     )}
+                    {/* Form tính tiền và phiếu giảm giá */}
+                    <div className="border border-gray-300 rounded-xl p-4 shadow-md space-y-4">
+                        <span className="text-2xl font-bold">ĐƠN HÀNG</span>
+                        <hr />
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span><Ticket size={18} /></span>
+                                    <span className="text-lg font-medium">Phiếu giảm giá</span>
+                                </div>
+                                <button
+                                    onClick={() => setShowVoucherModal(true)}
+                                    className="text-blue-600 text-sm hover:underline"
+                                >
+                                    Chọn mã giảm giá
+                                </button>
+                            </div>
 
-                    <div className="border border-gray-300 rounded-xl p-4 shadow-md">
-                        <InvoiceForm
-                            total={totalPrice}
-                            cartItem={cartItems.filter(item => selectedItems.includes(item.productId))}
-                            selectedVoucher={voucherList.find(v => v.id === selectedVoucherId)}
-                            discountAmount={discountAmount}
-                            bestVoucherId={bestVoucherId}
-                            onOpenVoucherModal={() => setShowVoucherModal(true)}
-                            onRemoveVoucher={handleRemoveVoucher}
-                        />
+                            {selectedVoucherId && (
+                                <div className="mt-1 text-xs text-gray-700">
+                                    <div className="flex items-center justify-between">
+                                        <p>
+                                            Đã chọn: <b className="text-green-500">
+                                                {voucherList.find(v => v.id === selectedVoucherId)?.maKhuyenMai} - Giảm: {
+                                                    voucherList.find(v => v.id === selectedVoucherId)?.hinhThuc === "%"
+                                                        ? `${voucherList.find(v => v.id === selectedVoucherId)?.giaTri}% (tối đa ${voucherList.find(v => v.id === selectedVoucherId)?.giaTriToiDa?.toLocaleString()} VND)`
+                                                        : `${voucherList.find(v => v.id === selectedVoucherId)?.giaTri?.toLocaleString()} VND`
+                                                }
+                                            </b>
+                                        </p>
+                                        <button
+                                            onClick={handleRemoveVoucher}
+                                            className="text-sm text-red-500 hover:underline ml-2"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+
+                                    {selectedVoucherId === bestVoucherId && (
+                                        <p className="text-sm text-red-500 font-semibold mt-1">(*Phiếu giảm tốt nhất)</p>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="border-b mt-2"></div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <span className="font-semibold">Tổng tiền:</span>
+                            <span>{totalPrice.toLocaleString()} đ</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="font-semibold">Giảm giá:</span>
+                            <span className="text-red-500">-{discountAmount.toLocaleString()} đ</span>
+                        </div>
+                        <div className="flex items-center justify-between font-semibold text-lg">
+                            <span>Thành tiền:</span>
+                            <span>{(totalPrice - discountAmount).toLocaleString()} đ</span>
+                        </div>
+                        <hr />
+
+
+
+
+                        {shouldRedirect && (
+                            <Navigate
+                                to="/checkout"
+                                state={{
+                                    selectedItems: cartItems.filter(item => selectedItems.includes(item.productId)),
+                                    totalPrice,
+                                    discountAmount,
+                                    selectedVoucher: voucherList.find(v => v.id === selectedVoucherId),
+                                    customerInfo, // Truyền thông tin khách hàng
+                                }}
+                            />
+                        )}
+
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            size="large"
+                            onClick={handleCheckout}
+                            className="mt-4"
+                        >
+                            Tiếp tục thanh toán
+                        </Button>
                     </div>
-
                 </div>
             </div>
         </div>

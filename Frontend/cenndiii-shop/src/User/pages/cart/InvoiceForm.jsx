@@ -228,7 +228,7 @@ const InvoiceForm = ({ total, cartItem, selectedVoucher, discountAmount, bestVou
                     <Typography><b>{total.toLocaleString()} đ</b></Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                    <Typography>Giá giảm:</Typography>
+                    <Typography>Giảm giá:</Typography>
                     <Typography><b className="text-red-500">-{discountAmount.toLocaleString()} đ</b></Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
