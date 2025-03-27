@@ -1,6 +1,6 @@
 package com.example.dev.mapper;
 
-import com.example.dev.entity.KhachHang;
+import com.example.dev.entity.customer.KhachHang;
 
 import java.util.List;
 

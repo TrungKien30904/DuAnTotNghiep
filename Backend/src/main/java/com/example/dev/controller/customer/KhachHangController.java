@@ -1,10 +1,10 @@
-package com.example.dev.controller;
+package com.example.dev.controller.customer;
 
-import com.example.dev.entity.KhachHang;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.mapper.CustomerMapper;
-import com.example.dev.service.KhachHangService;
-import com.example.dev.util.base_model.BaseListResponse;
-import com.example.dev.util.base_model.BaseResponse;
+import com.example.dev.service.customer.KhachHangService;
+import com.example.dev.util.baseModel.BaseListResponse;
+import com.example.dev.util.baseModel.BaseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;

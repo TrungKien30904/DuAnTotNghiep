@@ -4,8 +4,10 @@ import com.example.dev.mapper.DistrictMapper;
 import com.example.dev.mapper.ProvinceMapper;
 import com.example.dev.mapper.WardMapper;
 import com.example.dev.model.ProvinceModel;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+@Service
 public interface IProvinceService {
     List<ProvinceMapper> getProvinceModel();
     List<DistrictMapper> getDistrictModel(Integer provinceId);
