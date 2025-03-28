@@ -23,7 +23,7 @@ public class ChiTietSanPham {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idChiTietSanPham;
 
-    @TrackChange
+    @TrackChange(columnName = "ma")
     private String ma;
     @ManyToOne
     @JoinColumn(name = "id_mui_giay")

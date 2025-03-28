@@ -30,6 +30,7 @@ public class HoaDonResponse {
     private LocalDateTime ngaySua;
     private String nguoiSua;
     private String loaiDon;
+    private String phuongThucNhanHang;
     private String diaChi;
     private String ghiChu;
     private List<ThanhToanHoaDonResponse> thanhToanHoaDon;

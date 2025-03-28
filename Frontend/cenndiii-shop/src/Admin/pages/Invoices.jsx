@@ -7,9 +7,10 @@ import Notification from '../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { formatDateFromArray } from "../../untils/FormatDate";
-const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 import { hasPermission } from "../../security/DecodeJWT";
 export default function Invoices() {
+    const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Đang vận chuyển', 'Đã hoàn thành', 'Hủy'];
+
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -45,7 +46,7 @@ export default function Invoices() {
             console.error('Error fetching invoices:', error);
         }
     };
-    
+
     const fetchInvoiceStatistics = async () => {
         try {
             const response = await api.get('/admin/hoa-don/thong-ke');
@@ -54,7 +55,7 @@ export default function Invoices() {
             console.error('Error fetching statistics:', error);
         }
     };
-    
+
     const exportExcel = async () => {
         try {
             const response = await api.get('/admin/hoa-don/export-excel', {
@@ -72,7 +73,7 @@ export default function Invoices() {
             Notification("Xuất hóa đơn thất bại", "error");
         }
     };
-    
+
     const changePageHandler = (page) => {
         if (page > totalPage || page < 1) {
             return;
@@ -88,14 +89,14 @@ export default function Invoices() {
     const handleSearch = () => {
         const { startDate, endDate } = filter;
         if (new Date(endDate) < new Date(startDate)) {
-            Notification("Ngày kết thúc không được bé hơn ngày bắt đầu!","error")
+            Notification("Ngày kết thúc không được bé hơn ngày bắt đầu!", "error")
         } else {
             fetchInvoices(filter);
         }
     };
     // Xuất excel
 
-    
+
 
     const handleReset = () => {
         setFilter({
@@ -107,8 +108,8 @@ export default function Invoices() {
         fetchInvoices();
     };
 
-    const goToDetail = (maHoaDon) => {
-        navigate(`/admin/invoice-detail/${maHoaDon}`);
+    const goToDetail = (maHoaDon,id) => {
+        navigate(`/admin/invoice-detail/${maHoaDon}/${id}`);
     }
 
     const countByTrangThai = invoices.reduce((acc, hoaDon) => {
@@ -223,7 +224,7 @@ export default function Invoices() {
                 </div>
 
                 <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400">
-                    {statuses.map((status,index) =>
+                    {statuses.map((status, index) =>
                         <li key={index} className="me-2 relative inline-flex" onClick={() => changeStatusHandler(status)}>
                             <a href="#"
                                 className={`inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-300 dark:hover:bg-gray-400 dark:hover:text-white ${status === selectedStatus && 'active text-blue-600 bg-blue-50'}`}>{status}</a>
@@ -255,11 +256,11 @@ export default function Invoices() {
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
                                 <td className="px-4 py-2">{invoice.khachHang?.ten || "Không có"}</td>
                                 <td className="px-4 py-2">{invoice.nhanVien?.ten || "Không có"}</td>
-                                <td className="px-4 py-2">{invoice.tongTien?? "0"}</td>
+                                <td className="px-4 py-2">{invoice.tongTien ?? "0"}</td>
                                 <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>
                                 <td className="px-4 py-2">{invoice.loaiDon}</td>
                                 <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"
-                                    onClick={() => goToDetail(invoice.maHoaDon)} /></td>
+                                    onClick={() => goToDetail(invoice.maHoaDon,invoice.idHoaDon)} /></td>
                             </tr>
                         ))}
                     </tbody>

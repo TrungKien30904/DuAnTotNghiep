@@ -6,6 +6,7 @@ import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.DTO.response.ChiTietSanPham.BienTheResponse;
 import com.example.dev.DTO.response.ChiTietSanPham.ChiTietSanPhamResponse;
 import com.example.dev.DTO.response.CloudinaryResponse;
+import com.example.dev.constant.BaseConstant;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.HinhAnh;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
@@ -138,8 +139,8 @@ public class ChiTietSanPhamService {
                 UserLogin userLogin = (UserLogin) auth.getPrincipal();
                 ctsp.setNguoiSua(userLogin.getUsername());
                 chiTietSanPhamRepo.save(ctsp);
-                log.info("Update ProductDetails > {}", ctsp.toString());
-//                historyImpl.saveHistory(find,ctsp, BaseConstant.Action.UPDATE.getValue(), id,"Admin");
+                log.info("Update ProductDetails > {}", ctsp);
+//                historyImpl.saveHistory(find,ctsp, BaseConstant.Action.UPDATE.getValue(), id, userLogin.getUsername());
             }else{
 //              thêm sản phẩm mới từ id sp cũ
                 ctsp.setNgayTao(LocalDateTime.now());
@@ -161,8 +162,8 @@ public class ChiTietSanPhamService {
                     hdct.setThanhTien(find.getGiaDuocTinh().multiply(BigDecimal.valueOf(hdct.getSoLuong())));
                 }
                 hoaDonChiTietRepository.saveAll(listCart);
-                log.info("Create new ProductDetails > {}", ctsp.toString());
-//                historyImpl.saveHistory(null,ctsp, BaseConstant.Action.CREATE.getValue(), id,"Admin");
+                log.info("Create new ProductDetails > {}", ctsp);
+//                historyImpl.saveHistory(null,ctsp, BaseConstant.Action.CREATE.getValue(), id, userLogin.getUsername());
             }
 
         }catch (Exception e) {

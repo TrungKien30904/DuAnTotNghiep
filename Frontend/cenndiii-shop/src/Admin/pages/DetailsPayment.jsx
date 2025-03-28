@@ -172,7 +172,8 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             trangThai: "Đã thanh toán",
             ngaySua: new Date().toISOString(),
             nguoiSua: null,
-            loaiDon: deliveryMethod,
+            loaiDon: "Tại cửa hàng",
+            phuongThucNhanHang:deliveryMethod,
             thanhToanHoaDon,
             tenNguoiNhan: deliveryMethod === "giaohang" ? (deliveryData?.hoTen || null) : null,
             soDienThoai: deliveryMethod === "giaohang" ? (deliveryData?.soDienThoai || null) : null,
@@ -180,7 +181,6 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
-        console.log(requestData);
 
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });

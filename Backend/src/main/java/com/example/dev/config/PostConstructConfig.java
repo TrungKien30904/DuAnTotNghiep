@@ -1,5 +1,6 @@
 package com.example.dev.config;
 
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.nhanvien.NhanVien;
 import com.example.dev.repository.NhanVienRepo;
 import com.example.dev.repository.customer.KhachHangRepo;
@@ -15,6 +16,7 @@ import java.util.Optional;
 public class PostConstructConfig {
     private final PasswordEncoder passwordEncoder;
     private final NhanVienRepo nhanVienRepo;
+    private final KhachHangRepo khachHangRepo;
 
     @PostConstruct
     public void init() {
@@ -31,6 +33,16 @@ public class PostConstructConfig {
             nv1.setMatKhau(passwordEncoder.encode("1234"));
             nhanVienRepo.save(nv1);
         }
-
+        KhachHang kh = khachHangRepo.findBySoDienThoai("0357743022").orElse(null);
+        if (kh == null) {
+            KhachHang kh1 = new KhachHang();
+            kh1.setSoDienThoai("0357743022");
+            kh1.setHoTen("Nguyễn Văn A");
+            kh1.setGioiTinh(true);
+            kh1.setTrangThai(true);
+            kh1.setEmail("abc@gmail.com");
+            kh1.setMatKhau(passwordEncoder.encode("1234"));
+            khachHangRepo.save(kh1);
+        }
     }
 }

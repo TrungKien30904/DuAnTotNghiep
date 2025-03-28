@@ -22,8 +22,12 @@ public class KichCoService {
     }
 
     public KichCo themKichCo(KichCo kc){
-        kichCoRepo.save(kc);
-        return kc;
+        KichCo check = kichCoRepo.findKichCoByTenEqualsIgnoreCase(kc.getTen());
+        if(check == null){
+            kichCoRepo.save(kc);
+            return kc;
+        }
+        return null;
     }
 
     public List<KichCo> suaKichCo(KichCo kc,Integer id){

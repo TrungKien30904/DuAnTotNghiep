@@ -3,14 +3,12 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import axios from "axios";
 import { Decode } from "../../../security/DecodeJWT";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../untils/AuthContext";
 
 export default function LoginPage() {
   const [phoneNum, setPhoneNum] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,11 +26,6 @@ export default function LoginPage() {
         localStorage.setItem("refreshToken", refreshToken);
 
         const decodedToken = Decode(token);
-        setUser({
-          username: decodedToken.userName,
-          permission: decodedToken.permissions[0],
-        });
-
         navigate(decodedToken.permissions[0] === "ADMIN" || decodedToken.permissions[0] === "STAFF" ? "/admin" : "/home");
       }
     } catch (error) {

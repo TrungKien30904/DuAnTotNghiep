@@ -42,3 +42,10 @@ export const getSub = () => {
     if (!decodedToken || !decodedToken.sub) return "";
     return decodedToken.sub;
 };
+
+export const logout = (permisson) => {
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    
+}

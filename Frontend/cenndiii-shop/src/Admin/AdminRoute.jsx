@@ -31,7 +31,7 @@ import EditCustomer from "./pages/EditCustomer";
 import "react-toastify/dist/ReactToastify.css";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import VoucherOrder from "./pages/VoucherOrder";
-import Test from "./pages/Delivery";
+import Test from "./pages/test";
 import LoginPage from "./components/ui/Login"
 import PaymentStatus from "./pages/PaymentStatus"
 export default function AdminRoute() {
@@ -68,7 +68,7 @@ export default function AdminRoute() {
                 <Route path="coupons/:id" element={<CouponDetails />} />
                 <Route path="add-customer" element={<AddCustomers />} />
                 <Route path="edit-customer/:id" element={<EditCustomer />} />
-                <Route path="invoice-detail/:id" element={<InvoiceDetail />} />
+                <Route path="invoice-detail/:id/:idHd" element={<InvoiceDetail />} />
                 <Route path="payment-status" element={<PaymentStatus />} />
                 {/* <Route path="/test" element={<DynamicForm />} /> */}
                 <Route path="test" element={<Test />} />
