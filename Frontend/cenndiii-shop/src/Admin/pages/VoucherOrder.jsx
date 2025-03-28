@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Ticket } from "lucide-react";
 import axios from 'axios';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+// import { confirmAlert } from 'react-confirm-alert';
+// import 'react-confirm-alert/src/react-confirm-alert.css';
 // import { toast } from 'react-toastify';
 // import 'react-toastify/dist/ReactToastify.css';
 import Notification from '../../components/Notification';
@@ -281,31 +281,31 @@ export default function Orders() {
         const tabToRemove = tabs.find(tab => tab.id === tabId);
         if (!tabToRemove) return;
 
-        confirmAlert({
-            title: 'Xác nhận xóa', message: `Bạn có muốn Hủy hóa đơn chờ hiện tại ${tabToRemove.maHoaDon}?`, buttons: [{
-                label: 'Yes', onClick: async () => {
-                    try {
-                        // Gọi API xóa hóa đơn
-                        await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`);
+        // confirmAlert({
+        //     title: 'Xác nhận xóa', message: `Bạn có muốn Hủy hóa đơn chờ hiện tại ${tabToRemove.maHoaDon}?`, buttons: [{
+        //         label: 'Yes', onClick: async () => {
+        //             try {
+        //                 // Gọi API xóa hóa đơn
+        //                 await axios.get(`http://localhost:8080/admin/hoa-don/delete/${tabId}`);
 
-                        // Cập nhật danh sách tabs sau khi xóa thành công
-                        const newTabs = tabs.filter(tab => tab.id !== tabId);
-                        setTabs(newTabs);
+        //                 // Cập nhật danh sách tabs sau khi xóa thành công
+        //                 const newTabs = tabs.filter(tab => tab.id !== tabId);
+        //                 setTabs(newTabs);
 
-                        // Nếu tab đang active bị xóa, chuyển active sang tab đầu tiên còn lại
-                        if (activeTab === tabId) {
-                            setActiveTab(newTabs.length > 0 ? newTabs[0].id : '');
-                        }
+        //                 // Nếu tab đang active bị xóa, chuyển active sang tab đầu tiên còn lại
+        //                 if (activeTab === tabId) {
+        //                     setActiveTab(newTabs.length > 0 ? newTabs[0].id : '');
+        //                 }
 
-                        // Hiển thị thông báo thành công bằng toast
-                    } catch (error) {
-                    }
-                }
-            }, {
-                label: 'No', onClick: () => {
-                }
-            }]
-        });
+        //                 // Hiển thị thông báo thành công bằng toast
+        //             } catch (error) {
+        //             }
+        //         }
+        //     }, {
+        //         label: 'No', onClick: () => {
+        //         }
+        //     }]
+        // });
     };
 
     const scrollTabs = (direction) => {

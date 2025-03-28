@@ -397,14 +397,10 @@ public class HoaDonService {
             hoaDon.setKhachHang(null);
         }
 
-        if (auth != null) {
-            UserLogin user = (UserLogin) auth.getPrincipal();
-            hoaDon.setNguoiTao(user.getUsername());
-            hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        } else {
+
             hoaDon.setNguoiTao("Guest");
             hoaDon.setNhanVien(null);
-        }
+
 
         // Lưu hóa đơn vào database
         hoaDon = hoaDonRepository.save(hoaDon);

@@ -36,12 +36,14 @@ public class ThanhToanHoaDonService {
     public void capNhatTrangThaiThanhToan(Integer idHoaDon, boolean daThanhToan) {
         System.out.println("HoaDon ID: " + idHoaDon);
         ThanhToanHoaDon thanhToanHoaDonhoaDon = thanhToanHoaDonRepository.findByHoaDonId(idHoaDon);
+       HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow();
 
         if (daThanhToan) {
             thanhToanHoaDonhoaDon.setTrangThai(true);
             log.info("thanhToanHoaDon >> save success");
         } else {
             thanhToanHoaDonhoaDon.setTrangThai(false);
+            hoaDon.setTrangThai("Hủy");
         }
 
        thanhToanHoaDonRepository.save(thanhToanHoaDonhoaDon);

@@ -11,6 +11,7 @@ import com.example.dev.service.vnpay.VNPayService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -191,13 +192,14 @@ public class HoaDonController {
     }
     @GetMapping("/vnpay-return")
     @PermitAll
-    public void vnpayReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws IOException {
+    public void vnpayReturn(@RequestParam Map<String, String> params, HttpServletResponse response, HttpSession session) throws IOException {
         boolean isSuccess = hoaDonService.xuLyKetQuaThanhToan(params);
         System.out.println("Đã chạy vào đây");
         if (isSuccess) {
+            session.removeAttribute("cart"); // Xóa giỏ hàng trong session
             response.sendRedirect("http://localhost:3000/home"); // Trang thông báo thành công
         } else {
-            response.sendRedirect("http://localhost:3000/checkout"); // Trang thông báo thất bại
+            response.sendRedirect("http://localhost:3000/cart"); // Trang thông báo thất bại
         }
     }
 

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MapPinCheck, Ticket, CreditCard } from "lucide-react";
 import Button from "@mui/material/Button";
 import AddAddress from "./AddAddress"; // Import form nhập thông tin
@@ -11,11 +11,15 @@ const Checkout = () => {
     const { selectedItems, totalPrice, discountAmount, selectedVoucher, customerInfo } = location.state || {};
     const [customerData, setCustomerData] = useState(customerInfo || null);
     const [shippingFee, setShippingFee] = useState(0);
+    const [cartItems, setCartItems] = useState([]);
+
 
     const [estimatedTime, setEstimatedTime] = useState("");
     const [isEditingAddress, setIsEditingAddress] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState("COD"); // Mặc định là COD
     const token = localStorage.getItem("accessToken");
+  
+
 
 
 
@@ -28,10 +32,12 @@ const Checkout = () => {
 
 
 
+    const navigate = useNavigate();
+
     const handlePlaceOrder = async () => {
         const token = localStorage.getItem("accessToken");
         const isGuest = !token;
-    
+
         const orderData = {
             khachHang: isGuest ? null : customerData?.id,
             tenNguoiNhan: customerData?.hoTen || "Khách vãng lai",
@@ -51,9 +57,9 @@ const Checkout = () => {
                 giaSauGiam: item.gia
             }))
         };
-    
+
         console.log("Dữ liệu gửi lên:", orderData);
-    
+
         try {
             let response;
             if (paymentMethod === "COD") {
@@ -75,12 +81,24 @@ const Checkout = () => {
                     body: JSON.stringify(orderData)
                 });
             }
-    
+
             const result = await response.json();
             if (response.ok) {
                 if (paymentMethod === "COD") {
-                    Notification("Đặt hàng COD thành công!", "success");
+                    // 🟢 Xóa giỏ hàng trên backend
+                    await fetch("http://localhost:8080/api/cart/clear", {
+                        method: "POST",
+                        credentials: "include",
+                        headers: { ...(token && { "Authorization": `Bearer ${token}` }) }
+                    });
+
+                    // 🟢 Cập nhật giỏ hàng trên frontend
+                    setCartItems([]); // Reset state giỏ hàng
+
+                    // 🟢 Điều hướng về trang chủ
+                    navigate("/home", { state: { successMessage: "Đặt hàng thành công!" } });
                 } else if (paymentMethod === "VNPAY") {
+                    localStorage.setItem("paymentSuccess", "Đặt hàng thành công!");
                     // 🟢 Chuyển hướng sang trang thanh toán VNPay
                     window.location.href = result.paymentUrl;
                 }
@@ -92,7 +110,8 @@ const Checkout = () => {
             Notification("Có lỗi xảy ra, vui lòng thử lại.", "error");
         }
     };
-    
+
+
 
     return (
         <div className="p-4 bg-white rounded-xl shadow-sm max-w-5xl mx-auto mt-[64px] space-y-6">
