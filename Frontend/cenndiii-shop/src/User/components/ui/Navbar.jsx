@@ -45,7 +45,6 @@ const Navbar = () => {
     logout(user); 
     navigate("/home");
     handleClose();
-    navigate("/home"); // Chuyển hướng sau khi logout
   };
   
 

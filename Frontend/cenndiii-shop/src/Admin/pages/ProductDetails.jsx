@@ -124,7 +124,7 @@ export default function ProductDetails() {
 
     selectedImages.forEach((image) => {
       formData.append("file", image);
-      formData.append("tenMau", colorSelected.label);
+      formData.append("tenMau", selectedColors.label);
     });
     try {
       if (selectedImages.length > 0) {

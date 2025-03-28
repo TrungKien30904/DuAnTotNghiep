@@ -19,7 +19,7 @@ import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.repository.invoice.LichSuHoaDonRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
-import com.example.dev.service.vnpay.VNPayService;
+import com.example.dev.service.payments.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;

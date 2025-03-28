@@ -39,7 +39,6 @@ public class JWTConfig {
             "/admin/hoa-don/thanh-toan-vnpay",
             "/admin/hoa-don/vnpay-return",
             "/admin/khach-hang/detail/**",
-            "/auth/**"
             "/auth/**",
             "/api/payment/**"
     };
