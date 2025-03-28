@@ -1,5 +1,6 @@
 package com.example.dev.DTO.response.HoaDon;
 
+import com.example.dev.DTO.response.HoaDonChiTiet.SanPhamCartResponse;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.invoice.ThanhToanHoaDon;
@@ -33,4 +34,5 @@ public class HoaDonResponse {
     private String diaChi;
     private String ghiChu;
     private List<ThanhToanHoaDonResponse> thanhToanHoaDon;
+    private List<SanPhamCartResponse> danhSachSanPham;
 }

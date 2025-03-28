@@ -35,6 +35,9 @@ public class JWTConfig {
             "/hinh-anh/**",
             "/admin/chi-tiet-san-pham/hien-thi/online/**",
             "/admin/chi-tiet-san-pham/dot-giam/hien-thi/**",
+            "/admin/hoa-don/thanh-toan-cod",
+            "/admin/hoa-don/thanh-toan-vnpay",
+            "/admin/hoa-don/vnpay-return",
             "/auth/**"
     };
 
@@ -64,6 +67,7 @@ public class JWTConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                     authorizeRequests
                             .requestMatchers(PUBLIC_URL).permitAll()
+                            .requestMatchers("/admin/hoa-don/thanh-toan-cod","/admin/hoa-don/thanh-toan-vnpay", "/admin/hoa-don/vnpay-return").permitAll() // ✅ Cho phép khách vãng lai đặt hàng
                             .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "STAFF")
                             .anyRequest().authenticated()
                 )

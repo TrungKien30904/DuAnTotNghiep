@@ -253,7 +253,7 @@ export default function Invoices() {
                             <tr key={invoice.idHoaDon} className="border-b hover:bg-gray-100">
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
-                                <td className="px-4 py-2">{invoice.khachHang?.ten || "Không có"}</td>
+                                <td className="px-4 py-2">{invoice?.khachHang?.hoTen ?? invoice?.tenNguoiNhan ?? "Không có"}</td>
                                 <td className="px-4 py-2">{invoice.nhanVien?.ten || "Không có"}</td>
                                 <td className="px-4 py-2">{invoice.tongTien?? "0"}</td>
                                 <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>

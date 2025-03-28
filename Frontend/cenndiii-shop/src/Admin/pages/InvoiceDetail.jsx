@@ -56,6 +56,7 @@ export default function InvoiceDetail() {
 
     const fetchInvoice = async (maHoaDon) => {
         const response = await api.get(`/admin/hoa-don/${maHoaDon}`);
+        console.log("Dữ liệu hóa đơn:", response.data);
         setInvoice(response.data);
     };
 
@@ -104,7 +105,7 @@ export default function InvoiceDetail() {
         console.log(`Edit item with id: ${id}`);
     };
 
-    const handleDelete =(id) => {
+    const handleDelete = (id) => {
         try {
             // api.get(`/admin/hdct/delete/${id}`);
             setInvoiceDetails(invoiceDetails.filter(detail => detail.idHoaDonChiTiet !== id));
@@ -166,38 +167,54 @@ export default function InvoiceDetail() {
                 <div className="bg-white p-4 rounded-lg shadow-md ">
                     <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Thông tin khách hàng</h1>
                     <div className='grid grid-cols-2 gap-4 text-sm'>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Mã: </h2>
-                            <p>{invoice.maHoaDon ?? "Không có"}</p>
+                        {/* Thông tin khách hàng */}
+                        <div className='flex flex-col gap-4'>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Tên khách hàng: </h2>
+                                <p>{invoice?.khachHang?.hoTen ?? invoice?.tenNguoiNhan ?? "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>SĐT người nhận: </h2>
+                                <p>{invoice?.khachHang?.soDienThoai ?? invoice?.soDienThoai ?? "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Email người nhận: </h2>
+                                <p>{invoice?.khachHang?.email ?? invoice?.email ?? "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Địa chỉ nhận hàng: </h2>
+                                <p>{invoice?.khachHang?.diaChi ?? invoice?.diaChi ?? "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Ghi chú: </h2>
+                                <p>{invoice?.khachHang?.ghiChu ?? invoice?.ghiChu ?? "Không có"}</p>
+                            </div>
                         </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Tên khách hàng: </h2>
-                            <p>{invoice.khachHang ? invoice.khachHang.hoTen : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>SĐT người nhận: </h2>
-                            <p>{invoice.khachHang ? invoice.khachHang.soDienThoai : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Email người nhận: </h2>
-                            <p>{invoice.khachHang ? invoice.khachHang.email : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Tên nhân viên: </h2>
-                            <p>{invoice.nhanVien ? invoice.nhanVien.ten : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>SĐT nhân viên: </h2>
-                            <p>{invoice.nhanVien ? invoice.nhanVien.soDienThoai : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Tổng tiền: </h2>
-                            <p>{invoice.tongTien}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Trạng thái: </h2>
-                            <div className='border border-solid border-orange-200 px-2'>
-                                <p className='text-orange-200'>{invoice.trangThai}</p>
+
+
+                        {/* Thông tin khác */}
+                        <div className='flex flex-col gap-4'>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Mã: </h2>
+                                <p>{invoice.maHoaDon ?? "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Tên nhân viên: </h2>
+                                <p>{invoice.nhanVien ? invoice.nhanVien.ten : "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>SĐT nhân viên: </h2>
+                                <p>{invoice.nhanVien ? invoice.nhanVien.soDienThoai : "Không có"}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Tổng tiền: </h2>
+                                <p>{invoice.tongTien}</p>
+                            </div>
+                            <div className='flex gap-4'>
+                                <h2 className='font-bold'>Trạng thái: </h2>
+                                <div className='border border-solid border-orange-200 px-2'>
+                                    <p className='text-orange-200'>{invoice.trangThai}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
