@@ -57,9 +57,11 @@ public interface ChiTietSanPhamRepo extends JpaRepository<ChiTietSanPham, Intege
     @Modifying
     @Transactional
     @Query(value = """
-        update chi_tiet_san_pham set so_luong = :soLuong where id_chi_tiet_san_pham = :idChiTietSanPham
-    """,nativeQuery = true)
-    void updateQuantity(@Param("idChiTietSanPham") Integer idChiTietSanPham,@Param("soLuong") int soLuong);
+    update chi_tiet_san_pham set so_luong = :soLuong where id_chi_tiet_san_pham = :idChiTietSanPham or tao_boi = :idChiTietSanPham
+""", nativeQuery = true)
+    void updateQuantity(@Param("idChiTietSanPham") Integer idChiTietSanPham,
+                        @Param("soLuong") Integer soLuong);
+
 
     @Query(value = "EXEC sp_TinhGiaSauGiam :idChiTietSanPham",nativeQuery = true)
     List<SpGiamGiaRequest> getSanPhamGiamGia(@Param("idChiTietSanPham") Integer idChiTietSanPham);

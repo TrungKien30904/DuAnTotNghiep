@@ -321,11 +321,7 @@ export default function Orders() {
                     soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1),
                     giaDuocTinh: giaDuocTinh
                 };
-                // console.log(newQuantity);
                 await api.post("/admin/chi-tiet-san-pham/cap-nhat-sl", requestData);
-
-                getProductFromDetailsInvoice(orderId);
-
             } catch (error) {
                 console.error("Error updating product quantity:", error);
                 Notification("Đã có lỗi xảy ra khi cập nhật số lượng sản phẩm, vui lòng thử lại!", "error");
@@ -338,16 +334,13 @@ export default function Orders() {
                     soLuongMua: Number(newQuantity),
                     giaDuocTinh: giaDuocTinh
                 };
-                // console.log(newQuantity);
                 await api.post("/admin/chi-tiet-san-pham/sua-sp", requestData);
-
-                getProductFromDetailsInvoice(orderId);
-
             } catch (error) {
                 console.error("Error updating product quantity:", error);
                 Notification("Đã có lỗi xảy ra khi cập nhật số lượng sản phẩm, vui lòng thử lại!", "error");
             }
         }
+        getProductFromDetailsInvoice(orderId);
 
     };
 

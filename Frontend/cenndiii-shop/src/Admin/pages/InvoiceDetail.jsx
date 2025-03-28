@@ -72,6 +72,7 @@ export default function InvoiceDetail() {
         try {
 
             const requestData = {
+                idHoaDon:idHd,
                 idHoaDonChiTiet: idHdct,
                 idChiTietSanPham: idCtsp
             };
@@ -148,7 +149,7 @@ export default function InvoiceDetail() {
             }
 
             const requestData = {
-                idHoaDon: idHd,
+                idHoaDon:idHd,
                 idChiTietSanPham: productDetailSelected.idChiTietSanPham,
                 soLuongMua: selectedQuantity,
                 giaSauGiam: productDetailSelected.giaSauGiam
@@ -185,6 +186,7 @@ export default function InvoiceDetail() {
         if (newQuantity == "tru" || newQuantity == "cong") {
             try {
                 const requestData = {
+                    idHoaDon:idHd,
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
                     soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1),
@@ -200,6 +202,7 @@ export default function InvoiceDetail() {
         } else if (typeof (Number(newQuantity)) == "number") {
             try {
                 const requestData = {
+                    idHoaDon:idHd,
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
                     soLuongMua: Number(newQuantity),

@@ -98,14 +98,14 @@ public class ChiTietSanPhamController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua-sp")
     public ResponseEntity<?> suaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
+        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDon(),sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/xoa-sp")
     public ResponseEntity<?> xoaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        return ResponseEntity.ok(chiTietSanPhamService.xoaSp(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham()));
+        return ResponseEntity.ok(chiTietSanPhamService.xoaSp(sanPhamCartResponse.getIdHoaDon(),sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham()));
     }
 
     @GetMapping("/dot-giam/hien-thi/{idChiTietSanPham}")
@@ -116,7 +116,7 @@ public class ChiTietSanPhamController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/cap-nhat-sl")
     public ResponseEntity<?> capNhat(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
+        chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDon(), sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 }

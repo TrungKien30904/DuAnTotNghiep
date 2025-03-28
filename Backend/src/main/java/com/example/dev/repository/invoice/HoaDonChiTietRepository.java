@@ -34,6 +34,6 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
 """,nativeQuery = true)
     List<HoaDonChiTietRequest> listCart(@Param("idHoaDon") Integer idHoaDon);
 
-    List<HoaDonChiTiet> findAllByChiTietSanPham_IdChiTietSanPham(Integer id);
+    List<HoaDonChiTiet> findAllByChiTietSanPham_IdChiTietSanPhamAndHoaDon_TrangThaiNot(Integer chiTietSanPhamIdChiTietSanPham, String hoaDonTrangThai);
     // Của kiên đến đây
 }
