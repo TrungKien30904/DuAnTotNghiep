@@ -9,10 +9,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Map;
@@ -25,22 +25,18 @@ public class KhachHangController {
     @Autowired
     private KhachHangService khachHangService;
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
-    @GetMapping("/hien-thi-customer")
-    public ResponseEntity<List<KhachHang>> hienThiKhachHang() {
-        return ResponseEntity.ok(khachHangService.getAllCustomerIsStatusTrue());
-    }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @GetMapping("/export-excel")
     public ResponseEntity<List<KhachHang>> hienThi() {
         return ResponseEntity.ok(khachHangService.getAll());
     }
 
-//    @GetMapping("/detail/{id}")
-//    public ResponseEntity<?> detail(@PathVariable Integer id) {
-//        CustomerMapper khachHang = khachHangService.detailKhachHang(id);
-//        return  ResponseEntity.ok(khachHang);
-//    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<?> detail(@PathVariable Integer id) {
+        CustomerMapper khachHang = khachHangService.detailKhachHang(id);
+        return  ResponseEntity.ok(khachHang);
+    }
 
     @PostMapping("/them")
     public ResponseEntity<BaseResponse<Integer>> them(@RequestPart("user") String model, @RequestPart("fileImage") MultipartFile file) {
@@ -91,8 +87,4 @@ public class KhachHangController {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    @PostMapping("/them-kh")
-    public ResponseEntity<?> themKh(@RequestBody KhachHang khachHang) {
-        return ResponseEntity.ok(khachHangService.themKhachHang(khachHang));
-    }
 }

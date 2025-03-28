@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
-// import { useToast } from '../utils/ToastContext';
-import api from '../../security/Axios';
-import { hasPermission } from "../../security/DecodeJWT";
+import { useToast } from '../utils/ToastContext';
+import { useLoading } from "../components/ui/spinner/LoadingContext";
+import Spinner from "../components/ui/spinner/Spinner";
 function AddCustomers() {
     const [formData, setFormData] = useState({
         maKhachHang: '',
@@ -38,6 +38,7 @@ function AddCustomers() {
             }
         }
     }, [navigate]);
+
     const handleFileChange = (e) => {
 
         const selectedFile = e.target.files[0];
@@ -48,7 +49,7 @@ function AddCustomers() {
         }
     };
 
-    // const { showToast } = useToast();
+    const { showToast } = useToast();
     const fetchProvinces = async () => {
         try {
             const response = await axios.get(
@@ -56,7 +57,7 @@ function AddCustomers() {
             );
             setProvince(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
-            // showToast(error, "error");
+            showToast(error, "error");
         }
     };
 
@@ -74,7 +75,7 @@ function AddCustomers() {
                 Array.isArray(response.data) ? response.data : []
             );
         } catch (error) {
-            // showToast(error, "error");
+            showToast(error, "error");
         }
     }, [formData]);
 
@@ -92,11 +93,11 @@ function AddCustomers() {
                 Array.isArray(response.data) ? response.data : []
             );
         } catch (error) {
-            // showToast(error, "error");
+            showToast(error, "error");
         }
     }, [formData]);
 
-    //   const { setLoadingState, loading } = useLoading();
+    const { setLoadingState, loading } = useLoading();
     const handleSelectedProvince = (event) => {
         var provicneName = provinces.find((e) => e.id == event.target.value).name ?? "";
         setFormData({ ...formData, provinceId: event.target.value, districtId: 0, wardId: 0, provinceName: provicneName, districtName: "", wardName: "" });
@@ -112,7 +113,7 @@ function AddCustomers() {
     useEffect(() => { fetchWards(); }, [formData, fetchWards]);
     const handleSelectedWard = (event) => {
         var name = wards.find((e) => e.id == event.target.value).name ?? "";
-        setFormData({ ...formData, wardId: event.target.value, wardName: name });
+        setFormData({ ...formData, wardId: event.target.value, wardName: name});
     }
 
     useEffect(() => {
@@ -133,6 +134,7 @@ function AddCustomers() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoadingState(true);
         setErrors({});
 
         const newErrors = {};
@@ -141,45 +143,61 @@ function AddCustomers() {
         if (!formData.soDienThoai.match(/^0[0-9]{9}$/)) newErrors.soDienThoai = "Số điện thoại không hợp lệ";
         if (!formData.email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) newErrors.email = "Email không hợp lệ";
         if (!formData.provinceId || formData.provinceId === 0) newErrors.provinceId = "Vui lòng chọn tỉnh/thành phố";
-        if (!formData.districtId || formData.districtId === 0) newErrors.districtId = "Vui lòng chọn quận/huyện";
-        if (!formData.wardId || formData.wardId === 0) newErrors.wardId = "Vui lòng chọn xã/phường";
+        if (!formData.districtId || formData.districtId === 0) newErrors.districtId = "Vui lòng chọn tỉnh/thành phố";
+        if (!formData.wardId || formData.wardId === 0) newErrors.wardId = "Vui lòng chọn tỉnh/thành phố";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
+            setLoadingState(false);
             return;
         }
-
         try {
-            const userJson = JSON.stringify(formData);
+            var userJson = JSON.stringify(formData);
             const forms = new FormData();
-            if (file === null) {
-                alert("Require avatar image");
+            if(file === null){
+                setLoadingState(false);
+                showToast("Require avatar image", "error");
                 return;
             }
             forms.append('user', userJson);
             forms.append('fileImage', file);
 
-            const response = await api.post('/admin/khach-hang/them', forms);
-
-            const data = await response.json();
-            if (data) {
-                if (data.code > 0) {
-                    alert("Insert customer successfully");
-                    navigate('/admin/customers');
-                } else {
-                    console.log(data.message);
-                }
-            } else {
-                console.log("Insert customer fail");
+            for (let entry of forms.entries()) {
+                console.log(entry);  // Log the name and value of each entry
             }
+
+            const response = await fetch('http://localhost:8080/admin/khach-hang/them',
+                {
+                    method: "POST",
+                    body: forms
+                }
+            ).then((response) => response.json())
+                .then((data) => {
+                    if (data) {
+                        if(data.code > 0){
+                            showToast("Insert customer successfully", "success");
+                            navigate('/customers');
+                        }else{
+                            showToast(data.message, "error");
+                        }
+                    } else {
+                        showToast("Insert customer fail", "error");
+                    }
+                    setLoadingState(false);
+                })
+                .catch((error) => {
+                    showToast(error, "error");
+                    setLoadingState(false);
+                });
         } catch (error) {
-            console.log(error);
+            showToast(error, "error");
+            setLoadingState(false);
         }
     };
 
     return (
         <div className="p-6 space-y-4">
-            {/* {loading && <Spinner />} Show the spinner while loading */}
+            {loading && <Spinner />} {/* Show the spinner while loading */}
             <div className="flex items-center font-semibold mb-4">
                 <h1>Thêm mới khách hàng</h1>
             </div>

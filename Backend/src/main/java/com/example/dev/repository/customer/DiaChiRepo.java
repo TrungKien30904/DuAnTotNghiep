@@ -1,7 +1,7 @@
 package com.example.dev.repository.customer;
 
-import com.example.dev.entity.custom_entity.AddressModelCustom;
 import com.example.dev.entity.customer.DiaChi;
+import com.example.dev.entity.custom_entity.AddressModelCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -15,5 +15,4 @@ public interface DiaChiRepo extends JpaRepository<DiaChi, Integer> {
     List<DiaChi> getExistAddressByInfor(List<Long> provinceId, List<Long> districtId, List<Long> wardIds, Integer customerId);
     @Query(value = "select * from dia_chi d where d.stage =1 and d.id_khach_hang in ?1", nativeQuery = true)
     List<DiaChi> getByCustomerId(List<Integer> customerIds);
-    DiaChi findByIdKhachHangAndMacDinhTrue(Integer idKhachHang);
 }

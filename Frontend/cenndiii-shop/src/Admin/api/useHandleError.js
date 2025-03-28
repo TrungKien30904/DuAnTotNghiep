@@ -16,7 +16,7 @@ const {
 const useHandleError = () => {
 	const navigate = useNavigate()
 	const t = useTranslate()
-    
+
 	const handleError = (error) => {
 		const { response, request } = error
 		if(response) {
@@ -24,36 +24,36 @@ const useHandleError = () => {
 
 
 			switch(status) {
-			case BAD_REQUEST:
-				message.warning(t(data.message).toUpperFirst())
-				break
-			case UNAUTHORIZED:
-				notification.info({
-					message: t('login session expired').toUpperFirst(),
-					description: t('please login again').toUpperFirst(),
-					placement: 'bottomRight'
-				})
-				navigate('/login')
-				break
-			case NOT_FOUND:
-				message.error(t('url not found').toUpperFirst())
-				break
-			case METHOD_NOT_ALLOWED:
-				message.error(t('method not allowed').toUpperFirst())
-				break
-			case TOO_MANY_REQUEST:
-				message.error(t('too many request').toUpperFirst())
-				break
-			case SERVER_ERROR:
-				notification.error({
-					message: t('server error').toUpperFirst(),
-					description: data.message,
-					placement: 'bottomRight'
-				})
-				break
-			default:
-				message.error(`${t('error').toUpperFirst()}: ${status}`)
-				break
+				case BAD_REQUEST:
+					message.warning(t(data.message).toUpperFirst())
+					break
+				case UNAUTHORIZED:
+					notification.info({
+						message: t('login session expired').toUpperFirst(),
+						description: t('please login again').toUpperFirst(),
+						placement: 'bottomRight'
+					})
+					navigate('/login')
+					break
+				case NOT_FOUND:
+					message.error(t('url not found').toUpperFirst())
+					break
+				case METHOD_NOT_ALLOWED:
+					message.error(t('method not allowed').toUpperFirst())
+					break
+				case TOO_MANY_REQUEST:
+					message.error(t('too many request').toUpperFirst())
+					break
+				case SERVER_ERROR:
+					notification.error({
+						message: t('server error').toUpperFirst(),
+						description: data.message,
+						placement: 'bottomRight'
+					})
+					break
+				default:
+					message.error(`${t('error').toUpperFirst()}: ${status}`)
+					break
 			}
 
 			return data
@@ -70,7 +70,7 @@ const useHandleError = () => {
 				}
 			} else {
 				message.error('request error unknown')
-			
+
 			}
 		} else {
 			// message.error('error unknown')
