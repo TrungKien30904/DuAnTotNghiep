@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface KichCoRepo extends JpaRepository<KichCo, Integer> {
     List<KichCo> findAllByTrangThaiIsTrue();
+
+    KichCo findKichCoByTenEqualsIgnoreCase(String ten);
 }

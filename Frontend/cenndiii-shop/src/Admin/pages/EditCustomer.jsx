@@ -48,8 +48,10 @@ function EditCustomer() {
         }
     };
     useEffect(() => {
-        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/admin/login");
+        if(localStorage.getItem("token")){
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
         }
     }, [navigate]);
     const fetchCustomerById = async () => {

@@ -52,8 +52,10 @@ export default function Orders() {
     const token = localStorage.getItem("token") || "";
 
     useEffect(() => {
-        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/admin/login");
+        if (localStorage.getItem("token")) {
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
         }
     }, [navigate]);
 
@@ -92,12 +94,6 @@ export default function Orders() {
 
 
     useEffect(() => {
-        if (!token) {
-            console.error("Token không tồn tại.");
-            window.location.href = "/login"; // Điều hướng về trang đăng nhập
-            return;
-        }
-
         const fetchOrders = async () => {
             try {
                 const response = await api.get('/admin/hoa-don/hd-ban-hang'); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
@@ -141,14 +137,9 @@ export default function Orders() {
     }, [orders, isFirstLoad]);
 
     const getProductFromDetailsInvoice = async (idHoaDon) => {
-        if (!token) {
-            console.error("Token không tồn tại.");
-            window.location.href = "/login"; // Điều hướng về trang đăng nhập
-            return;
-        }
 
         try {
-            const response = await api.get(`/admin/hdct/get-cart/${idHoaDon}`); // filepath: f:\feat(orders)\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\pages\Orders.jsx
+            const response = await api.get(`/admin/hdct/get-cart/${idHoaDon}`);
             setOrderItemsByTab(response.data);
         } catch (error) {
             console.error("Error fetching product details:", error);
@@ -541,14 +532,14 @@ export default function Orders() {
                                                                             ) : (
                                                                                 item.giaDuocTinh && (
                                                                                     <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
-                                                                                        *Sản phẩm có sự thay đổi về giá {item.donGia.toLocaleString()} đ →{" "}
-                                                                                        {item.giaDuocTinh.toLocaleString()} đ
+                                                                                        *Sản phẩm có sự thay đổi về giá {item.giaDuocTinh.toLocaleString()} đ → {" "}
+                                                                                        {item.donGia.toLocaleString()} đ
                                                                                     </p>
                                                                                 )
                                                                             )}
                                                                         </div>
                                                                     </TableCell>
-                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>
+                                                                    <TableCell align="center" sx={{ fontSize: "12px" }}>
                                                                         <div className='relative'>
                                                                             <div className='absolute -left-3 top-0 bottom-0'>
                                                                                 {item.trangThai && (
@@ -631,19 +622,19 @@ export default function Orders() {
                                                                         </div>
 
                                                                     </TableCell>
-                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>{item.kho}</TableCell>
-                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>{item.donGia.toLocaleString()} đ</TableCell>
-                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>
+                                                                    <TableCell align="center" sx={{ fontSize: "12px" }}>{item.kho}</TableCell>
+                                                                    <TableCell align="center" sx={{ fontSize: "12px" }}>{item.donGia.toLocaleString()} đ</TableCell>
+                                                                    <TableCell align="center" sx={{ fontSize: "12px" }}>
                                                                         {(item.giaDuocTinh ?? item.donGia).toLocaleString()} đ
                                                                     </TableCell>
-                                                                    <TableCell align="center"  sx={{ fontSize: "12px"}}>{item.thanhTien.toLocaleString()} đ</TableCell>
-                                                                    <TableCell sx={{ width: "10px" ,padding:"4px",}}>
+                                                                    <TableCell align="center" sx={{ fontSize: "12px" }}>{item.thanhTien.toLocaleString()} đ</TableCell>
+                                                                    <TableCell sx={{ width: "10px", padding: "4px", }}>
                                                                         <button
                                                                             onClick={() =>
                                                                                 handleRemoveOrderItem(item.idHoaDonChiTiet, item.idChiTietSanPham)
                                                                             }
                                                                         >
-                                                                            <Trash size={16} sx={{ width: "10px"}} className="text-red-600" />
+                                                                            <Trash size={16} sx={{ width: "10px" }} className="text-red-600" />
                                                                         </button>
                                                                     </TableCell>
                                                                 </TableRow>

@@ -84,7 +84,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
     // >
 
     const [openPayAlert, setOpenPayAlert] = useState(false);
-    const getConfirm = (confirm) => {
+    const getConfirm = async (confirm) => {
         setOpenPayAlert(false);
         if (confirm) {
             if (!invoiceId) {
@@ -105,8 +105,10 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
 
     useEffect(() => {
-        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/admin/login");
+        if (localStorage.getItem("token")) {
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
         }
     }, [navigate]);
     const token = localStorage.getItem("token") || "";
@@ -146,8 +148,8 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
         setFilteredVouchers(total > 0 ? originalVouchers.filter(v => total >= v.dieuKien) : originalVouchers);
     }, [total]);
 
-
-
+    
+    const [vnpayUrl, setVnpayUrl] = useState(null);
 
     const onSubmit = async () => {
 
@@ -170,7 +172,8 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             trangThai: "Đã thanh toán",
             ngaySua: new Date().toISOString(),
             nguoiSua: null,
-            loaiDon: deliveryMethod,
+            loaiDon: "Tại cửa hàng",
+            phuongThucNhanHang:deliveryMethod,
             thanhToanHoaDon,
             tenNguoiNhan: deliveryMethod === "giaohang" ? (deliveryData?.hoTen || null) : null,
             soDienThoai: deliveryMethod === "giaohang" ? (deliveryData?.soDienThoai || null) : null,
@@ -178,12 +181,13 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
         };
-        console.log(requestData);
 
         if (lastTotal <= 0) {
             navigate("/admin/orders", { state: { message: "Chưa chọn sản phẩm", type: "error" } });
             return;
         }
+
+    
 
         try {
             const response = await api.post('/admin/hoa-don/thanh-toan', requestData);
@@ -206,14 +210,22 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                 fetchOrders();
                 reloadTab();
                 navigate("/admin/orders", { state: { message: "Thanh toán thành công", type: "success" } });
+        handlePrint(requestData, totalItem, selectedCustomer.hoTen);
             }
         } catch (error) {
             console.error("Error processing payment:", error);
             navigate("/admin/orders", { state: { message: "Lỗi khi thanh toán", type: "error" } });
         }
-        handlePrint(requestData, totalItem, selectedCustomer.hoTen);
     };
 
+    useEffect(() => {
+        const paymentSuccess = localStorage.getItem("paymentSuccess");
+        if (paymentSuccess === "true") {
+            localStorage.removeItem("paymentSuccess");
+            handleSubmit(onSubmit)();
+        }
+    }, []);
+    
     useEffect(() => {
         const fetchPublicVouchers = async () => {
             try {
@@ -1028,7 +1040,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                                     onChange={(e) => {
                                         if (e.target.value >= 0) {
                                             setAmount(e.target.value)
-                                        }else{
+                                        } else {
                                             setAmount(0)
                                         }
                                     }}

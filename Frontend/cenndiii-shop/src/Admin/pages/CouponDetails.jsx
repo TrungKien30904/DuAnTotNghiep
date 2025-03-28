@@ -22,8 +22,10 @@ export default function CouponDetails() {
     const [filters, setFilters] = useState({ keyword: "" });
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     useEffect(() => {
-        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/admin/login");
+        if(localStorage.getItem("token")){
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
         }
     }, [navigate]);
     useEffect(() => {

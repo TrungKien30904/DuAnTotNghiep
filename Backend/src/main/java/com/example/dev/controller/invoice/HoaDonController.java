@@ -111,9 +111,8 @@ public class HoaDonController {
     }
 
     @GetMapping("/{maHoaDon}/lich-su-hoa-don")
-    public ResponseEntity<Object> lichSuHoaDon(@PathVariable String maHoaDon) {
-        List<LichSuHoaDon> lichSuHoaDons = lichSuHoaDonService.findAllByHoaDonId(maHoaDon);
-        return ResponseEntity.ok(lichSuHoaDons);
+    public ResponseEntity<Object> lichSuHoaDon(@PathVariable Integer maHoaDon) {
+        return ResponseEntity.ok(lichSuHoaDonService.findAllByHoaDonId(maHoaDon));
     }
 
     @GetMapping("/export-excel")

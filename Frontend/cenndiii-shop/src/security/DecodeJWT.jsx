@@ -49,3 +49,9 @@ export const getSub = () => {
     return decodedToken.sub;
 };
 
+export const logout = (permisson) => {
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    
+}

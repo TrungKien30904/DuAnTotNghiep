@@ -346,6 +346,7 @@ export default function ProductDetails() {
   };
 
   const handleUploadImages = async (idSanPham) => {
+    const token = localStorage.getItem("token")
     const formData = new FormData();
 
     selectedImages.forEach((image) => {
@@ -357,9 +358,9 @@ export default function ProductDetails() {
         const response = await axios.post(
           `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
           formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
+          { headers: { "Content-Type": "multipart/form-data" ,Authorization:`Bearer ${token}`} }
         );
-        if (response.status === 200200) {
+        if (response.status === 200) {
           Notification("Tải ảnh thành công", "success");
         } else {
           Notification("Tải ảnh thất bại", "error");

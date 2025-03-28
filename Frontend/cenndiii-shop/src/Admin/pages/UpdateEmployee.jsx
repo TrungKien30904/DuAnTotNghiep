@@ -25,8 +25,10 @@ export default function EditEmployee() {
     });
     const [errors, setErrors] = useState({});
     useEffect(() => {
-        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-            navigate("/admin/login");
+        if(localStorage.getItem("token")){
+            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+                navigate("/admin/login");
+            }
         }
     }, [navigate]);
     const [loading, setLoading] = useState(false); // Trạng thái loading

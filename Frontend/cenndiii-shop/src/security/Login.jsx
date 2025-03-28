@@ -3,13 +3,11 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import axios from "axios";
 import { Decode, getDecodedToken } from "./DecodeJWT";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../untils/AuthContext";
 export default function LoginForm() {
   const [phoneNum, setPhoneNum] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuth();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -29,11 +27,6 @@ export default function LoginForm() {
           const decodedToken = Decode(token);
 
           if (decodedToken!=null) {
-            setUser({
-              username: decodedToken.userName,
-              permission: decodedToken.permissions[0],
-            });
-
             if (decodedToken.permissions[0] === "CUSTOMER") {
               navigate("/");
             } else {
@@ -42,8 +35,7 @@ export default function LoginForm() {
           }
         }
       });
-
-      //console.log(res);
+      
     } catch (error) {
 
     }

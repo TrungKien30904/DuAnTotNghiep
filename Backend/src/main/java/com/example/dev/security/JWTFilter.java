@@ -9,7 +9,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -25,7 +24,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
 
-
+    public static String IP_ADDRESS;
 
     @Override
     protected void doFilterInternal(
@@ -35,6 +34,14 @@ public class JWTFilter extends OncePerRequestFilter {
     )throws ServletException, IOException {
         try {
             String token = getTokenFromRequest(request);
+            IP_ADDRESS = request.getHeader("X-Forwarded-For");
+            if (IP_ADDRESS == null || IP_ADDRESS.isEmpty()) {
+                IP_ADDRESS = request.getRemoteAddr();
+                if ("0:0:0:0:0:0:0:1".equals(IP_ADDRESS)) {
+                    IP_ADDRESS = "127.0.0.1";
+                }
+            }
+            // In ra log (có thể lưu vào database nếu cần)
             if (StringUtils.hasText(token)) {
                 UserLogin userLogin = jwtService.getUserLogin(token);
                 if (userLogin != null) {

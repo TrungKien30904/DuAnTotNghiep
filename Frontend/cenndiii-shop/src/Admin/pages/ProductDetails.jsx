@@ -119,29 +119,30 @@ export default function ProductDetails() {
   };
 
   const handleUploadImages = async (idSanPham) => {
-    if (!selectedImages || Object.keys(selectedImages).length === 0) {
-      console.warn("Không có ảnh nào để upload!");
-      return;
-    }
-
+    const token = localStorage.getItem("token")
     const formData = new FormData();
 
-    Object.entries(selectedImages).forEach(([colorName, files]) => {
-      files.forEach((file) => {
-        formData.append("file", file);
-        formData.append("tenMau", colorName); // Gửi mã màu tương ứng
-      });
+    selectedImages.forEach((image) => {
+      formData.append("file", image);
+      formData.append("tenMau", colorSelected.label);
     });
-
     try {
-      await axios.post(
-        `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      Notification("Thêm ảnh thành công", "success");
+      if (selectedImages.length > 0) {
+        const response = await axios.post(
+          `http://localhost:8080/admin/chi-tiet-san-pham/them-anh/${idSanPham}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" ,Authorization:`Bearer ${token}`} }
+        );
+        if (response.status === 200) {
+          Notification("Tải ảnh thành công", "success");
+        } else {
+          Notification("Tải ảnh thất bại", "error");
+        }
+      }
     } catch (error) {
-      Notification("Lỗi khi thêm ảnh", "error");
+      Notification("Tải ảnh thất bại", "error");
+    } finally {
+
     }
   };
 
@@ -159,7 +160,7 @@ export default function ProductDetails() {
     description: ""
   });
   useEffect(() => {
-  },[]);
+  }, []);
   useEffect(() => {
     fetchData("/admin/san-pham/hien-thi/true", setProducts);
     fetchData("/admin/co-giay/hien-thi/true", setShoeCollars);
@@ -226,14 +227,20 @@ export default function ProductDetails() {
       const response = await api.post("/admin/mau-sac/them", {
         ten: newColor,
       });
+
       const newOption = { value: response.data.idMauSac, label: response.data.ten };
-      setSelectedColors((prevSelected) => [...prevSelected, newOption]);
-      setIsAddingColor(false);
-      setNewColor("");
-      Notification("Thêm kích cỡ thành công", "success");
-      await fetchData("/admin/mau-sac/hien-thi/true", setSizes);
+      if (response.data != "") {
+        setSelectedColors((prevSelected) => [...prevSelected, newOption]);
+        setIsAddingColor(false);
+        setNewColor("");
+        Notification("Thêm màu sắc thành công", "success");
+        await fetchData("/admin/mau-sac/hien-thi/true", setColors);
+      } else {
+        setIsAddingColor(false);
+        Notification("Màu sắc đã tồn tại", "error");
+      }
     } catch (error) {
-      Notification("Lỗi khi thêm mau-sac!", "error");
+      Notification("Lỗi khi thêm màu sắc!", "error");
     }
   };
 
@@ -243,12 +250,17 @@ export default function ProductDetails() {
       const response = await api.post("/admin/kich-co/them", {
         ten: newSize,
       });
-      const newOption = { value: response.data.idKichCo, label: response.data.ten };
-      setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
-      setIsAddingSize(false);
-      setNewSize("");
-      Notification("Thêm kích cỡ thành công", "success");
-      await fetchData("/admin/kich-co/hien-thi/true", setSizes);
+      if (response.data != "") {
+        const newOption = { value: response.data.idKichCo, label: response.data.ten };
+        setSelectedSizes((prevSelected) => [...prevSelected, newOption]);
+        setIsAddingSize(false);
+        setNewSize("");
+        Notification("Thêm kích cỡ thành công", "success");
+        await fetchData("/admin/kich-co/hien-thi/true", setSizes);
+      } else {
+        setIsAddingSize(false);
+        Notification("Kích cỡ đã tồn tại", "error");
+      }
     } catch (error) {
       Notification("Lỗi khi thêm kích cỡ!", "error");
     }
@@ -902,125 +914,125 @@ export default function ProductDetails() {
 
                   </thead>
                   <tbody>
-                    {Object.values(groupedVariants).map((group,index) => {
+                    {Object.values(groupedVariants).map((group, index) => {
                       const colorName = group.colorName;
                       const variantsGroup = group.variants;
                       return (
                         // <>
-                          variantsGroup.map((variant, idx) => {
-                            const variantId = `${variant.colorId}-${variant.sizeId}`;
-                            return (
-                              <tr key={variantId} className="border-t">
-                                <td className="p-2 text-center">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedVariantIds.includes(variantId)}
-                                    onChange={() => {
-                                      let newSelected;
-                                      if (selectedVariantIds.includes(variantId)) {
-                                        newSelected = selectedVariantIds.filter(
-                                          (id) => id !== variantId
-                                        );
-                                      } else {
-                                        newSelected = [...selectedVariantIds, variantId];
-                                      }
-                                      setSelectedVariantIds(newSelected);
-                                    }}
-                                  />
-                                </td>
-                                {idx === 0 && (<td className="p-2 text-center " rowSpan={variantsGroup.length} >{index + 1}</td>)}
-                                <td className="p-2">
-                                  {productSelected && productSelected.label
-                                    ? `${productSelected.label} [${variant.colorName} - ${variant.sizeName}]`
-                                    : `[${variant.colorName} - ${variant.sizeName}]`}
-                                </td>
-                                <td className="p-2 text-center">
-                                  <input
-                                    min={1}
-                                    type="number"
-                                    value={variant.quantity ?? 0}
-                                    onChange={(e) => {
-                                      const newValue = Math.max(1, e.target.value);
-                                      updateVariantField(
-                                        variant.colorId,
-                                        variant.sizeId,
-                                        "quantity",
-                                        newValue
+                        variantsGroup.map((variant, idx) => {
+                          const variantId = `${variant.colorId}-${variant.sizeId}`;
+                          return (
+                            <tr key={variantId} className="border-t">
+                              <td className="p-2 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedVariantIds.includes(variantId)}
+                                  onChange={() => {
+                                    let newSelected;
+                                    if (selectedVariantIds.includes(variantId)) {
+                                      newSelected = selectedVariantIds.filter(
+                                        (id) => id !== variantId
                                       );
-                                    }}
-                                    className="w-20 border rounded p-1 text-center"
-                                  />
-                                  {errors[`quantity_${variant.index}`] && (
-                                    <div className="text-red-600 text-xs">
-                                      {errors[`quantity_${variant.index}`]}
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="p-2 text-center">
-                                  <input
-                                    min={1}
-                                    type="number"
-                                    value={variant.price ?? 0}
-                                    onChange={(e) => {
-                                      const newValue = Math.max(1, e.target.value);
-                                      updateVariantField(
-                                        variant.colorId,
-                                        variant.sizeId,
-                                        "price",
-                                        newValue
-                                      );
-                                    }}
-                                    className="w-20 border rounded p-1 text-center"
-                                  />
-                                  {errors[`price_${variant.index}`] && (
-                                    <div className="text-red-600 text-xs">
-                                      {errors[`price_${variant.index}`]}
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="p-2 text-center">
-                                  <button
-                                    onClick={() =>
-                                      handleDeleteVariant(variant.colorId, variant.sizeId)
+                                    } else {
+                                      newSelected = [...selectedVariantIds, variantId];
                                     }
-                                  >
-                                    <Trash size={16} className="text-red-600" />
-                                  </button>
-                                </td>
-                                {/* Ở dòng đầu tiên của nhóm, hiển thị ô ảnh với rowSpan bằng số biến thể */}
-                                {idx === 0 && (
-                                  <td className="p-2" rowSpan={variantsGroup.length}>
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      multiple
-                                      onChange={(event) => handleImageChange(event, colorName)}
-                                      className="block w-full mb-2"
-                                    />
-                                    <div className="flex gap-2 flex-wrap">
-                                      {selectedImages[colorName]?.map((file, index) => (
-                                        <div key={index} className="relative w-24 h-24">
-                                          <img
-                                            src={URL.createObjectURL(file)}
-                                            alt={file.name}
-                                            className="w-full h-full object-cover rounded-md border"
-                                          />
-                                          <button
-                                            className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"
-                                            onClick={() => handleRemoveImage(colorName, index)}
-                                          >
-                                            ✕
-                                          </button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </td>
+                                    setSelectedVariantIds(newSelected);
+                                  }}
+                                />
+                              </td>
+                              {idx === 0 && (<td className="p-2 text-center " rowSpan={variantsGroup.length} >{index + 1}</td>)}
+                              <td className="p-2">
+                                {productSelected && productSelected.label
+                                  ? `${productSelected.label} [${variant.colorName} - ${variant.sizeName}]`
+                                  : `[${variant.colorName} - ${variant.sizeName}]`}
+                              </td>
+                              <td className="p-2 text-center">
+                                <input
+                                  min={1}
+                                  type="number"
+                                  value={variant.quantity ?? 0}
+                                  onChange={(e) => {
+                                    const newValue = Math.max(1, e.target.value);
+                                    updateVariantField(
+                                      variant.colorId,
+                                      variant.sizeId,
+                                      "quantity",
+                                      newValue
+                                    );
+                                  }}
+                                  className="w-20 border rounded p-1 text-center"
+                                />
+                                {errors[`quantity_${variant.index}`] && (
+                                  <div className="text-red-600 text-xs">
+                                    {errors[`quantity_${variant.index}`]}
+                                  </div>
                                 )}
-                              </tr>
-                            );
-                          })
+                              </td>
+                              <td className="p-2 text-center">
+                                <input
+                                  min={1}
+                                  type="number"
+                                  value={variant.price ?? 0}
+                                  onChange={(e) => {
+                                    const newValue = Math.max(1, e.target.value);
+                                    updateVariantField(
+                                      variant.colorId,
+                                      variant.sizeId,
+                                      "price",
+                                      newValue
+                                    );
+                                  }}
+                                  className="w-20 border rounded p-1 text-center"
+                                />
+                                {errors[`price_${variant.index}`] && (
+                                  <div className="text-red-600 text-xs">
+                                    {errors[`price_${variant.index}`]}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-2 text-center">
+                                <button
+                                  onClick={() =>
+                                    handleDeleteVariant(variant.colorId, variant.sizeId)
+                                  }
+                                >
+                                  <Trash size={16} className="text-red-600" />
+                                </button>
+                              </td>
+                              {/* Ở dòng đầu tiên của nhóm, hiển thị ô ảnh với rowSpan bằng số biến thể */}
+                              {idx === 0 && (
+                                <td className="p-2" rowSpan={variantsGroup.length}>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={(event) => handleImageChange(event, colorName)}
+                                    className="block w-full mb-2"
+                                  />
+                                  <div className="flex gap-2 flex-wrap">
+                                    {selectedImages[colorName]?.map((file, index) => (
+                                      <div key={index} className="relative w-24 h-24">
+                                        <img
+                                          src={URL.createObjectURL(file)}
+                                          alt={file.name}
+                                          className="w-full h-full object-cover rounded-md border"
+                                        />
+                                        <button
+                                          className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"
+                                          onClick={() => handleRemoveImage(colorName, index)}
+                                        >
+                                          ✕
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })
                         // }
-                        
+
                       );
                     })}
                   </tbody>

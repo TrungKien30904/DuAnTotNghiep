@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.hibernate.sql.Update;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
@@ -78,13 +79,14 @@ public class HoaDonService {
         UserLogin user = (UserLogin) auth.getPrincipal();
         hoaDon.setNguoiSua(user.getUsername());
         hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        taoHoaDon(hoaDon, "Hủy", auth);
+        taoHoaDon(hoaDon, BaseConstant.Action.DELETE.getValue(), auth);
         return hoaDonRepository.save(hoaDon);
     }
 
 
     public HoaDon xacnhan(String maHoaDon, Authentication auth) {
         HoaDon hoaDon = findInvoice(maHoaDon);
+        if (hoaDon.getTrangThai().equalsIgnoreCase("Đã hoàn thành") || hoaDon.getTrangThai().equalsIgnoreCase("Hủy")) return null;
         String trangThai = hoaDon.getTrangThai();
         if ("Chờ xác nhận".equals(trangThai)) {
             hoaDon.setTrangThai("Đã xác nhận");
@@ -93,30 +95,44 @@ public class HoaDonService {
             hoaDon.setTrangThai("Chờ vận chuyển");
         }
         if ("Chờ vận chuyển".equals(trangThai)) {
-            hoaDon.setTrangThai("Đã thanh toán");
+            hoaDon.setTrangThai("Đang vận chuyển");
         }
-        if ("Đã thanh toán".equals(trangThai)) {
-            hoaDon.setTrangThai("Giao thành công");
+        if ("Đang vận chuyển".equals(trangThai)) {
+            hoaDon.setTrangThai("Đã hoàn thành");
         }
         UserLogin user = (UserLogin) auth.getPrincipal();
         hoaDon.setNguoiSua(user.getUsername());
         hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        taoHoaDon(hoaDon, hoaDon.getTrangThai(), auth);
+        taoHoaDon(hoaDon, BaseConstant.Action.UPDATE.getValue(), auth);
         return hoaDonRepository.save(hoaDon);
     }
 
     public HoaDon quaylai(String maHoaDon, Authentication auth) {
         HoaDon hoaDon = findInvoice(maHoaDon);
-        hoaDon.setTrangThai("Chờ xác nhận");
+        if (hoaDon.getTrangThai().equalsIgnoreCase("Hủy")) return null;
+        String trangThai = hoaDon.getTrangThai();
+        if ("Đã xác nhận".equals(trangThai)) {
+            hoaDon.setTrangThai("Chờ xác nhận");
+        }
+        if ("Chờ vận chuyển".equals(trangThai)) {
+            hoaDon.setTrangThai("Đã xác nhận");
+        }
+        if ("Đang vận chuyển".equals(trangThai)) {
+            hoaDon.setTrangThai("Chờ vận chuyển");
+        }
+        if ("Đã hoàn thành".equals(trangThai)) {
+            hoaDon.setTrangThai("Hủy");
+        }
         UserLogin user = (UserLogin) auth.getPrincipal();
         hoaDon.setNguoiSua(user.getUsername());
         hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        taoHoaDon(hoaDon, hoaDon.getTrangThai(), auth);
+        taoHoaDon(hoaDon, BaseConstant.Action.UPDATE.getValue(), auth);
         return hoaDonRepository.save(hoaDon);
     }
 
     public void taoHoaDon(HoaDon hoaDon, String hanhDong, Authentication auth) {
         LichSuHoaDon lichSuHoaDon = new LichSuHoaDon();
+        lichSuHoaDon.setGhiChu(hoaDon.getTrangThai());
         lichSuHoaDon.setHoaDon(hoaDon);
         lichSuHoaDon.setHanhDong(hanhDong);
         lichSuHoaDon.setNgayTao(LocalDateTime.now());
@@ -135,7 +151,7 @@ public class HoaDonService {
         newInvoice.setNgayTao(LocalDateTime.now());
         newInvoice.setNguoiTao(user.getUsername());
         newInvoice.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        newInvoice.setTrangThai("Chờ xác nhận");
+        newInvoice.setTrangThai("Hóa đơn trống");
         HoaDon n = hoaDonRepository.save(newInvoice);
         lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(n).hanhDong(BaseConstant.Action.CREATE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu("Thêm hóa đơn mới tại cửa hàng").build());
         return n;
@@ -244,13 +260,23 @@ public class HoaDonService {
             invoiceRemove.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
             invoiceRemove.setTrangThai("Hủy");
             hoaDonRepository.save(invoiceRemove);
+            lichSuHoaDonService.themLichSu(
+                    LichSuHoaDon.builder()
+                            .hoaDon(invoiceRemove)
+                            .hanhDong(BaseConstant.Action.DELETE.getValue())
+                            .ngayTao(LocalDateTime.now())
+                            .nguoiTao(user.getUsername())
+                            .ghiChu(invoiceRemove.getTrangThai())
+                            .build()
+            );
+
         } else {
             throw new RuntimeException("Hóa đơn không tồn tại với id: " + idHoaDon);
         }
     }
 
     public List<HoaDon> findAllByStatus() {
-        return hoaDonRepository.findAllByTrangThaiEqualsIgnoreCase("Chờ xác nhận");
+        return hoaDonRepository.findAllByTrangThaiEqualsIgnoreCase("Hóa đơn trống");
     }
 
     public void updateVoucher(Integer idHoaDon, Integer voucherId, Authentication auth) {
@@ -272,6 +298,7 @@ public class HoaDonService {
         HoaDon find = hoaDonRepository.findById(hoaDonResponse.getIdHoaDon()).orElseThrow();
         find.setTongTien(hoaDonResponse.getTongTien());
         find.setLoaiDon(hoaDonResponse.getLoaiDon());
+        find.setPhuongThucNhanHang(hoaDonResponse.getPhuongThucNhanHang());
         find.setDiaChi(hoaDonResponse.getDiaChi());
         find.setGhiChu(hoaDonResponse.getGhiChu());
         find.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
@@ -280,15 +307,13 @@ public class HoaDonService {
         UserLogin user = (UserLogin) auth.getPrincipal();
         find.setNguoiSua(user.getUsername());
         find.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
-        if (hoaDonResponse.getLoaiDon().equals("taiquay")) {
+        if (hoaDonResponse.getPhuongThucNhanHang().equals("taiquay")) {
             find.setTrangThai("Đã hoàn thành");
         } else {
             find.setTrangThai("Chờ vận chuyển");
         }
 
         hoaDonRepository.save(find);
-
-        // neu tim thay trong hd co sp cu thi xoa di
 
 
         List<ThanhToanHoaDon> tthd = new ArrayList<>();
@@ -297,7 +322,7 @@ public class HoaDonService {
         }
         thanhToanHoaDonService.thanhToanHoaDon(tthd);
 
-        lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(find).hanhDong(BaseConstant.Action.UPDATE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu("Thanh toán hóa đơn").build());
+        lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(find).hanhDong(BaseConstant.Action.UPDATE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu(find.getTrangThai()).build());
     }
 
 

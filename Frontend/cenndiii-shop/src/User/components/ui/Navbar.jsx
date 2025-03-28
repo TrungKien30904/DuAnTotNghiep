@@ -3,14 +3,13 @@ import { AppBar, Toolbar, IconButton, Badge, Avatar } from "@mui/material";
 import { ShoppingCart, Search } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/cart/CartContext"; // Import useCart
-import { useAuth } from "../../../untils/AuthContext";
 import { Menu, MenuItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { getPermissions,getUserName,logout } from "../../../security/DecodeJWT";
 const Navbar = () => {
-  const { cartCount } = useCart(); // Lấy cartCount từ context
+  const { cartCount } = useCart(); 
   const [scrolling, setScrolling] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth(); // Lấy user từ context
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
@@ -20,23 +19,35 @@ const Navbar = () => {
     { link: "contact", name: "Liên hệ" },
     { link: "about", name: "Về chúng tôi" }
   ];
+  const [user,setUser] = useState([])
+  const [userName,setUserName] = useState("");
+  useEffect(()=>{
+    setUser(getPermissions());
+    setUserName(getUserName())
+  },[])
+  
+  const isLoggedIn = useMemo(() => user.length > 0, [user]);
+
   const handleAvatarClick = (event) => {
-    if (!user) {
+    if (!isLoggedIn) {
       navigate("/login");
     } else {
       setAnchorEl(event.currentTarget);
     }
   };
+  
 
   const handleClose = () => {
     setAnchorEl(null);
   };
 
   const handleLogout = () => {
-    logout(); // Gọi hàm logout từ AuthContext
+    logout(user); 
+    navigate("/home");
     handleClose();
     navigate("/home"); // Chuyển hướng sau khi logout
   };
+  
 
 
 
@@ -104,7 +115,7 @@ const Navbar = () => {
             </IconButton>
           </Link>
           <IconButton onClick={handleAvatarClick} className="transition-transform duration-300 hover:scale-110">
-            <Avatar src={user ? user.avatarUrl : ""} alt="User Avatar" />
+            <Avatar src={"#"} alt="User Avatar" />
           </IconButton>
           <Menu
             anchorEl={anchorEl}
@@ -116,7 +127,7 @@ const Navbar = () => {
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <MenuItem disabled>
-              {user?.username}
+              {userName}
             </MenuItem>
             <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
           </Menu>
