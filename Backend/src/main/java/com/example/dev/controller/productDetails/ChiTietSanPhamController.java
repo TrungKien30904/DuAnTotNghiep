@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin/chi-tiet-san-pham")
@@ -51,13 +52,13 @@ public class ChiTietSanPhamController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
     public ResponseEntity<?> themCtsp(@Valid @RequestBody ChiTietSanPhamResponse ctsp, Authentication auth) {
-        return ResponseEntity.ok(chiTietSanPhamService.themChiTietSanPham(ctsp,auth));
+        return ResponseEntity.ok(chiTietSanPhamService.themChiTietSanPham(ctsp, auth));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaCtsp(@Valid @RequestBody ChiTietSanPham cl, @PathVariable Integer id, Authentication auth) {
-        return ResponseEntity.ok(chiTietSanPhamService.suaChiTietSanPham(cl, id,auth));
+        return ResponseEntity.ok(chiTietSanPhamService.suaChiTietSanPham(cl, id, auth));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
@@ -85,8 +86,19 @@ public class ChiTietSanPhamController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping(value = "/them-anh/{idSanPham}")
     public ResponseEntity<?> themAnh(@RequestPart final List<MultipartFile> file, @RequestParam("tenMau") List<String> tenMau, @PathVariable Integer idSanPham, Authentication auth) {
-        chiTietSanPhamService.uploadImage(file, tenMau, idSanPham,auth);
+        chiTietSanPhamService.uploadImage(file, tenMau, idSanPham, auth);
         return ResponseEntity.ok("Upload successfully");
+    }
+
+    //    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @GetMapping("/find-by-ma/{ma}")
+    public ResponseEntity<?> getProductByMa(@PathVariable String ma) {
+        try {
+            ChiTietSanPham ctsp = chiTietSanPhamService.findByMa(ma);
+            return ResponseEntity.ok(ctsp);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
@@ -98,7 +110,7 @@ public class ChiTietSanPhamController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua-sp")
     public ResponseEntity<?> suaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
+        chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(), sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 
@@ -116,7 +128,7 @@ public class ChiTietSanPhamController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/cap-nhat-sl")
     public ResponseEntity<?> capNhat(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
-        chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
+        chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(), sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 }

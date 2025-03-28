@@ -16,6 +16,7 @@ import { hasPermission } from "../../security/DecodeJWT";
 import QRCode from 'qrcode';
 
 export default function ProductDetails() {
+  const [qrData, setQrData] = useState(""); // Trường để lưu mã QR
   const [qrCodeContent, setQrCodeContent] = useState(""); // Mã QR
   const { id } = useParams(); // Id lấy từ trang khác
   const [currentPage, setCurrentPage] = useState(0);

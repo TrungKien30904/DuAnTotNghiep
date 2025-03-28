@@ -12,6 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Loading from "../../components/Loading";
 import Alert from "../../components/Alert";
 import api from "../../security/Axios";
+import { QRCode } from 'qrcode';
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 const removeDiacritics = (str) => {
@@ -44,6 +45,7 @@ const customFilterOption = (option, rawInput) => {
 };
 
 export default function ProductDetails() {
+  const [qrData, setQrData] = useState("");
   const [qrCodeContent, setQrCodeContent] = useState(""); // Mã QR
   const navigate = useNavigate();
   // Dữ liệu tải về từ backend

@@ -64,8 +64,17 @@ public class ChiTietSanPhamService {
 
     public ChiTietSanPham getChiTietSanPham(Integer id) {
         ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(id).orElse(null);
-        ctsp.setMa(getQRCodeContent(id));
+//        ctsp.setMa(getQRCodeContent(id));
         return ctsp;
+    }
+
+        private String generateQRCodeContent(ChiTietSanPham ctsp) {
+        // Chế tạo chuỗi dữ liệu cần mã hóa (có thể bao gồm thông tin như mã sản phẩm, giá trị, mô tả, v.v.)
+        String content = "id=" + ctsp.getIdChiTietSanPham()+ctsp.getKichCo();
+
+        // Tạo mã QR
+    //        return QRCodeUtil.generateQRCode(base64EncodedContent);
+        return QRCodeUtil.generateQRCode(content);
     }
 
     public String getQRCodeContent(Integer id) {
@@ -96,6 +105,12 @@ public class ChiTietSanPhamService {
 //        }
 //        return listRequest;
 //    }
+
+    public ChiTietSanPham findByMa(String ma) {
+        return chiTietSanPhamRepo.findByMa(ma)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + ma));
+    }
+
     public Integer themChiTietSanPham(ChiTietSanPhamResponse dto, Authentication auth) {
         ChiTietSanPham ctsp = null;
         List<ChiTietSanPham> chiTietSanPhams = getListChiTietSanPham();
@@ -141,18 +156,6 @@ public class ChiTietSanPhamService {
         return ctsp.getSanPham().getIdSanPham();
     }
 
-    private String generateQRCodeContent(ChiTietSanPham ctsp) {
-        // Chế tạo chuỗi dữ liệu cần mã hóa (có thể bao gồm thông tin như mã sản phẩm, giá trị, mô tả, v.v.)
-        String content = "id=" + ctsp.getIdChiTietSanPham();
-
-        // Mã hóa Base64
-        String base64EncodedContent = Base64.getEncoder().encodeToString(content.getBytes());
-
-        // Tạo mã QR từ chuỗi Base64 đã mã hóa
-        return QRCodeUtil.generateQRCode(base64EncodedContent);
-    }
-
-
     public List<ChiTietSanPhamRequest> suaChiTietSanPham(ChiTietSanPham ctsp, Integer id,Authentication auth) {
         try {
             ChiTietSanPham find = chiTietSanPhamRepo.findById(id).orElseThrow();
@@ -160,7 +163,7 @@ public class ChiTietSanPhamService {
             if (isEqual(ctsp, find)) {
                 ctsp.setIdChiTietSanPham(id);
                 ctsp.setNgaySua(LocalDateTime.now());
-                ctsp.setMa(getQRCodeContent(id));
+//                ctsp.setMa(getQRCodeContent(id));
                 UserLogin userLogin = (UserLogin) auth.getPrincipal();
                 ctsp.setNguoiSua(userLogin.getUsername());
                 chiTietSanPhamRepo.save(ctsp);
@@ -171,7 +174,7 @@ public class ChiTietSanPhamService {
                 ctsp.setNgayTao(LocalDateTime.now());
                 UserLogin userLogin = (UserLogin) auth.getPrincipal();
                 ctsp.setNguoiTao(userLogin.getUsername());
-                ctsp.setMa(getQRCodeContent(id));
+//                ctsp.setMa(getQRCodeContent(id));
                 ctsp.setTaoBoi(find.getIdChiTietSanPham());
                 chiTietSanPhamRepo.save(ctsp);
 

@@ -10,10 +10,10 @@ import java.util.Base64;
 
 public class QRCodeUtil {
     public static String generateQRCode(String  ctsp) {
-        String content = "id=" + ctsp;
+//        String content = "id=" + ctsp;
 
         // Mã hóa Base64
-        return Base64.getEncoder().encodeToString(content.getBytes());
+        return Base64.getEncoder().encodeToString(ctsp.getBytes());
     }
 
     private static String generateQRCodeContent(String content) {
