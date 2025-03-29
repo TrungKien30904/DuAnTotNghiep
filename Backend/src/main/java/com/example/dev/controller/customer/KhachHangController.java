@@ -27,6 +27,10 @@ public class KhachHangController {
 
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
+    @GetMapping("/hien-thi-customer")
+    public ResponseEntity<List<KhachHang>> hienThiKhachHang() {
+        return ResponseEntity.ok(khachHangService.getAllCustomerIsStatusTrue());
+    }
     @GetMapping("/export-excel")
     public ResponseEntity<List<KhachHang>> hienThi() {
         return ResponseEntity.ok(khachHangService.getAll());
@@ -34,7 +38,7 @@ public class KhachHangController {
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> detail(@PathVariable Integer id) {
-        CustomerMapper khachHang = khachHangService.detailKhachHang(id);
+        CustomerMapper khachHang = khachHangService.detailKhachHangTest(id);
         return  ResponseEntity.ok(khachHang);
     }
 
@@ -47,8 +51,9 @@ public class KhachHangController {
     public ResponseEntity<BaseResponse<KhachHang>> sua(@Valid @RequestBody CustomerMapper model) {
         return ResponseEntity.ok(khachHangService.suaKhachHang(model));
     }
+    
 
-    @PostMapping("/update-address")
+        @PostMapping("/update-address")
     public ResponseEntity<?> updateAddress(@Valid @RequestBody CustomerMapper model) {
         return ResponseEntity.ok(khachHangService.updateAddress(model));
     }
@@ -85,6 +90,11 @@ public class KhachHangController {
     public ResponseEntity<Map<String, String>> handleDuplicateFieldException(IllegalArgumentException ex) {
         Map<String, String> errors = Map.of("error", ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @PostMapping("/them-kh")
+    public ResponseEntity<?> themKh(@RequestBody KhachHang khachHang) {
+        return ResponseEntity.ok(khachHangService.themKhachHang(khachHang));
     }
 
 }

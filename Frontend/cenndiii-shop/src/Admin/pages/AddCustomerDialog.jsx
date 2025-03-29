@@ -14,7 +14,7 @@ import {
     FormControlLabel,
 } from "@mui/material";
 import axios from "axios";
-
+import api from "../../security/Axios";
 const CustomerDialog = ({ open, onClose, reload }) => {
     const [formData, setFormData] = useState({
         hoTen: "",
@@ -87,7 +87,7 @@ const CustomerDialog = ({ open, onClose, reload }) => {
             diaChi,
         };
         try {
-            const response = await axios.post("http://localhost:8080/admin/khach-hang/them-kh", requestData);
+            const response = await api.post("/admin/khach-hang/them-kh", requestData);
             const newCustomer = response.data;
             onClose();
             reload(newCustomer);

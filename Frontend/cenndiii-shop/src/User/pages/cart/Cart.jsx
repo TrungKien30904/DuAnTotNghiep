@@ -41,6 +41,7 @@ const Cart = () => {
             })
                 .then(res => {
                     setCustomerInfo(res.data); // Lưu thông tin khách hàng
+                    console.log(res.data)
                 })
                 .catch(err => console.error("Lỗi khi lấy thông tin khách hàng:", err));
         }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,5 +28,6 @@ public interface KhachHangRepo extends JpaRepository<KhachHang, Integer> {
     Optional<KhachHang> findBySoDienThoai(String soDienThoai);
     Optional<KhachHang> findByMaKhachHang(String maKhachHang);
     Optional<KhachHang> findByEmail(String email);
+    List<KhachHang> findByTrangThaiIsTrue();
 
 }

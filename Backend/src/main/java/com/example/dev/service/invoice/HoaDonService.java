@@ -344,6 +344,7 @@ public class HoaDonService {
         hoaDon.setEmail(hoaDonResponse.getEmail());
         hoaDon.setGhiChu(hoaDonResponse.getGhiChu());
         hoaDon.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
+        hoaDon.setPhuongThucNhanHang("giaohang");
         hoaDon.setTrangThai("Chờ xác nhận");
 
         if (hoaDonResponse.getKhachHang() != null) {
@@ -414,6 +415,7 @@ public class HoaDonService {
         hoaDon.setEmail(hoaDonResponse.getEmail());
         hoaDon.setGhiChu(hoaDonResponse.getGhiChu());
         hoaDon.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
+        hoaDon.setPhuongThucNhanHang("giaohang");
         hoaDon.setTrangThai("Chờ xác nhận");
 
         if (hoaDonResponse.getKhachHang() != null) {

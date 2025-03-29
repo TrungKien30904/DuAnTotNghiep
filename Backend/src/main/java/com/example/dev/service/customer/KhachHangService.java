@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,11 +49,43 @@ public class KhachHangService {
     private IProvinceService provinceService;
     @Autowired
     private CloudinaryService cloudinaryService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
+    public List<KhachHang> getAllCustomerIsStatusTrue() {
+        List<KhachHang> khachHangList = khachHangRepo.findByTrangThaiIsTrue();
+
+        for (KhachHang kh : khachHangList) {
+            String diaChi = kh.getDiaChi();
+
+            if (diaChi == null || diaChi.trim().isEmpty()) {
+                continue; // Bỏ qua vòng lặp nếu địa chỉ null hoặc trống
+            }
+
+            String[] address = diaChi.split(", ");
+            String thanhPho = (address.length > 0) ? address[0] : "Không xác định";
+            String quan = (address.length > 1) ? address[1] : "Không xác định";
+            String xa = (address.length > 2) ? address[2] : "Không xác định";
+
+        }
+
+        return khachHangList;
+    }
     public List<KhachHang> getAll() {
         return khachHangRepo.findAll();
+    }
+
+    public KhachHang themKhachHang(KhachHang khachHang){
+        String password = iUtil.generatePassword();
+        khachHang.setMatKhau(passwordEncoder.encode(password));
+        SendMailMapper sendMailMapper = new SendMailMapper();
+        sendMailMapper.setToMail(khachHang.getEmail());
+        sendMailMapper.setSubject("Notice: Register successfully");
+        sendMailMapper.setContent("Welcome to CenciddiShop. Your account: " + khachHang.getSoDienThoai() + " , password: " + password + ". Let login and try with special experience");
+        sendMailService.sendMail(sendMailMapper);
+        return khachHangRepo.save(khachHang);
     }
 
     @Transactional
@@ -249,6 +282,29 @@ public class KhachHangService {
         }
         return customerMapper;
     }
+
+    public CustomerMapper detailKhachHangTest(Integer id) {
+        Optional<KhachHang> model = khachHangRepo.findById(id);
+        CustomerMapper customerMapper = new CustomerMapper();
+
+        if (model.isPresent()) {
+            KhachHang modelPresent = model.get();
+            customerMapper.setId(modelPresent.getIdKhachHang());
+            customerMapper.setMaKhachHang(modelPresent.getMaKhachHang());
+            customerMapper.setSoDienThoai(modelPresent.getSoDienThoai());
+            customerMapper.setTrangThai(modelPresent.getTrangThai());
+            customerMapper.setGioiTinh(modelPresent.getGioiTinh());
+            customerMapper.setHoTen(modelPresent.getHoTen());
+            customerMapper.setEmail(modelPresent.getEmail());
+            customerMapper.setImage(modelPresent.getHinhAnh());
+            customerMapper.setDiaChi(modelPresent.getDiaChi());
+
+        }
+
+        return customerMapper;
+    }
+
+
 
     public BaseListResponse<CustomerMapper> timKiem(String keyword, Boolean gioiTinh, Boolean trangThai, String soDienThoai, Pageable pageable) {
 

@@ -234,15 +234,29 @@ export default function InvoiceDetail() {
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Tên khách hàng: </h2>
-                            <p>{invoice.khachHang ? invoice.khachHang.hoTen : "Không có"}</p>
+                            <p> {invoice.khachHang
+                                ? invoice.khachHang.hoTen
+                                : invoice.tenNguoiNhan || "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>SĐT người nhận: </h2>
-                            <p>{invoice.khachHang ? invoice.khachHang.soDienThoai : "Không có"}</p>
+                            <p>{invoice.khachHang
+                                ? invoice.khachHang.soDienThoai
+                                : invoice.soDienThoai || "Không có"}</p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Email người nhận: </h2>
-                            <p>{invoice.khachHang ? invoice.khachHang.email : "Không có"}</p>
+                            <p>{invoice.khachHang
+                                ? invoice.khachHang.email
+                                : invoice.email || "Không có"}</p>
+                        </div>
+                        <div className='flex gap-4'>
+                            <h2 className='font-bold'>Địa chỉ: </h2>
+                            <p>
+                                {invoice.khachHang
+                                    ? invoice.khachHang.diaChi
+                                    : invoice.diaChi || "Không có"}
+                            </p>
                         </div>
                         <div className='flex gap-4'>
                             <h2 className='font-bold'>Tên nhân viên: </h2>

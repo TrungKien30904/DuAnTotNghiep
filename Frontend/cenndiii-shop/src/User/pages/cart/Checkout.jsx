@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapPinCheck, Ticket, CreditCard } from "lucide-react";
+import { useCart } from "../cart/CartContext";
 import Button from "@mui/material/Button";
 import AddAddress from "./AddAddress"; // Import form nhập thông tin
 import Notification from "../../../components/Notification";
 import { ToastContainer } from "react-toastify";
+import { getUserId } from "../../../security/DecodeJWT";
+import { calculateShippingFee } from "./calculateShippingFee"; 
+import axios from "axios";
 
 const Checkout = () => {
     const location = useLocation();
@@ -12,16 +16,40 @@ const Checkout = () => {
     const [customerData, setCustomerData] = useState(customerInfo || null);
     const [shippingFee, setShippingFee] = useState(0);
     const [cartItems, setCartItems] = useState([]);
-
-
+    const [address, setAddress] = useState("");
+    const { cartCount, setCartCount } = useCart();
     const [estimatedTime, setEstimatedTime] = useState("");
     const [isEditingAddress, setIsEditingAddress] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState("COD"); // Mặc định là COD
-    const token = localStorage.getItem("accessToken");
-  
+    const [paymentMethod, setPaymentMethod] = useState("COD");
 
+    const userId = getUserId();
+    const isLoggedIn = Boolean(userId);
 
+    useEffect(() => {
+        if (isLoggedIn) {
+            const token = localStorage.getItem("token");
+        }
+    }, [isLoggedIn]);
 
+    useEffect(() => {
+        if (customerData?.diaChi) {
+            const fetchAddress = async () => {
+                try {
+                    console.log("Fetching shipping fee for address:", customerData.diaChi);
+                    const fee = await calculateShippingFee(customerData.diaChi, selectedItems);
+                    console.log("Shipping fee calculated:", fee);
+                    setShippingFee(fee);
+                } catch (error) {
+                    console.error("Lỗi khi tính phí vận chuyển:", error);
+                    setShippingFee(34000); 
+                }
+
+                const formattedAddress = await convertAddress(customerData.diaChi);
+                setAddress(formattedAddress);
+            };
+            fetchAddress();
+        }
+    }, [customerData, selectedItems]);
 
     const handleConfirmCustomerInfo = (data) => {
         setCustomerData(data);
@@ -30,12 +58,36 @@ const Checkout = () => {
         setIsEditingAddress(false);
     };
 
+    const GHN_HEADERS = {
+        token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
+        "Content-Type": "application/json",
+    };
 
+    const convertAddress = async (addressCode) => {
+        const [provinceId, districtId, wardCode] = addressCode.split(", ").map(code => code.trim());
+
+        try {
+            const [provinceRes, districtRes, wardRes] = await Promise.all([
+                axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/province", { headers: GHN_HEADERS }),
+                axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/district", { headers: GHN_HEADERS, params: { province_id: provinceId } }),
+                axios.get("https://online-gateway.ghn.vn/shiip/public-api/master-data/ward", { headers: GHN_HEADERS, params: { district_id: districtId } })
+            ]);
+
+            const province = provinceRes.data.data.find(p => p.ProvinceID == provinceId);
+            const district = districtRes.data.data.find(d => d.DistrictID == districtId);
+            const ward = wardRes.data.data.find(w => w.WardCode == wardCode);
+
+            return `${ward?.WardName || ""}, ${district?.DistrictName || ""}, ${province?.ProvinceName || ""}`;
+        } catch (error) {
+            console.error("Lỗi khi chuyển đổi địa chỉ:", error);
+            return "Địa chỉ không xác định";
+        }
+    };
 
     const navigate = useNavigate();
 
     const handlePlaceOrder = async () => {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("token");
         const isGuest = !token;
 
         const orderData = {
@@ -43,7 +95,7 @@ const Checkout = () => {
             tenNguoiNhan: customerData?.hoTen || "Khách vãng lai",
             soDienThoai: customerData?.soDienThoai || "",
             email: customerData?.email || "",
-            diaChi: customerData?.diaChi || "",
+            diaChi: address || "",
             ghiChu: customerData?.ghiChu || "",
             ngayGiaoHang: estimatedTime ? new Date(estimatedTime).toISOString() : null,
             tongTien: totalPrice - discountAmount + shippingFee,
@@ -57,8 +109,7 @@ const Checkout = () => {
                 giaSauGiam: item.gia
             }))
         };
-
-        console.log("Dữ liệu gửi lên:", orderData);
+        console.log("dữ liệu gửi lên:"+orderData)
 
         try {
             let response;
@@ -85,21 +136,17 @@ const Checkout = () => {
             const result = await response.json();
             if (response.ok) {
                 if (paymentMethod === "COD") {
-                    // 🟢 Xóa giỏ hàng trên backend
                     await fetch("http://localhost:8080/api/cart/clear", {
                         method: "POST",
                         credentials: "include",
                         headers: { ...(token && { "Authorization": `Bearer ${token}` }) }
                     });
 
-                    // 🟢 Cập nhật giỏ hàng trên frontend
-                    setCartItems([]); // Reset state giỏ hàng
+                    setCartCount(prev => prev === 0);
 
-                    // 🟢 Điều hướng về trang chủ
                     navigate("/home", { state: { successMessage: "Đặt hàng thành công!" } });
                 } else if (paymentMethod === "VNPAY") {
                     localStorage.setItem("paymentSuccess", "Đặt hàng thành công!");
-                    // 🟢 Chuyển hướng sang trang thanh toán VNPay
                     window.location.href = result.paymentUrl;
                 }
             } else {
@@ -110,13 +157,9 @@ const Checkout = () => {
             Notification("Có lỗi xảy ra, vui lòng thử lại.", "error");
         }
     };
-
-
-
     return (
         <div className="p-4 bg-white rounded-xl shadow-sm max-w-5xl mx-auto mt-[64px] space-y-6">
             <ToastContainer />
-            {/* Thông tin khách hàng và địa chỉ */}
             <div className="border-t-4 border-red-600 p-4 bg-white rounded-md shadow-md">
                 <h2 className="text-red-600 text-lg font-bold flex items-center gap-2">
                     <MapPinCheck size={30} />  ĐỊA CHỈ NHẬN HÀNG
@@ -132,24 +175,24 @@ const Checkout = () => {
                                     <span className="text-gray-600">{customerData.soDienThoai}</span>
                                 </div>
                                 <div className="mt-1">
-                                    <p>{customerData.ghiChu}, {customerData.diaChi}</p>
+                                    <p>{customerData.ghiChu} {address}</p>
                                 </div>
                             </div>
-                            <Button variant="outlined" color="primary" size="small" onClick={() => setIsEditingAddress(true)}>
-                                Sửa địa chỉ
-                            </Button>
+                            {!isLoggedIn && (
+                                <Button variant="outlined" color="primary" size="small" onClick={() => setIsEditingAddress(true)}>
+                                    Sửa địa chỉ
+                                </Button>
+                            )}
                         </div>
                     </div>
                 ) : (
                     <div className="mt-4">
-                        <p className="text-gray-500 italic">Bạn chưa đăng nhập. Vui lòng nhập thông tin để tiếp tục.</p>
+                        <p className="text-gray-500 italic"> Vui lòng nhập thông tin để tiếp tục.</p>
                         <AddAddress onConfirm={handleConfirmCustomerInfo} existingData={customerData} />
                     </div>
                 )}
-
             </div>
 
-            {/* Danh sách sản phẩm */}
             <div className="border shadow-md border-gray-200 rounded-lg p-4">
                 <h2 className="text-lg font-semibold mb-3">SẢN PHẨM ĐÃ CHỌN</h2>
 
@@ -179,7 +222,6 @@ const Checkout = () => {
                     </tbody>
                 </table>
 
-                {/* ✅ Tổng tiền bên phải */}
                 <div className="text-right text-sm font-medium text-gray-700">
                     Tổng tiền ({selectedItems.reduce((acc, item) => acc + item.soLuong, 0)} sản phẩm):
                     <span className="text-lg font-semibold text-red-500 ml-2">
@@ -188,8 +230,6 @@ const Checkout = () => {
                 </div>
             </div>
 
-
-            {/* Phiếu giảm giá */}
             <div className="border border-gray-200 rounded-xl p-4 shadow-md bg-white">
                 <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-black-700">
                     <Ticket size={25} /> PHIẾU GIẢM GIÁ
@@ -205,7 +245,6 @@ const Checkout = () => {
                 )}
             </div>
 
-            {/* Tổng Tiền */}
             <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-md w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-3 sm:space-y-0">
                     <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-black-700">
@@ -228,8 +267,6 @@ const Checkout = () => {
                             <span>Thanh toán VnPay</span>
                         </button>
                     </div>
-
-
                 </div>
 
                 <div className="flex items-center gap-3 mb-6">
@@ -242,7 +279,6 @@ const Checkout = () => {
                         Thời gian nhận hàng dự kiến: <strong>{estimatedTime || "Không xác định"}</strong>
                     </p>
                 </div>
-
 
                 <div className="border-t border-gray-300 pt-4 space-y-3 text-sm">
                     <div className="flex justify-between text-lg text-gray-800">
@@ -273,10 +309,8 @@ const Checkout = () => {
                     >
                         {paymentMethod === "COD" ? "ĐẶT HÀNG (COD)" : "THANH TOÁN VNPAY"}
                     </Button>
-
                 </div>
             </div>
-
         </div>
     );
 };
