@@ -37,6 +37,12 @@ export const getUserName = () => {
     return decodedToken.userName;
 };
 
+export const getUserId = () => {
+    const decodedToken = getDecodedToken();
+    if (!decodedToken || !decodedToken.id) return "";
+    return decodedToken.id;
+};
+
 export const getSub = () => {
     const decodedToken = getDecodedToken();
     if (!decodedToken || !decodedToken.sub) return "";

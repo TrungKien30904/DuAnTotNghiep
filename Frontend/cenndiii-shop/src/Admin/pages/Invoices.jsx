@@ -8,6 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import api from '../../security/Axios';
 import { formatDateFromArray } from "../../untils/FormatDate";
 import { hasPermission } from "../../security/DecodeJWT";
+const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Vận chuyển', 'Đã hoàn thành', 'Hủy'];
 export default function Invoices() {
     const statuses = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Chờ vận chuyển', 'Đang vận chuyển', 'Đã hoàn thành', 'Hủy'];
 
@@ -254,7 +255,7 @@ export default function Invoices() {
                             <tr key={invoice.idHoaDon} className="border-b hover:bg-gray-100">
                                 <td className="px-4 py-2">{index + 1}</td>
                                 <td className="px-4 py-2">{invoice.maHoaDon}</td>
-                                <td className="px-4 py-2">{invoice.khachHang?.ten || "Không có"}</td>
+                                <td className="px-4 py-2">{invoice?.khachHang?.hoTen ?? invoice?.tenNguoiNhan ?? "Không có"}</td>
                                 <td className="px-4 py-2">{invoice.nhanVien?.ten || "Không có"}</td>
                                 <td className="px-4 py-2">{invoice.tongTien ?? "0"}</td>
                                 <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>

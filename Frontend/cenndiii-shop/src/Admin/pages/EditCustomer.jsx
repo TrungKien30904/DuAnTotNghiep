@@ -4,18 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import avatar from '../assets/images-upload.png';
 import { useParams } from "react-router-dom";
 import { EyeClosed, Trash2, Star, Eye } from "lucide-react";
-// import { useToast } from '../utils/ToastContext';
-import { ToastContainer } from 'react-toastify';
-// import { useLoading } from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/LoadingContext";
-// import Spinner from "../../../../../cenddi-shop/cenndiii-shop/src/components/ui/spinner/Spinner";
-import Loading from '../../components/Loading';
-import Notification from '../../components/Notification';
-import { hasPermission } from "../../security/DecodeJWT";
+import { useToast } from '../utils/ToastContext';
+import { useLoading } from "../components/ui/spinner/LoadingContext";
+import Spinner from "../components/ui/spinner/Spinner";
+
+
 function EditCustomer() {
-    // const { setLoadingState, loading } = useLoading();
-    const [loading, setLoadingState] = useState(false);
+    const { setLoadingState, loading } = useLoading();
     const { id } = useParams();
-    // const { Notification } = useToast();
+    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         id: 0,
         maKhachHang: '',
@@ -54,7 +51,9 @@ function EditCustomer() {
             }
         }
     }, [navigate]);
+
     const fetchCustomerById = async () => {
+        setLoadingState(true);
         try {
             const response = await axios.get(
                 `http://localhost:8080/admin/khach-hang/detail/${id}`
@@ -67,7 +66,9 @@ function EditCustomer() {
                 visiable: true
             }));
             setAddress(updatedItems);
+            setLoadingState(false);
         } catch (error) {
+            setLoadingState(false);
             console.error("Error: ", error);
         }
     };
@@ -86,9 +87,9 @@ function EditCustomer() {
         reader.readAsDataURL(file); // Read file as Base64
     };
 
-    const [address, setAddress] = useState([{ id: 0, customerId: 0, nameReceive: "", phoneNumber: "", provinceId: "", districtId: "", wardId: "", addressDetail: "", note: "", status: false, districts: [], wards: [], stage: 1, visiable: true }]);
+    const [address, setAddress] = useState([{ id: 0, customerId: 0, nameReceive: "", phoneNumber: "", provinceId: "", districtId: "", wardId: "", addressDetail: "", note: "", status: false, districts: [], wards: [], stage: 1, visiable: true, provinceName: "", districtName: "", wardName: "" }]);
     const addNewForm = () => {
-        setAddress([...address, { id: 0, customerId: 0, nameReceive: "", phoneNumber: "", provinceId: "", districtId: "", wardId: "", addressDetail: "", note: "", status: false, districts: [], wards: [], stage: 1, visiable: true }]);
+        setAddress([...address, { id: 0, customerId: 0, nameReceive: "", phoneNumber: "", provinceId: "", districtId: "", wardId: "", addressDetail: "", note: "", status: false, districts: [], wards: [], stage: 1, visiable: true,  provinceName: "", districtName: "", wardName: ""  }]);
     };
 
     const handleInputChange = (e, index) => {
@@ -103,7 +104,7 @@ function EditCustomer() {
             updatedForms[index] = { ...updatedForms[index], [name]: value };
             setAddress(updatedForms);
         } else {
-            Notification("Address already exist", "error");
+            showToast("Address already exist", "error");
         }
     };
     const handleSelectedChange = (e, index, name) => {
@@ -112,8 +113,10 @@ function EditCustomer() {
         } else if (name == "districtId") {
             fetchWards(e.target.value, index);
         } else {
+
             const updatedForms = [...address];
-            updatedForms[index] = { ...updatedForms[index], [name]: e.target.value };
+            var wardName = updatedForms[index].wards.find((item) => item.id === parseInt(e.target.value)).name ?? "";
+            updatedForms[index] = { ...updatedForms[index], [name]: e.target.value, wardName: wardName };
             setAddress(updatedForms);
         }
     };
@@ -143,9 +146,10 @@ function EditCustomer() {
                     },
                 }
             );
-            debugger;
+
             const updatedForms = [...address];
-            updatedForms[index] = { ...updatedForms[index], districts: response.data, provinceId: provinceId, districtName: null, wardName: null };
+            var name = provinces.find((e) => e.id === parseInt(provinceId)).name ?? "";
+            updatedForms[index] = { ...updatedForms[index], districts: response.data, provinceId: provinceId, districtName: null, wardName: null, provinceName: name };
             setAddress(updatedForms);
         } catch (error) {
             console.error("Error:  ", error);
@@ -153,7 +157,6 @@ function EditCustomer() {
     });
 
     const toggleFormVisibility = (e, index) => {
-        debugger;
         e.preventDefault();
         const updatedForms = [...address];
         const showModel = updatedForms[index];
@@ -171,9 +174,10 @@ function EditCustomer() {
                     },
                 }
             );
-            debugger;
+
             const updatedForms = [...address];
-            updatedForms[index] = { ...updatedForms[index], wards: response.data, districtId: districtId, wardName: null };
+            var name = updatedForms[index].districts.find((e) => e.id === parseInt(districtId)).name ?? "";
+            updatedForms[index] = { ...updatedForms[index], wards: response.data, districtId: districtId, wardName: null, districtName: name, wardId: 0 };
             setAddress(updatedForms);
 
         } catch (error) {
@@ -212,7 +216,6 @@ function EditCustomer() {
             return;
         }
         try {
-            debugger;
             formData.image = "";
             formData.addressMappers = address;
             formData.imageBase64 = base64;
@@ -228,19 +231,19 @@ function EditCustomer() {
                 .then((data) => {
 
                     if (data) {
-                        if (data.code > 0) {
-                            Notification("Update customer successfully", "success");
-                            navigate('/admin/customers');
-                        } else {
-                            Notification(data.message, "error");
+                        if(data.code > 0){
+                            showToast("Update customer successfully", "success");
+                            navigate('/customers');
+                        }else{
+                            showToast(data.message, "error");
                         }
                     } else {
-                        Notification("Update customer fail", "error");
+                        showToast("Update customer fail", "error");
                     }
                     setLoadingState(false);
                 })
                 .catch((error) => {
-                    Notification(error, "success");
+                    showToast(error, "success");
                     setLoadingState(false);
                 });
         } catch (error) {
@@ -248,36 +251,6 @@ function EditCustomer() {
             setLoadingState(false);
         }
     };
-
-    const updateAddress = async (model) => {
-        try {
-            const response = await fetch('http://localhost:8080/admin/khach-hang/update-address',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',  // Set the content type to JSON
-                    },
-                    body: JSON.stringify(formData)
-                }
-            ).then((response) => response.json())
-                .then((data) => {
-                    if (data) {
-                        if (data.code > 0) {
-
-                        } else {
-                            Notification("Register customer fail", "error");
-                        }
-                    } else {
-                        Notification("Update customer fail", "error");
-                    }
-                })
-                .catch((error) => {
-                    Notification(error, "success");
-                });
-        } catch (error) {
-            console.error('Lỗi khi cập nhật thông tin khách hàng:', error);
-        }
-    }
 
     const removeAddress = (index) => {
         const addressChange = [...address];
@@ -303,8 +276,7 @@ function EditCustomer() {
 
     return (
         <div className="p-6 space-y-4">
-            {/* {loading && <Spinner />} Show the spinner while loading */}
-            {loading && <Loading />}
+            {loading && <Spinner />} {/* Show the spinner while loading */}
             <div className="flex items-center font-semibold mb-4">
                 <h1>Thông tin khách hàng</h1>
             </div>
@@ -569,7 +541,6 @@ function EditCustomer() {
                     </div>
                 </form>
             </div>
-            <ToastContainer />
         </div>
     );
 }

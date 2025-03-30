@@ -3,9 +3,11 @@ package com.example.dev.service.invoice;
 import com.example.dev.DTO.UserLogin.UserLogin;
 import com.example.dev.DTO.response.HoaDon.HoaDonResponse;
 import com.example.dev.DTO.response.HoaDon.ThanhToanHoaDonResponse;
+import com.example.dev.DTO.response.HoaDonChiTiet.SanPhamCartResponse;
 import com.example.dev.constant.BaseConstant;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.PhieuGiamGia;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.entity.invoice.LichSuHoaDon;
@@ -17,9 +19,12 @@ import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.repository.invoice.LichSuHoaDonRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
+import com.example.dev.service.payments.VNPayService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.hibernate.sql.Update;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -28,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,6 +55,7 @@ public class HoaDonService {
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
     private final KhachHangRepo khachHangRepo;
     private final NhanVienRepo nhanVienRepo;
+    private final VNPayService vnPayService;
 
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
@@ -317,4 +324,170 @@ public class HoaDonService {
 
         lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(find).hanhDong(BaseConstant.Action.UPDATE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu(find.getTrangThai()).build());
     }
+
+
+
+    // Online
+    public void payCOD(HoaDonResponse hoaDonResponse, Authentication auth) {
+        if (hoaDonResponse == null || hoaDonResponse.getTongTien() == null) {
+            throw new RuntimeException("Dữ liệu đơn hàng không hợp lệ");
+        }
+
+        HoaDon hoaDon = new HoaDon();
+        hoaDon.setMaHoaDon(generateMaHoaDon());
+        hoaDon.setTongTien(hoaDonResponse.getTongTien());
+        hoaDon.setLoaiDon("Online");
+        hoaDon.setNgayTao(LocalDateTime.now());
+        hoaDon.setDiaChi(hoaDonResponse.getDiaChi());
+        hoaDon.setSoDienThoai(hoaDonResponse.getSoDienThoai());
+        hoaDon.setTenNguoiNhan(hoaDonResponse.getTenNguoiNhan());
+        hoaDon.setEmail(hoaDonResponse.getEmail());
+        hoaDon.setGhiChu(hoaDonResponse.getGhiChu());
+        hoaDon.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
+        hoaDon.setPhuongThucNhanHang("giaohang");
+        hoaDon.setTrangThai("Chờ xác nhận");
+
+        if (hoaDonResponse.getKhachHang() != null) {
+            hoaDon.setKhachHang(khachHangRepo.findById(hoaDonResponse.getKhachHang()).orElse(null));
+        } else {
+            hoaDon.setKhachHang(null);
+        }
+
+        if (auth != null) {
+            UserLogin user = (UserLogin) auth.getPrincipal();
+            hoaDon.setNguoiTao(user.getUsername());
+            hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
+        } else {
+            hoaDon.setNguoiTao("Guest");
+            hoaDon.setNhanVien(null);
+        }
+
+        // ✅ Lưu hóa đơn vào database
+        hoaDonRepository.save(hoaDon);
+
+        // ✅ Lưu sản phẩm vào bảng hoa_don_chi_tiet
+        for (SanPhamCartResponse sp : hoaDonResponse.getDanhSachSanPham()) {
+            HoaDonChiTiet chiTiet = new HoaDonChiTiet();
+            chiTiet.setHoaDon(hoaDon);
+            chiTiet.setChiTietSanPham(chiTietSanPhamRepo.findById(sp.getIdChiTietSanPham()).orElseThrow());
+            chiTiet.setSoLuong(sp.getSoLuongMua());
+            chiTiet.setDonGia(sp.getGiaSauGiam());
+            chiTiet.setThanhTien(sp.getGiaSauGiam().multiply(BigDecimal.valueOf(chiTiet.getSoLuong())));
+            hoaDonChiTietRepository.save(chiTiet);
+        }
+
+        // ✅ Lưu thanh toán
+        ThanhToanHoaDon thanhToan = new ThanhToanHoaDon();
+        thanhToan.setHoaDon(hoaDon);
+        thanhToan.setHinhThucThanhToan("COD");
+        thanhToan.setSoTienThanhToan(hoaDon.getTongTien());
+        thanhToan.setTrangThai(false);
+        thanhToan.setNgayTao(LocalDateTime.now());
+        thanhToan.setNguoiTao(auth != null ? ((UserLogin) auth.getPrincipal()).getUsername() : "Guest");
+
+        thanhToanHoaDonService.thanhToanHoaDon(Collections.singletonList(thanhToan));
+
+        // ✅ Ghi lịch sử đơn hàng
+        LichSuHoaDon lichSu = new LichSuHoaDon();
+        lichSu.setHoaDon(hoaDon);
+        lichSu.setHanhDong("Đặt hàng - COD");
+        lichSu.setNgayTao(LocalDateTime.now());
+        lichSu.setNguoiTao(auth != null ? ((UserLogin) auth.getPrincipal()).getUsername() : "Guest");
+
+        lichSuHoaDonService.themLichSu(lichSu);
+    }
+
+    public String taoHoaDonVaThanhToan(HoaDonResponse hoaDonResponse, Authentication auth, HttpServletRequest request) {
+        // Kiểm tra dữ liệu hợp lệ
+        if (hoaDonResponse == null || hoaDonResponse.getTongTien() == null) {
+            throw new RuntimeException("Dữ liệu đơn hàng không hợp lệ");
+        }
+
+        // Bước 1: Tạo hóa đơn mới
+        HoaDon hoaDon = new HoaDon();
+        hoaDon.setMaHoaDon(generateMaHoaDon());
+        hoaDon.setTongTien(hoaDonResponse.getTongTien());
+        hoaDon.setLoaiDon("Online");
+        hoaDon.setNgayTao(LocalDateTime.now());
+        hoaDon.setDiaChi(hoaDonResponse.getDiaChi());
+        hoaDon.setSoDienThoai(hoaDonResponse.getSoDienThoai());
+        hoaDon.setTenNguoiNhan(hoaDonResponse.getTenNguoiNhan());
+        hoaDon.setEmail(hoaDonResponse.getEmail());
+        hoaDon.setGhiChu(hoaDonResponse.getGhiChu());
+        hoaDon.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
+        hoaDon.setPhuongThucNhanHang("giaohang");
+        hoaDon.setTrangThai("Chờ xác nhận");
+
+        if (hoaDonResponse.getKhachHang() != null) {
+            hoaDon.setKhachHang(khachHangRepo.findById(hoaDonResponse.getKhachHang()).orElse(null));
+        } else {
+            hoaDon.setKhachHang(null);
+        }
+
+
+            hoaDon.setNguoiTao("Guest");
+            hoaDon.setNhanVien(null);
+
+
+        // Lưu hóa đơn vào database
+        hoaDon = hoaDonRepository.save(hoaDon);
+
+        // Bước 2: Lưu sản phẩm vào bảng hoa_don_chi_tiet
+        for (SanPhamCartResponse sp : hoaDonResponse.getDanhSachSanPham()) {
+            HoaDonChiTiet chiTiet = new HoaDonChiTiet();
+            chiTiet.setHoaDon(hoaDon);
+            chiTiet.setChiTietSanPham(chiTietSanPhamRepo.findById(sp.getIdChiTietSanPham()).orElseThrow());
+            chiTiet.setSoLuong(sp.getSoLuongMua());
+            chiTiet.setDonGia(sp.getGiaSauGiam());
+            chiTiet.setThanhTien(sp.getGiaSauGiam().multiply(BigDecimal.valueOf(chiTiet.getSoLuong())));
+            hoaDonChiTietRepository.save(chiTiet);
+        }
+
+        // Bước 3: Lưu thanh toán
+        ThanhToanHoaDon thanhToan = new ThanhToanHoaDon();
+        thanhToan.setHoaDon(hoaDon);
+        thanhToan.setHinhThucThanhToan("VNPay");
+        thanhToan.setSoTienThanhToan(hoaDon.getTongTien());
+        thanhToan.setTrangThai(false);
+        thanhToan.setNgayTao(LocalDateTime.now());
+        thanhToan.setNguoiTao(auth != null ? ((UserLogin) auth.getPrincipal()).getUsername() : "Guest");
+
+        thanhToanHoaDonService.thanhToanHoaDon(Collections.singletonList(thanhToan));
+
+        // Bước 4: Ghi lịch sử đơn hàng
+        LichSuHoaDon lichSu = new LichSuHoaDon();
+        lichSu.setHoaDon(hoaDon);
+        lichSu.setHanhDong("Đặt hàng - VNPay");
+        lichSu.setNgayTao(LocalDateTime.now());
+        lichSu.setNguoiTao(auth != null ? ((UserLogin) auth.getPrincipal()).getUsername() : "Guest");
+
+        lichSuHoaDonService.themLichSu(lichSu);
+
+        // Bước 5: Gọi VNPayService để tạo URL thanh toán
+        return vnPayService.createPaymentUrl(hoaDon.getIdHoaDon(), hoaDon.getTongTien(), request);
+    }
+
+
+    public boolean xuLyKetQuaThanhToan(Map<String, String> params) {
+        String vnp_ResponseCode = params.get("vnp_ResponseCode");
+        String vnp_TxnRef = params.get("vnp_TxnRef"); // Mã đơn hàng
+        String vnp_TransactionStatus = params.get("vnp_TransactionStatus");
+        System.out.println("vnp_ResponseCode: " + vnp_ResponseCode);
+        System.out.println("vnp_TransactionStatus: " + vnp_TransactionStatus);
+
+
+        if ("00".equals(vnp_ResponseCode) && "00".equals(vnp_TransactionStatus)) {
+            // Cập nhật trạng thái hóa đơn thành công
+            thanhToanHoaDonService.capNhatTrangThaiThanhToan(Integer.parseInt(vnp_TxnRef), true);
+            return true;
+        } else {
+            // Xử lý thất bại
+            thanhToanHoaDonService.capNhatTrangThaiThanhToan(Integer.parseInt(vnp_TxnRef), false);
+            return false;
+        }
+    }
+
+
+
+
 }

@@ -14,6 +14,8 @@ public class CustomerMapper {
     private String email;
     private String matKhau;
     private String addressDetails;
+
+    private String diaChi;
     private int provinceId;
     private int districtId;
     private int wardId;
@@ -22,6 +24,15 @@ public class CustomerMapper {
     private String image;
     private String imageBase64;
     private String provinceName;
+
+    public String getDiaChi() {
+        return diaChi;
+    }
+
+    public void setDiaChi(String diaChi) {
+        this.diaChi = diaChi;
+    }
+
     private String districtName;
     private String wardName;
     public String getProvinceName() {
@@ -200,8 +211,8 @@ public class CustomerMapper {
 
     public String getFullInfo(){
         return ((this.addressDetails == null || this.addressDetails.isEmpty()) ? "" : (this.addressDetails + " - "))
-               + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
-               + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
-               + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
+                + ((this.wardName == null || this.wardName.isEmpty()) ? "" : (this.wardName + " - "))
+                + ((this.districtName == null || this.districtName.isEmpty()) ? "" : (this.districtName + " - "))
+                + ((this.provinceName == null || this.provinceName.isEmpty()) ? "" : (this.provinceName));
     }
 }

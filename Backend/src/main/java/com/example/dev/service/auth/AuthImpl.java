@@ -5,6 +5,7 @@ import com.example.dev.DTO.response.auth.LoginResponse;
 import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.nhanvien.NhanVien;
 import com.example.dev.repository.NhanVienRepo;
+import com.example.dev.repository.customer.KhachHangRepo;
 import com.example.dev.repository.customer.KhachHangRepository;
 import com.example.dev.security.JWTService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthImpl implements AuthService{
 
-    private final KhachHangRepository khachHangRepository;
+    private final KhachHangRepo khachHangRepository;
     private final NhanVienRepo nhanVienRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;

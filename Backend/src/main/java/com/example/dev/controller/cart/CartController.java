@@ -23,6 +23,8 @@ import java.util.Objects;
 public class CartController {
 
     private static final String CART_SESSION_KEY = "cart";
+    private static final String VOUCHER_SESSION_KEY = "selectedVoucherId";
+
 
     @Autowired
     private ChiTietSanPhamRepo chiTietSanPhamRepository;
@@ -80,10 +82,11 @@ public class CartController {
             dto.setProductId(ctsp.getIdChiTietSanPham());
             dto.setTenSanPham(ctsp.getSanPham());
             dto.setGia(ctsp.getGiaSauGiam().intValue());
-            dto.setSoLuong(1);
+            dto.setSoLuong(item.getSoLuong());
             dto.setTrangThai(ctsp.getTrangThai() != null && ctsp.getTrangThai() ? "Còn hàng" : "Hết hàng");
             dto.setMauSac(ctsp.getMauSac());
             dto.setKichCo(ctsp.getKichCo());
+            dto.setStock(ctsp.getSoLuong()); // Trả về số lượng tồn kho
 
             List<String> imageUrls = hinhAnhRepo.listURl(ctsp.getIdChiTietSanPham());
             if (!imageUrls.isEmpty()) {
@@ -97,11 +100,23 @@ public class CartController {
     }
 
 
+
     @PostMapping("/update")
     public ResponseEntity<?> updateCart(@RequestBody List<CartItem> updatedCart, HttpSession session) {
-        session.setAttribute(CART_SESSION_KEY, updatedCart);
+        List<CartItem> cart = getCart(session);
+
+        for (CartItem updatedItem : updatedCart) {
+            for (CartItem cartItem : cart) {
+                if (cartItem.getProductId().equals(updatedItem.getProductId())) {
+                    cartItem.setSoLuong(updatedItem.getSoLuong()); // Cập nhật số lượng đúng
+                }
+            }
+        }
+
+        session.setAttribute(CART_SESSION_KEY, cart); // Lưu lại giỏ hàng đã cập nhật
         return ResponseEntity.ok("Giỏ hàng đã được cập nhật");
     }
+
 
     @DeleteMapping("/remove")
     public ResponseEntity<?> removeFromCart(@RequestBody CartItem item, HttpSession session) {
@@ -113,7 +128,29 @@ public class CartController {
 
     @PostMapping("/clear")
     public ResponseEntity<?> clearCart(HttpSession session) {
+        System.out.println("Dã chay vao day");
         session.removeAttribute(CART_SESSION_KEY);
         return ResponseEntity.ok("Đã xóa toàn bộ giỏ hàng");
     }
+
+    @PostMapping("/set-select-voucher")
+    public ResponseEntity<?> setSelectedVoucher(@RequestBody Integer voucherId, HttpSession session) {
+        session.setAttribute(VOUCHER_SESSION_KEY, voucherId);
+        return ResponseEntity.ok("Đã lưu phiếu giảm giá vào session");
+    }
+
+    @GetMapping("/get-select-voucher")
+    public ResponseEntity<?> getSelectedVoucher(HttpSession session) {
+        Integer voucherId = (Integer) session.getAttribute(VOUCHER_SESSION_KEY);
+        return ResponseEntity.ok(voucherId);
+    }
+
+    @PostMapping("/remove-voucher")
+    public ResponseEntity<?> removeSelectedVoucher(HttpSession session) {
+        session.removeAttribute("selectedVoucherId");
+        return ResponseEntity.ok("Đã xóa phiếu giảm giá khỏi session");
+    }
+
+
+
 }

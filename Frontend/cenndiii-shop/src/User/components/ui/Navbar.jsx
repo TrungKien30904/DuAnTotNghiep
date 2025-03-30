@@ -48,6 +48,8 @@ const Navbar = () => {
   };
   
 
+
+
   const handleScroll = useCallback(() => {
     requestAnimationFrame(() => setScrolling(window.scrollY > 400));
   }, []);

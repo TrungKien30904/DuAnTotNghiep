@@ -127,11 +127,9 @@ export default function ProductDetails() {
 
     const formData = new FormData();
 
-    Object.entries(selectedImages).forEach(([colorName, files]) => {
-      files.forEach((file) => {
-        formData.append("file", file);
-        formData.append("tenMau", colorName); // Gửi mã màu tương ứng
-      });
+    selectedImages.forEach((image) => {
+      formData.append("file", image);
+      formData.append("tenMau", selectedColors.label);
     });
 
     try {

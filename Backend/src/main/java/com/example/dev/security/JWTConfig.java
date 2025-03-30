@@ -28,12 +28,17 @@ public class JWTConfig {
     private final JWTFilter jwtFilter;
     private static final String[] PUBLIC_URL = {
             "/api/cart/**",
+            "/admin/phieu-giam-gia/hien-thi-voucher", // <== Thêm dòng này vào
             "/admin/mau-sac/hien-thi",
             "/admin/kich-co/hien-thi",
             "/admin/san-pham/hien-thi/online/**",
             "/hinh-anh/**",
             "/admin/chi-tiet-san-pham/hien-thi/online/**",
             "/admin/chi-tiet-san-pham/dot-giam/hien-thi/**",
+            "/admin/hoa-don/thanh-toan-cod",
+            "/admin/hoa-don/thanh-toan-vnpay",
+            "/admin/hoa-don/vnpay-return",
+            "/admin/khach-hang/detail/**",
             "/auth/**",
             "/api/payment/**"
     };

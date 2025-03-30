@@ -5,6 +5,7 @@ import Shop from "./pages/shop/Shop";
 import ProductDetails from "./pages/shop/ProductDetails";
 import Cart from "./pages/cart/Cart"; 
 import LoginForm from "../security/Login";
+import Checkout from "./pages/cart/Checkout";
 
 export default function UserRoute(){
     return (
@@ -16,6 +17,7 @@ export default function UserRoute(){
                 <Route path="product-details" element={<ProductDetails/>}/>
                 <Route path="cart" element={<Cart/>}/>
                 <Route path="login" element={<LoginForm/>}/>
+                <Route path="checkout" element={<Checkout />} />
             </Route>
         </Routes>
     )
