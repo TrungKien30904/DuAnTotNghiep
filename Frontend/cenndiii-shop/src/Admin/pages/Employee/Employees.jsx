@@ -4,8 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import api from "../../security/Axios";
-import { hasPermission } from "../../security/DecodeJWT";
+import api from "../../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
 export default function EmployeeManagement() {
   const [filters, setFilters] = useState({ search: "", trangThai: "all", dob: "" });
   const [employees, setEmployees] = useState([]);
@@ -21,29 +21,6 @@ export default function EmployeeManagement() {
         navigate("/admin/login");
     }
 }, [navigate]);
-  // lấy danh sách phân trang
-  // const fetchEmployees = async () => {
-  //   try {
-  //     const { search, trangThai, dob } = filters;
-  //     let params = {
-  //       page: currentPage,
-  //       size: 5, // Số lượng phần tử mỗi trang
-  //       trangThai: trangThai === "1" ? true : trangThai === "0" ? false : undefined,
-  //       ngaySinh: dob || undefined,
-  //     };
-  //     // Kiểm tra search là số hay chữ
-  //     if (!isNaN(search) && search.trim() !== "") {
-  //       params.soDienThoai = search;
-  //     } else if (search.trim() !== "") {
-  //       params.ten = search;
-  //     }
-  //     const response = await axios.get("http://localhost:8080/admin/nhan-vien/search", { params });
-  //     setEmployees(response.data.content); // Lấy danh sách nhân viên từ response
-  //     setTotalPages(response.data.totalPages); // Lưu tổng số trang
-  //   } catch (error) {
-  //     console.error("Lỗi khi lấy danh sách nhân viên:", error);
-  //   }
-  // };
 
   const fetchEmployees = async (filtersToUse = filters, pageToUse = currentPage) => {
     try {

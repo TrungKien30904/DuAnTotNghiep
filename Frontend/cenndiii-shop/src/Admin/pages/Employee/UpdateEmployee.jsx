@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../static/AddEmployee/style.css";
+import "../../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
-import api from "../../security/Axios";
-import { hasPermission } from "../../security/DecodeJWT";
+import api from "../../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
 
 export default function EditEmployee() {
     const { id } = useParams(); // Lấy ID từ URL

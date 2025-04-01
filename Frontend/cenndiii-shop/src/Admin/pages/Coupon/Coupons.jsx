@@ -6,8 +6,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Dialog } from "@headlessui/react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import api from "../../security/Axios";
-import { hasPermission } from "../../security/DecodeJWT";
+import api from "../../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
 export default function Coupons() {
     const [filters, setFilters] = useState({ keyword: "", trangThai: "all", startDate: "", endDate: "" });
     const [phieuGiamGias, setPhieuGiamGias] = useState([]);

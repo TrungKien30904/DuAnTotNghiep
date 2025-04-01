@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import avatar from '../assets/images-upload.png';
+import avatar from '../../assets/images-upload.png';
 import { useParams } from "react-router-dom";
 import { EyeClosed, Trash2, Star, Eye } from "lucide-react";
-import { useToast } from '../utils/ToastContext';
-import { useLoading } from "../components/ui/spinner/LoadingContext";
-import Spinner from "../components/ui/spinner/Spinner";
-
-
+import { useLoading } from "../../components/ui/spinner/LoadingContext";
+import Spinner from "../../components/ui/spinner/Spinner";
+import api from "../../../security/Axios";
+import { hasPermission } from '../../../security/DecodeJWT';
 function EditCustomer() {
     const { setLoadingState, loading } = useLoading();
     const { id } = useParams();
-    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         id: 0,
         maKhachHang: '',
@@ -55,8 +52,8 @@ function EditCustomer() {
     const fetchCustomerById = async () => {
         setLoadingState(true);
         try {
-            const response = await axios.get(
-                `http://localhost:8080/admin/khach-hang/detail/${id}`
+            const response = await api.get(
+                `/admin/khach-hang/detail/${id}`
             );
             var model = response.data;
 
@@ -127,8 +124,8 @@ function EditCustomer() {
 
     const fetchProvinces = async () => {
         try {
-            const response = await axios.get(
-                "http://localhost:8080/admin/custom-address/get-province"
+            const response = await api.get(
+                "/admin/custom-address/get-province"
             );
             setProvince(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
@@ -138,8 +135,8 @@ function EditCustomer() {
 
     const fetchDistricts = useCallback(async (provinceId, index) => {
         try {
-            const response = await axios.get(
-                "http://localhost:8080/admin/custom-address/get-district",
+            const response = await api.get(
+                "/admin/custom-address/get-district",
                 {
                     params: {
                         provinceId: provinceId
@@ -166,8 +163,8 @@ function EditCustomer() {
 
     const fetchWards = useCallback(async (districtId, index) => {
         try {
-            const response = await axios.get(
-                "http://localhost:8080/admin/custom-address/get-ward",
+            const response = await api.get(
+                "/admin/custom-address/get-ward",
                 {
                     params: {
                         districtId: districtId
@@ -219,12 +216,8 @@ function EditCustomer() {
             formData.image = "";
             formData.addressMappers = address;
             formData.imageBase64 = base64;
-            const response = await fetch('http://localhost:8080/admin/khach-hang/sua',
+            await api.post('/admin/khach-hang/sua',
                 {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify(formData)
                 }
             ).then((response) => response.json())
@@ -233,7 +226,7 @@ function EditCustomer() {
                     if (data) {
                         if(data.code > 0){
                             showToast("Update customer successfully", "success");
-                            navigate('/customers');
+                            navigate('/admin/customers');
                         }else{
                             showToast(data.message, "error");
                         }

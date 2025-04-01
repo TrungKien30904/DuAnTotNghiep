@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, Typography, Button } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import api from "../../security/Axios";
+import api from "../../../security/Axios";
 
 export default function PaymentStatus() {
     const navigate = useNavigate();

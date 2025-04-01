@@ -205,7 +205,7 @@ public class VNPayService {
         }
     }
 
-    public String createPaymentUrl(Integer orderId, BigDecimal amount, jakarta.servlet.http.HttpServletRequest req ) {
+    public String createPaymentUrl(Integer orderId, BigDecimal amount, HttpServletRequest req ) {
         try {
 
             Map<String, String> params = new HashMap<>();

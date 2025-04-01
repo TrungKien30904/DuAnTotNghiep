@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Eye, Plus, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { useLoading } from "../components/ui/spinner/LoadingContext";
-import Spinner from "../components/ui/spinner/Spinner";
-
+import { useLoading } from "../../components/ui/spinner/LoadingContext";
+import Spinner from "../../components/ui/spinner/Spinner";
+import api from "../../../security/Axios";
 export default function Customers() {
   const { setLoadingState, loading } = useLoading();
   const [filters, setFilters] = useState({
@@ -21,7 +20,7 @@ export default function Customers() {
   const exportToExcel = async () => {
     try {
       setLoadingState(true);
-      const response = await fetch("http://localhost:8080/admin/khach-hang/export-excel").then((response) => response.json())
+      const response = await api.get("/admin/khach-hang/export-excel").then((response) => response.json())
           .then((result) => {
             setLoadingState(false);
             const ws = XLSX.utils.json_to_sheet(result);
@@ -42,8 +41,8 @@ export default function Customers() {
   const searchKhachHangs = useCallback(async () => {
     try {
       setLoadingState(true);
-      const response = await axios.get(
-          "http://localhost:8080/admin/khach-hang/tim-kiem",
+      const response = await api.get(
+          "/admin/khach-hang/tim-kiem",
           {
             params: {
               keyword: filters.keyword,
@@ -213,7 +212,7 @@ export default function Customers() {
               <button
                   title="Thêm mới"
                   className="flex items-center justify-center border border-black rounded-full w-8 h-8"
-                  onClick={() => navigate("/add-customer")}
+                  onClick={() => navigate("/admin/add-customer")}
               >
                 <Plus size={20} stroke="black" />
               </button>
@@ -264,7 +263,7 @@ export default function Customers() {
                       </span>
                         </td>
                         <td className="p-2 text-center flex justify-center space-x-2">
-                          <button className="text-black p-1 rounded" onClick={() => navigate(`/edit-customer/${customer.id}`)}>
+                          <button className="text-black p-1 rounded" onClick={() => navigate(`/admin/edit-customer/${customer.id}`)}>
                             <Eye size={18} stroke="black" />
                           </button>
                         </td>
@@ -309,5 +308,3 @@ export default function Customers() {
       </div>
   );
 }
-
-export  default Customers;

@@ -42,22 +42,25 @@ public class KhachHangController {
         return  ResponseEntity.ok(khachHang);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @PostMapping("/them")
     public ResponseEntity<BaseResponse<Integer>> them(@RequestPart("user") String model, @RequestPart("fileImage") MultipartFile file) {
         return ResponseEntity.ok(khachHangService.themKhachHang(model, file));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @PostMapping("/sua")
     public ResponseEntity<BaseResponse<KhachHang>> sua(@Valid @RequestBody CustomerMapper model) {
         return ResponseEntity.ok(khachHangService.suaKhachHang(model));
     }
     
 
-        @PostMapping("/update-address")
+    @PostMapping("/update-address")
     public ResponseEntity<?> updateAddress(@Valid @RequestBody CustomerMapper model) {
         return ResponseEntity.ok(khachHangService.updateAddress(model));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @DeleteMapping("/xoa/{id}")
     public ResponseEntity<?> xoa(@PathVariable Integer id) {
         khachHangService.xoaKhachHang(id);

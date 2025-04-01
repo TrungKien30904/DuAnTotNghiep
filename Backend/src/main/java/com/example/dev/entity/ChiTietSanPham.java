@@ -1,5 +1,6 @@
 package com.example.dev.entity;
 import com.example.dev.entity.attribute.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -111,7 +112,9 @@ public class ChiTietSanPham {
     private Boolean trangThai = true;
 
     @Column(updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime ngayTao;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime ngaySua;
 
     @Column(updatable = false)

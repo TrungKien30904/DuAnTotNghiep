@@ -25,9 +25,7 @@ public class SanPham {
     private String ten;
     private Boolean trangThai = true;
     @Column(updatable = false)
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime ngayTao;
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime ngaySua;
     @Column(updatable = false)
     private String nguoiTao;

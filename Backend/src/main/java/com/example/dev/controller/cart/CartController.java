@@ -128,7 +128,6 @@ public class CartController {
 
     @PostMapping("/clear")
     public ResponseEntity<?> clearCart(HttpSession session) {
-        System.out.println("Dã chay vao day");
         session.removeAttribute(CART_SESSION_KEY);
         return ResponseEntity.ok("Đã xóa toàn bộ giỏ hàng");
     }

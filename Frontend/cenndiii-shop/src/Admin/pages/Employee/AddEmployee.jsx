@@ -3,10 +3,10 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../static/AddEmployee/style.css";
+import "../../static/AddEmployee/style.css";
 import cryptoRandomString from 'crypto-random-string';
-import { hasPermission } from "../../security/DecodeJWT";
-import api from "../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
+import api from "../../../security/Axios";
 export default function AddEmployee() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({

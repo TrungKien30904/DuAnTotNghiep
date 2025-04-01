@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface ThanhToanHoaDonRepository extends JpaRepository<ThanhToanHoaDon, Integer> {
+    ThanhToanHoaDon findByHoaDon_IdHoaDon(Integer id);
 
-    @Query("SELECT t FROM ThanhToanHoaDon t WHERE t.hoaDon.idHoaDon = :idHoaDon")
-    ThanhToanHoaDon findByHoaDonId(@Param("idHoaDon") Integer idHoaDon);
+    List<ThanhToanHoaDon> findAllByHoaDon_IdHoaDon(Integer id);
 }

@@ -1,26 +1,24 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import OrderStatus from '../components/ui/OrderStatus';
-import Notification from '../../components/Notification';
+import OrderStatus from '../../components/ui/OrderStatus';
+import Notification from '../../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 // import { confirmAlert } from 'react-confirm-alert';
 // import 'react-confirm-alert/src/react-confirm-alert.css';
-import api from '../../security/Axios';
-import { hasPermission } from "../../security/DecodeJWT";
+import api from '../../../security/Axios';
+import { hasPermission } from "../../../security/DecodeJWT";
 import { useNavigate } from 'react-router-dom';
-import { formatDateFromArray } from '../../untils/FormatDate';
-import Alert from '../../components/Alert';
+import { formatDateFromArray } from '../../../untils/FormatDate';
+import Alert from '../../../components/Alert';
 import { set } from 'react-hook-form';
-import Stepper from "../components/stepper/Stepper"
+import Stepper from "../../components/stepper/Stepper"
 import {
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
     Button,
-    Tabs,
-    Tab,
     Table,
     TableHead,
     TableBody,
@@ -29,21 +27,16 @@ import {
     TableContainer,
     Paper,
     TextField,
-    Badge,
-    Box,
-    TablePagination
 } from "@mui/material";
 import { Trash, Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
+import PaymentHistory from './PaymentHistory';
 export default function InvoiceDetail() {
     const { id, idHd } = useParams();
     const [invoice, setInvoice] = useState();
-    const [payment, setPayment] = useState();
-    const [showHistory, setShowHistory] = useState(false);
-    const [histories, setHistories] = useState([]);
-    const [invoiceDetails, setInvoiceDetails] = useState([]);
     const navigate = useNavigate();
-
+    const [total, setTotal] = useState(0);
+    const [openPaymentHistory, setOpenPaymentHistory] = useState(false)
 
     useEffect(() => {
         if (localStorage.getItem("token")) {
@@ -54,25 +47,23 @@ export default function InvoiceDetail() {
     }, [navigate]);
     useEffect(() => {
         fetchInvoice(id);
-        fetchInvoicePaymentHistory(id);
         getProductFromDetailsInvoice();
-    }, [id]);
+    }, [idHd]);
 
+    const reload = () => {
+        fetchInvoice(id);
+        getProductFromDetailsInvoice();
+    }
     const fetchInvoice = async (maHoaDon) => {
         const response = await api.get(`/admin/hoa-don/${maHoaDon}`);
         setInvoice(response.data);
-    };
-
-    const fetchInvoicePaymentHistory = async (maHoaDon) => {
-        const response = await api.get(`/admin/hoa-don/${maHoaDon}/lich-su-thanh-toan`);
-        setPayment(response.data);
     };
 
     const handleRemoveOrderItem = async (idHdct, idCtsp) => {
         try {
 
             const requestData = {
-                idHoaDon:idHd,
+                idHoaDon: idHd,
                 idHoaDonChiTiet: idHdct,
                 idChiTietSanPham: idCtsp
             };
@@ -90,6 +81,18 @@ export default function InvoiceDetail() {
     const [orderItemsByTab, setOrderItemsByTab] = useState({}); // Thêm state này
     const [removeItem, setRemoveItem] = useState([]);
     const [openDeleteProductDialog, setOpenDeleteProductDialog] = useState(false);
+    useEffect(() => {
+        if (!Array.isArray(orderItemsByTab) || orderItemsByTab.length === 0) {
+            setTotal(0);
+            return;
+        }
+
+        const total = orderItemsByTab.reduce((sum, item) => {
+            return sum + (item.giaDuocTinh ?? item.donGia) * item.soLuongMua;
+        }, 0);
+
+        setTotal(total);
+    }, [orderItemsByTab]);
 
     useEffect(() => {
 
@@ -149,7 +152,7 @@ export default function InvoiceDetail() {
             }
 
             const requestData = {
-                idHoaDon:idHd,
+                idHoaDon: idHd,
                 idChiTietSanPham: productDetailSelected.idChiTietSanPham,
                 soLuongMua: selectedQuantity,
                 giaSauGiam: productDetailSelected.giaSauGiam
@@ -186,7 +189,7 @@ export default function InvoiceDetail() {
         if (newQuantity == "tru" || newQuantity == "cong") {
             try {
                 const requestData = {
-                    idHoaDon:idHd,
+                    idHoaDon: idHd,
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
                     soLuongMua: newQuantity == "tru" ? Number(-1) : Number(1),
@@ -202,7 +205,7 @@ export default function InvoiceDetail() {
         } else if (typeof (Number(newQuantity)) == "number") {
             try {
                 const requestData = {
-                    idHoaDon:idHd,
+                    idHoaDon: idHd,
                     idHoaDonChiTiet: idHoaDonChiTiet,
                     idChiTietSanPham: idChiTietSanPham,
                     soLuongMua: Number(newQuantity),
@@ -224,295 +227,256 @@ export default function InvoiceDetail() {
         <div className="p-6 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow-md ">
                 <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Trạng thái đơn hàng</h1>
-                <Stepper order={invoice} />
+                <Stepper order={invoice} onReload={reload} />
             </div>
-            {
-                invoice &&
-                <div className="bg-white p-4 rounded-lg shadow-md ">
-                    <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Thông tin khách hàng</h1>
-                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Mã: </h2>
-                            <p>{invoice.maHoaDon ?? "Không có"}</p>
+            <div>
+                <div className="bg-white p-4 rounded-lg shadow-md my-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-lg font-semibold">Thông tin đơn hàng có mã hóa đơn: {id}</h1>
+                        <div>
+                            <button className="p-2 bg-blue-600 text-white rounded-md me-2" onClick={() => setOpenPaymentHistory(true)}>Lịch sử thanh toán</button>
+                            {invoice?.trangThai === "Chờ xác nhận" && (
+                                <button
+                                    className="p-2 bg-blue-600 text-white rounded-md"
+                                    onClick={handleOpenDialogProduct}
+                                >
+                                    Thêm sản phẩm
+                                </button>
+                            )}
                         </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Tên khách hàng: </h2>
-                            <p> {invoice.khachHang
-                                ? invoice.khachHang.hoTen
-                                : invoice.tenNguoiNhan || "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>SĐT người nhận: </h2>
-                            <p>{invoice.khachHang
-                                ? invoice.khachHang.soDienThoai
-                                : invoice.soDienThoai || "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Email người nhận: </h2>
-                            <p>{invoice.khachHang
-                                ? invoice.khachHang.email
-                                : invoice.email || "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Địa chỉ: </h2>
-                            <p>
-                                {invoice.khachHang
-                                    ? invoice.khachHang.diaChi
-                                    : invoice.diaChi || "Không có"}
-                            </p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Tên nhân viên: </h2>
-                            <p>{invoice.nhanVien ? invoice.nhanVien.ten : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>SĐT nhân viên: </h2>
-                            <p>{invoice.nhanVien ? invoice.nhanVien.soDienThoai : "Không có"}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Tổng tiền: </h2>
-                            <p>{invoice.tongTien}</p>
-                        </div>
-                        <div className='flex gap-4'>
-                            <h2 className='font-bold'>Trạng thái: </h2>
-                            <div className='border border-solid border-orange-200 px-2'>
-                                <p className='text-orange-200'>{invoice.trangThai}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-            {
-                payment &&
-                <div className="bg-white p-4 rounded-lg shadow-md">
-                    <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Lịch sử thanh toán</h1>
-                    <table className="min-w-full border-collapse">
-                        <thead className=''>
-                            <tr className="bg-gray-100 text-left ">
-                                <th className="px-4 py-2 ">STT</th>
-                                <th className="px-4 py-2 ">Ghi chú</th>
-                                <th className="px-4 py-2 ">Hình thức thanh toán</th>
-                                <th className="px-4 py-2 ">Ngày thanh toán</th>
-                                <th className="px-4 py-2 ">Số tiền</th>
-                                <th className="px-4 py-2 ">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr className="border-b hover:bg-gray-100">
-                                <td className="px-4 py-2 ">{payment.id}</td>
-                                <td className="px-4 py-2 ">{payment.ghiChu}</td>
-                                <td className="px-4 py-2 ">{payment.hinhThucThanhToan}</td>
-                                <td className="px-4 py-2 ">{formatDateFromArray(payment.ngayTao)}</td>
-                                <td className="px-4 py-2 ">{payment.soTienThanhToan}</td>
-                                <td className="px-4 py-2 ">{payment.trangThai ? 'Đã thanh toán' : 'Chưa thanh toán'}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            }
 
-            <div className="bg-white p-4 rounded-lg shadow-md mt-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-lg font-semibold">Thông tin đơn hàng có mã hóa đơn: {id}</h1>
-                    {invoice?.trangThai === "Chờ xác nhận" && (
-                        <button
-                            className="p-2 bg-blue-600 text-white rounded-md"
-                            onClick={handleOpenDialogProduct}
-                        >
-                            Thêm sản phẩm
-                        </button>
-                    )}
-                </div>
-                <div className="my-2">
-                    <TableContainer component={Paper} sx={{ maxHeight: "530px" }}>
-                        <Table stickyHeader>
-                            <TableHead>
-                                <TableRow sx={{ height: "40px" }}> {/* Giảm chiều cao của header */}
-                                    {[
-                                        "Sản phẩm",
-                                        "Số lượng",
-                                        "Kho",
-                                        "Giá hiện tại",
-                                        "Giá được tính",
-                                        "Tổng",
-                                    ].map((header) => (
+                    </div>
+                    <div className="my-2 ">
+                        <TableContainer component={Paper} sx={{ maxHeight: "530px" }}>
+                            <Table stickyHeader>
+                                <TableHead>
+                                    <TableRow sx={{ height: "40px" }}> {/* Giảm chiều cao của header */}
+                                        {[
+                                            "Sản phẩm",
+                                            "Số lượng",
+                                            "Kho",
+                                            "Giá hiện tại",
+                                            "Giá được tính",
+                                            "Tổng",
+                                        ].map((header) => (
+                                            <TableCell
+                                                key={header}
+                                                align="center"
+                                                sx={{
+                                                    position: "sticky",
+                                                    top: 0,
+                                                    backgroundColor: "white",
+                                                    zIndex: 2,
+                                                    padding: "8px", // Giảm padding
+                                                    fontSize: "12px", // Giảm font chữ
+                                                }}
+                                            >
+                                                {header}
+                                            </TableCell>
+                                        ))}
                                         <TableCell
-                                            key={header}
                                             align="center"
                                             sx={{
+                                                width: "10px",
                                                 position: "sticky",
                                                 top: 0,
                                                 backgroundColor: "white",
                                                 zIndex: 2,
                                                 padding: "8px", // Giảm padding
                                                 fontSize: "12px", // Giảm font chữ
-                                            }}
-                                        >
-                                            {header}
+                                            }}>
                                         </TableCell>
-                                    ))}
-                                    <TableCell
-                                        align="center"
-                                        sx={{
-                                            width: "10px",
-                                            position: "sticky",
-                                            top: 0,
-                                            backgroundColor: "white",
-                                            zIndex: 2,
-                                            padding: "8px", // Giảm padding
-                                            fontSize: "12px", // Giảm font chữ
-                                        }}>
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {orderItemsByTab && orderItemsByTab.length > 0 ? (
-                                    orderItemsByTab.map((item) => (
-                                        <TableRow key={item.idHoaDonChiTiet}>
-                                            <TableCell align="center" sx={{ width: "200px" }}>
-                                                <div className="flex justify-content-center relative">
-                                                    <div>
-                                                        <img
-                                                            src={item.lienKet}
-                                                            alt={item.tenSanPham}
-                                                            className="w-12 h-12 object-cover inset-0 rounded-md inline-block"
-                                                        />
-                                                    </div>
-                                                    <div className="ms-1">
-                                                        <p>{item.tenSanPham}</p>
-                                                        <p className="text-[10px] text-[#8d8674]">{item.tenMau}</p>
-                                                        <p className="text-[10px] text-[#8d8674]">{item.tenKichCo}</p>
-                                                    </div>
-                                                    {!item.trangThai ? (
-                                                        <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
-                                                            *Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán!
-                                                        </p>
-                                                    ) : (
-                                                        item.giaDuocTinh && (
-                                                            <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
-                                                                *Sản phẩm có sự thay đổi về giá {item.giaDuocTinh.toLocaleString()} đ → {" "}
-                                                                {item.donGia.toLocaleString()} đ
-                                                            </p>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontSize: "12px" }}>
-                                                <div className='relative'>
-                                                    <div className='absolute -left-3 top-0 bottom-0'>
-                                                        {invoice?.trangThai === "Chờ xác nhận" &&
-                                                            item.trangThai && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (Number(item.soLuongMua) > 1) {
-                                                                            handleQuantityChange(
-                                                                                item.idHoaDonChiTiet,
-                                                                                item.idChiTietSanPham,
-                                                                                "tru",
-                                                                                item.giaDuocTinh
-                                                                            );
-                                                                        } else {
-                                                                            Notification("Đã là số lượng nhỏ nhất !", "warning");
-                                                                            return;
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <Remove sx={{ fontSize: 15 }} />
-                                                                </button>
-                                                            )}
-                                                    </div>
-                                                    <div>
-                                                        {invoice?.trangThai === "Chờ xác nhận" &&
-                                                            item.trangThai ? (
-                                                            <input
-                                                                type="number"
-                                                                value={item.soLuongMua}
-                                                                onChange={(e) => {
-                                                                    if (
-                                                                        e.target.value > 0 &&
-                                                                        e.target.value <= item.soLuongMua + item.kho
-                                                                    ) {
-                                                                        if (e.target.value - item.soLuongMua <= item.kho) {
-                                                                            handleQuantityChange(
-                                                                                item.idHoaDonChiTiet,
-                                                                                item.idChiTietSanPham,
-                                                                                e.target.value,
-                                                                                item.giaDuocTinh
-                                                                            );
-                                                                        }
-                                                                    } else {
-                                                                        Notification("Chọn số lượng hợp lệ", "error");
-                                                                        return;
-                                                                    }
-                                                                }}
-                                                                className="text-center w-8"
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {orderItemsByTab && orderItemsByTab.length > 0 ? (
+                                        orderItemsByTab.map((item) => (
+                                            <TableRow key={item.idHoaDonChiTiet}>
+                                                <TableCell align="center" sx={{ width: "200px" }}>
+                                                    <div className="flex justify-content-center relative">
+                                                        <div>
+                                                            <img
+                                                                src={item.lienKet}
+                                                                alt={item.tenSanPham}
+                                                                className="w-12 h-12 object-cover inset-0 rounded-md inline-block"
                                                             />
+                                                        </div>
+                                                        <div className="ms-1">
+                                                            <p>{item.tenSanPham}</p>
+                                                            <p className="text-[10px] text-[#8d8674]">{item.tenMau}</p>
+                                                            <p className="text-[10px] text-[#8d8674]">{item.tenKichCo}</p>
+                                                        </div>
+                                                        {!item.trangThai ? (
+                                                            <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
+                                                                *Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán!
+                                                            </p>
                                                         ) : (
-                                                            <span>{item.soLuongMua}</span>
+                                                            item.giaDuocTinh && (
+                                                                <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
+                                                                    *Sản phẩm có sự thay đổi về giá {item.giaDuocTinh.toLocaleString()} đ → {" "}
+                                                                    {item.donGia.toLocaleString()} đ
+                                                                </p>
+                                                            )
                                                         )}
                                                     </div>
-                                                    <div className='absolute -right-3 top-0 bottom-0'>
-                                                        {invoice?.trangThai === "Chờ xác nhận" &&
-                                                            item.trangThai && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (item.kho > 0) {
-                                                                            if (!item.giaDuocTinh) {
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ fontSize: "12px" }}>
+                                                    <div className='relative'>
+                                                        <div className='absolute -left-3 top-0 bottom-0'>
+                                                            {invoice?.trangThai === "Chờ xác nhận" &&
+                                                                item.trangThai && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (Number(item.soLuongMua) > 1) {
                                                                                 handleQuantityChange(
                                                                                     item.idHoaDonChiTiet,
                                                                                     item.idChiTietSanPham,
-                                                                                    "cong",
+                                                                                    "tru",
                                                                                     item.giaDuocTinh
                                                                                 );
                                                                             } else {
-                                                                                Notification(
-                                                                                    "Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!",
-                                                                                    "warning"
+                                                                                Notification("Đã là số lượng nhỏ nhất !", "warning");
+                                                                                return;
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Remove sx={{ fontSize: 15 }} />
+                                                                    </button>
+                                                                )}
+                                                        </div>
+                                                        <div>
+                                                            {invoice?.trangThai === "Chờ xác nhận" &&
+                                                                item.trangThai ? (
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.soLuongMua}
+                                                                    onChange={(e) => {
+                                                                        if (
+                                                                            e.target.value > 0 &&
+                                                                            e.target.value <= item.soLuongMua + item.kho
+                                                                        ) {
+                                                                            if (e.target.value - item.soLuongMua <= item.kho) {
+                                                                                handleQuantityChange(
+                                                                                    item.idHoaDonChiTiet,
+                                                                                    item.idChiTietSanPham,
+                                                                                    e.target.value,
+                                                                                    item.giaDuocTinh
                                                                                 );
                                                                             }
                                                                         } else {
-                                                                            Notification("Đã hết hàng trong kho!", "warning");
+                                                                            Notification("Chọn số lượng hợp lệ", "error");
                                                                             return;
                                                                         }
                                                                     }}
-                                                                >
-                                                                    <Add sx={{ fontSize: 15 }} />
-                                                                </button>
+                                                                    className="text-center w-8"
+                                                                />
+                                                            ) : (
+                                                                <span>{item.soLuongMua}</span>
                                                             )}
+                                                        </div>
+                                                        <div className='absolute -right-3 top-0 bottom-0'>
+                                                            {invoice?.trangThai === "Chờ xác nhận" &&
+                                                                item.trangThai && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (item.kho > 0) {
+                                                                                if (!item.giaDuocTinh) {
+                                                                                    handleQuantityChange(
+                                                                                        item.idHoaDonChiTiet,
+                                                                                        item.idChiTietSanPham,
+                                                                                        "cong",
+                                                                                        item.giaDuocTinh
+                                                                                    );
+                                                                                } else {
+                                                                                    Notification(
+                                                                                        "Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!",
+                                                                                        "warning"
+                                                                                    );
+                                                                                }
+                                                                            } else {
+                                                                                Notification("Đã hết hàng trong kho!", "warning");
+                                                                                return;
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Add sx={{ fontSize: 15 }} />
+                                                                    </button>
+                                                                )}
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontSize: "12px" }}>{item.kho}</TableCell>
-                                            <TableCell align="center" sx={{ fontSize: "12px" }}>{item.donGia.toLocaleString()} đ</TableCell>
-                                            <TableCell align="center" sx={{ fontSize: "12px" }}>
-                                                {(item.giaDuocTinh ?? item.donGia).toLocaleString()} đ
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontSize: "12px" }}>{item.thanhTien.toLocaleString()} đ</TableCell>
-                                            <TableCell sx={{ width: "10px", padding: "4px", }}>
-                                                {invoice?.trangThai === "Chờ xác nhận" && (
-                                                    <button
-                                                        onClick={() =>
-                                                            handleOpenDialog(item.idHoaDonChiTiet, item.idChiTietSanPham)
-                                                        }
-                                                    >
-                                                        <Trash size={16} sx={{ width: "10px" }} className="text-red-600" />
-                                                    </button>
-                                                )}
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ fontSize: "12px" }}>{item.kho}</TableCell>
+                                                <TableCell align="center" sx={{ fontSize: "12px" }}>{item.donGia.toLocaleString()} đ</TableCell>
+                                                <TableCell align="center" sx={{ fontSize: "12px" }}>
+                                                    {(item.giaDuocTinh ?? item.donGia).toLocaleString()} đ
+                                                </TableCell>
+                                                <TableCell align="center" sx={{ fontSize: "12px" }}>{item.thanhTien.toLocaleString()} đ</TableCell>
+                                                <TableCell sx={{ width: "10px", padding: "4px", }}>
+                                                    {invoice?.trangThai === "Chờ xác nhận" && (
+                                                        <button
+                                                            onClick={() =>
+                                                                handleOpenDialog(item.idHoaDonChiTiet, item.idChiTietSanPham)
+                                                            }
+                                                        >
+                                                            <Trash size={16} sx={{ width: "10px" }} className="text-red-600" />
+                                                        </button>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={7} align="center">
+                                                Chưa có sản phẩm nào
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={7} align="center">
-                                            Chưa có sản phẩm nào
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-md grid grid-cols-3 gap-4">
+                    {/* Bên trái: Form chỉnh sửa thông tin khách hàng */}
+                    <div className="col-span-2 bg-gray-50 p-4 rounded-lg">
+                        <h1 className="text-lg font-semibold mb-4">Thông tin khách hàng</h1>
+                        <div className='grid grid-cols-2 gap-4 text-sm'>
+                            <div className='flex flex-col'>
+                                <label className='font-bold'>Tên khách hàng:</label>
+                                <input className="border rounded p-2" name="khachHang" value={invoice?.khachHang?.hoTen || "Không có"} />
+                            </div>
+                            <div className='flex flex-col'>
+                                <label className='font-bold'>SĐT người nhận:</label>
+                                <input className="border rounded p-2" name="soDienThoai" value={invoice?.khachHang?.soDienThoai || "Không có"} />
+                            </div>
+                            <div className='flex flex-col'>
+                                <label className='font-bold'>Email người nhận:</label>
+                                <input className="border rounded p-2" name="email" value={invoice?.khachHang?.email || "Không có"} />
+                            </div>
+                            <div className='flex flex-col'>
+                                <label className='font-bold'>Địa chỉ:</label>
+                                <input className="border rounded p-2" name="diaChi" value={invoice?.khachHang?.diaChi || "Không có"} />
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* Bên phải: Hóa đơn */}
+                    <div className="bg-white p-4 rounded-lg border ">
+                        <h1 className="text-lg font-semibold mb-4">Hóa đơn</h1>
+                        <div>
+                            <div className='flex flex-col justify-between text-sm h-3/4'>
+                                <div className='flex justify-between'><span className='font-bold flex-none'>Giảm giá:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
+                                <div className='flex justify-between'><span className='font-bold flex-none'>Phí vận chuyển:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
+                                <div className='flex justify-between'><span className='font-bold flex-none'>Phụ phí:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
+                                <div className='flex justify-between'><span className='font-bold flex-none'>Hoàn phí:</span> <span className=' font-semibold'>{invoice?.hoanPhi?.toLocaleString() || 0} đ</span></div>
+
+                                <div className='flex-col justify-between border-y py-2'>
+                                    <div className='flex justify-between'><span className='font-bold flex-none'>Tổng tiền:</span> <span className='text-red-500 font-semibold'>{invoice?.tongTien.toLocaleString()} đ</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <Alert
@@ -708,6 +672,8 @@ export default function InvoiceDetail() {
                     <Button onClick={handleCloseSelectQuantity}>Hủy</Button>
                 </DialogActions>
             </Dialog>
+            {/* ô lịch sử thanh toán */}
+            <PaymentHistory idHoaDon={idHd} open={openPaymentHistory} onClose={() => setOpenPaymentHistory(false)} />
             <ToastContainer />
         </div >
     )

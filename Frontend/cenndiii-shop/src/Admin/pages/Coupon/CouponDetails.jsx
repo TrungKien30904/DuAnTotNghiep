@@ -1,36 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
 import moment from "moment";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Dialog } from "@headlessui/react";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import Notification from "../../components/Notification";
-import api from "../../security/Axios";
-import { hasPermission } from "../../security/DecodeJWT";
-function AddCoupon() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [formData, setFormData] = useState(location.state?.couponData || {
-        tenKhuyenMai: '',
-        loai: 'Công Khai',
-        hinhThuc: '',
-        giaTri: '',
-        giaTriToiDa: '',
-        soLuong: '',
-        dieuKien: '0',
-        ngayBatDau: '',
-        ngayKetThuc: ''
-    });
-
+import api from "../../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
+export default function CouponDetails() {
+    const { id } = useParams();
+    const [coupon, setCoupon] = useState(null);
     const [customers, setCustomers] = useState([]);
     const [selectedCustomers, setSelectedCustomers] = useState([]);
+
+    const [isUpdating, setIsUpdating] = useState(false);
     const [errors, setErrors] = useState({});
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const navigate = useNavigate();
     const [filters, setFilters] = useState({ keyword: "" });
-
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     useEffect(() => {
         if(localStorage.getItem("token")){
@@ -39,12 +28,47 @@ function AddCoupon() {
             }
         }
     }, [navigate]);
+    useEffect(() => {
+        const fetchCouponDetails = async () => {
+            try {
+                const response = await api.get(`/admin/phieu-giam-gia/${id}`);
+                const couponData = response.data;
+                setCoupon({
+                    ...couponData,
+                    ngayBatDau: moment(couponData.ngayBatDau, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DDTHH:mm'),
+                    ngayKetThuc: moment(couponData.ngayKetThuc, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DDTHH:mm'),
+                });
+
+                if (couponData.loai === "Cá Nhân" && couponData.danhSachKhachHang) {
+                    setSelectedCustomers(couponData.danhSachKhachHang.map(kh => kh.khachHang.idKhachHang));
+                }
+
+                fetchCustomers(0); // Fetch initial customers
+            } catch (error) {
+                console.error("Lỗi khi lấy chi tiết phiếu giảm giá:", error);
+                toast.error("Lỗi khi lấy chi tiết phiếu giảm giá");
+            }
+        };
+
+        fetchCouponDetails();
+    }, [id]);
+
+    const fetchCustomers = async (page) => {
+        try {
+            const response = await api.get(`/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
+            setCustomers(Array.isArray(response.data.content) ? response.data.content : []);
+            setTotalPages(response.data.totalPages);
+        } catch (error) {
+            console.error('Lỗi khi lấy danh sách khách hàng:', error);
+            toast.error('Lỗi khi lấy danh sách khách hàng');
+        }
+    };
+
     const searchKhachHangs = useCallback(async () => {
         try {
-            const formattedKeyword = filters.keyword.replace(/\s+/g, '').toLowerCase();
             const response = await api.get("/admin/phieu-giam-gia/tim-kiem-khach-hang", {
                 params: {
-                    keyword: formattedKeyword,
+                    keyword: filters.keyword,
                     page: currentPage,
                     size: 5,
                 }
@@ -55,9 +79,48 @@ function AddCoupon() {
             }
         } catch (error) {
             console.error("Error searching data:", error);
-            Notification("Lỗi khi tìm kiếm dữ liệu", "error");
+            toast.error("Lỗi khi tìm kiếm khách hàng");
         }
-    }, [filters.keyword, currentPage]);
+    }, [filters, currentPage]);
+
+    const handleUpdateCoupon = async () => {
+        if (validate()) {
+            let phieuGiamGiaChiTiet = [];
+            if (coupon.loai === 'Cá Nhân') {
+                phieuGiamGiaChiTiet = selectedCustomers.map(customerId => ({
+                    khachHang: { idKhachHang: customerId },
+                }));
+            }
+
+            const requestData = {
+                ...coupon,
+                dieuKien: coupon.dieuKien === '' ? 0 : coupon.dieuKien,
+                danhSachKhachHang: phieuGiamGiaChiTiet,
+                ngayBatDau: moment(coupon.ngayBatDau).format('DD/MM/YYYY HH:mm'),
+                ngayKetThuc: moment(coupon.ngayKetThuc).format('DD/MM/YYYY HH:mm')
+            };
+
+            try {
+                setIsUpdating(true);
+                await api.post(`/admin/phieu-giam-gia/sua/${id}`, requestData);
+                toast.success("Cập nhật phiếu giảm giá thành công");
+                navigate('/admin/coupons', { state: { message: `Cập nhật thành công phiếu giảm giá có mã: ${coupon.maKhuyenMai}` } });
+            } catch (error) {
+                if (error.response && error.response.data) {
+                    setErrors(error.response.data);
+                    toast.error("Lỗi khi cập nhật phiếu giảm giá");
+                } else {
+                    console.error('Lỗi khi cập nhật phiếu giảm giá:', error.message);
+                    toast.error("Lỗi khi cập nhật phiếu giảm giá");
+                }
+            } finally {
+                setIsUpdating(false);
+            }
+        } else {
+            toast.error("Vui lòng kiểm tra lại thông tin");
+        }
+        closeModal();
+    };
 
     useEffect(() => {
         searchKhachHangs();
@@ -67,12 +130,9 @@ function AddCoupon() {
         fetchCustomers(currentPage);
     }, [currentPage]);
 
-    const handleChange = (e) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        setCoupon((prevCoupon) => ({ ...prevCoupon, [name]: value }));
         validateField(name, value);
     };
 
@@ -81,7 +141,7 @@ function AddCoupon() {
             const newSelectedCustomers = prevState.includes(customerId)
                 ? prevState.filter(id => id !== customerId)
                 : [...prevState, customerId];
-            setFormData(prevFormData => ({
+            setCoupon(prevFormData => ({
                 ...prevFormData,
                 soLuong: newSelectedCustomers.length
             }));
@@ -92,13 +152,13 @@ function AddCoupon() {
     const handleSelectAll = () => {
         if (selectedCustomers.length === customers.length) {
             setSelectedCustomers([]);
-            setFormData(prevState => ({
+            setCoupon(prevState => ({
                 ...prevState,
                 soLuong: 0
             }));
         } else {
             setSelectedCustomers(customers.map(customer => customer.idKhachHang));
-            setFormData(prevState => ({
+            setCoupon(prevState => ({
                 ...prevState,
                 soLuong: customers.length
             }));
@@ -107,8 +167,7 @@ function AddCoupon() {
 
     const validateField = (name, value) => {
         let tempErrors = { ...errors };
-        const now = new Date();
-        const startDate = new Date(formData.ngayBatDau);
+        const startDate = new Date(coupon.ngayBatDau);
         const maxTenKhuyenMaiLength = 255;
 
         switch (name) {
@@ -122,18 +181,17 @@ function AddCoupon() {
                 if (!value) tempErrors.hinhThuc = "Kiểu Không Được Để Trống";
                 else {
                     // Kiểm tra nếu kiểu thay đổi từ % sang VNĐ
-                    if (formData.hinhThuc === '%' && value === 'VNĐ') {
-                        setFormData(prev => ({ ...prev, giaTriToiDa: '' }));
+                    if (coupon.hinhThuc === '%' && value === 'VNĐ') {
+                        coupon.giaTriToiDa = ''; // Xóa giá trị giảm tối đa
                     }
-
                     delete tempErrors.hinhThuc;
                 }
                 break;
 
             case 'giaTri':
                 if (!value) tempErrors.giaTri = "Giá Trị Không Được Để Trống";
-                else if (formData.hinhThuc === '%' && (value < 1 || value > 100)) tempErrors.giaTri = "Giá Trị Phải Từ 1 Đến 100 Khi Chọn %";
-                else if (formData.hinhThuc === 'VNĐ' && value < 1) tempErrors.giaTri = "Giá Trị Phải Lớn Hơn 0";
+                else if (coupon.hinhThuc === '%' && (value < 1 || value > 100)) tempErrors.giaTri = "Giá Trị Phải Từ 1 Đến 100 Khi Chọn %";
+                else if (coupon.hinhThuc === 'VNĐ' && value < 1) tempErrors.giaTri = "Giá Trị Phải Lớn Hơn 0";
                 else delete tempErrors.giaTri;
                 break;
 
@@ -145,20 +203,19 @@ function AddCoupon() {
 
             case 'dieuKien':
                 const dieuKienNumber = Number(value);
-                if (dieuKienNumber < 0) tempErrors.dieuKien = "Giá Trị Đơn Hàng Tối Thiểu Không Được Âm";
-                else if (formData.hinhThuc === "VNĐ" && (dieuKienNumber < formData.giaTri)) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu phải lớn hơn Giá Trị Giảm";
+                if (value < 0) tempErrors.dieuKien = "Giá Trị Đơn Hàng Tối Thiểu Không Được Âm";
+                else if (coupon.hinhThuc === 'VNĐ' && (dieuKienNumber < coupon.giaTri)) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu không được nhỏ hơn Giá Trị Giảm";
                 else delete tempErrors.dieuKien;
                 break;
 
             case 'giaTriToiDa':
-                if (formData.hinhThuc === '%' && (!value)) tempErrors.giaTriToiDa = "Giá Trị Giảm Tối Đa Không Được Để Trống";
+                if (coupon.hinhThuc === '%' && (!value)) tempErrors.giaTriToiDa = "Giá Trị Giảm Tối Đa Không Được Để Trống";
                 else if (value < 0) tempErrors.giaTriToiDa = "Giá Trị Giảm Tối Đa Không Được Âm";
                 else delete tempErrors.giaTriToiDa;
                 break;
 
             case 'ngayBatDau':
                 if (!value) tempErrors.ngayBatDau = "Ngày Bắt Đầu Không Được Để Trống";
-                else if (new Date(value) <= new Date(now.getTime() + 20000)) tempErrors.ngayBatDau = "Ngày Và Giờ Bắt Đầu phải lớn hơn Ngày Và Giờ hiện tại ít nhất 1 phút";
                 else delete tempErrors.ngayBatDau;
                 break;
 
@@ -169,7 +226,7 @@ function AddCoupon() {
                 break;
 
             case 'selectedCustomers':
-                if (formData.loai === 'Cá Nhân' && value.length === 0) tempErrors.selectedCustomers = "Phải chọn ít nhất một khách hàng cho loại Cá Nhân";
+                if (coupon.loai === 'Cá Nhân' && value.length === 0) tempErrors.selectedCustomers = "Phải chọn ít nhất một khách hàng cho loại Cá Nhân";
                 else delete tempErrors.selectedCustomers;
                 break;
 
@@ -182,108 +239,56 @@ function AddCoupon() {
 
     const validate = () => {
         let tempErrors = {};
-        const now = new Date();
-        const startDate = new Date(formData.ngayBatDau);
-        const endDate = new Date(formData.ngayKetThuc);
+        const startDate = new Date(coupon.ngayBatDau);
+        const endDate = new Date(coupon.ngayKetThuc);
         const maxTenKhuyenMaiLength = 255;
 
-        if (!formData.tenKhuyenMai?.trim()) tempErrors.tenKhuyenMai = "Tên Phiếu Giảm Giá Không Được Để Trống";
-        else if (formData.tenKhuyenMai.length > maxTenKhuyenMaiLength) tempErrors.tenKhuyenMai = `Tên Phiếu Giảm Giá không được vượt quá ${maxTenKhuyenMaiLength} ký tự`;
-        if (!formData.hinhThuc) tempErrors.hinhThuc = "Kiểu Không Được Để Trống";
-        if (!formData.giaTri) tempErrors.giaTri = "Giá Trị Không Được Để Trống";
-        else if (formData.hinhThuc === '%' && (formData.giaTri < 1 || formData.giaTri > 100)) tempErrors.giaTri = "Giá Trị phải từ 1 đến 100 khi chọn %";
-        else if (formData.hinhThuc === 'VNĐ' && formData.giaTri < 1) tempErrors.giaTri = "Giá Trị Phải Lớn Hơn 0";
-        if (!formData.soLuong) tempErrors.soLuong = "Số Lượng Không Được Để Trống";
-        else if (formData.soLuong <= 0) tempErrors.soLuong = "Số Lượng Phải Lớn Hơn 0";
-        if (formData.dieuKien < 0) tempErrors.dieuKien = "Giá Trị Đơn Hàng Tối Thiểu Không Được Âm";
-        if (formData.hinhThuc === '%' && (!formData.giaTriToiDa)) tempErrors.giaTriToiDa = "Giá Trị Giảm Tối Đa Không Được Để Trống";
-        else if (formData.giaTriToiDa < 0) tempErrors.giaTriToiDa = "Giá Trị Tối Đa Không Được Âm";
-        if (!formData.ngayBatDau) tempErrors.ngayBatDau = "Ngày Bắt Đầu Không Được Để Trống";
-        else if (startDate <= new Date(now.getTime() + 20000)) tempErrors.ngayBatDau = "Ngày và Giờ bắt đầu phải lớn hơn ngày và giờ hiện tại ít nhất 1 phút";
-        if (!formData.ngayKetThuc) tempErrors.ngayKetThuc = "Ngày Kết Thúc Không Được Để Trống";
+        if (!coupon.tenKhuyenMai?.trim()) tempErrors.tenKhuyenMai = "Tên Phiếu Giảm Giá Không Được Để Trống";
+        else if (coupon.tenKhuyenMai.length > maxTenKhuyenMaiLength) tempErrors.tenKhuyenMai = `Tên Phiếu Giảm Giá không được vượt quá ${maxTenKhuyenMaiLength} ký tự`;
+        if (!coupon.hinhThuc) tempErrors.hinhThuc = "Kiểu Không Được Để Trống";
+        if (!coupon.giaTri) tempErrors.giaTri = "Giá Trị Không Được Để Trống";
+        else if (coupon.hinhThuc === '%' && (coupon.giaTri < 1 || coupon.giaTri > 100)) tempErrors.giaTri = "Giá Trị phải từ 1 đến 100 khi chọn %";
+        else if (coupon.hinhThuc === 'VNĐ' && coupon.giaTri < 1) tempErrors.giaTri = "Giá Trị Phải Lớn Hơn 0";
+        if (!coupon.soLuong) tempErrors.soLuong = "Số Lượng Không Được Để Trống";
+        else if (coupon.soLuong <= 0) tempErrors.soLuong = "Số Lượng Phải Lớn Hơn 0";
+        if (coupon.dieuKien < 0) tempErrors.dieuKien = "Giá Trị Đơn Hàng Tối Thiểu Không Được Âm";
+        if (coupon.hinhThuc === '%' && (!coupon.giaTriToiDa)) tempErrors.giaTriToiDa = "Giá Trị Giảm Tối Đa Không Được Để Trống";
+        else if (coupon.giaTriToiDa < 0) tempErrors.giaTriToiDa = "Giá Trị Tối Đa Không Được Âm";
+        if (!coupon.ngayBatDau) tempErrors.ngayBatDau = "Ngày Bắt Đầu Không Được Để Trống";
+        if (!coupon.ngayKetThuc) tempErrors.ngayKetThuc = "Ngày Kết Thúc Không Được Để Trống";
         else if (endDate <= startDate) tempErrors.ngayKetThuc = "Ngày Kết Thúc phải lớn hơn Ngày Bắt Đầu";
-        if (formData.loai === 'Cá Nhân' && selectedCustomers.length === 0) tempErrors.selectedCustomers = "Phải chọn ít nhất một khách hàng cho loại Cá Nhân";
-        if (formData.hinhThuc === 'VNĐ') {
-            formData.giaTriToiDa = ''; // Xóa giá trị giảm tối đa khi chuyển sang VNĐ
+        if (coupon.loai === 'Cá Nhân' && selectedCustomers.length === 0) tempErrors.selectedCustomers = "Phải chọn ít nhất một khách hàng cho loại Cá Nhân";
+        if (coupon.hinhThuc === 'VNĐ') {
+            coupon.giaTriToiDa = ''; // Xóa giá trị giảm tối đa khi chuyển sang VNĐ
         }
-        const dieuKienNumber = Number(formData.dieuKien);
-        if (formData.hinhThuc === 'VNĐ' && (dieuKienNumber < formData.giaTri)) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu phải lớn hơn Giá Trị Giảm";
+        const dieuKienNumber = Number(coupon.dieuKien);
+        if (coupon.hinhThuc === 'VNĐ') {
+            if (dieuKienNumber < coupon.giaTri) tempErrors.dieuKien = "Giá trị đơn hàng tối thiểu không được nhỏ hơn Giá Trị Giảm";
+        }
 
         setErrors(tempErrors);
         return Object.keys(tempErrors).length === 0;
     };
 
 
-    const openModal = () => {
-        setIsConfirmOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsConfirmOpen(false);
-    };
 
 
-
-    const fetchCustomers = async (page) => {
-        try {
-            const response = await api.get(`/admin/phieu-giam-gia/hien-thi-khach-hang?page=${page}&size=5`);
-            setCustomers(Array.isArray(response.data.content) ? response.data.content : []);
-            setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách khách hàng:", error);
-            Notification("Lỗi khi lấy danh sách khách hàng", "error");
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!validate()) {
-            Notification("Vui lòng kiểm tra lại thông tin", "error");
-            return;
-        }
-
-        let phieuGiamGiaChiTiet = [];
-
-        if (formData.loai === "Cá Nhân") {
-            phieuGiamGiaChiTiet = selectedCustomers.map((customerId) => ({
-                khachHang: { idKhachHang: customerId },
-            }));
-        }
-
-        const requestData = {
-            ...formData,
-            dieuKien: formData.dieuKien === "" ? 0 : formData.dieuKien,
-            danhSachKhachHang: phieuGiamGiaChiTiet,
-            ngayBatDau: moment(formData.ngayBatDau).format("DD/MM/YYYY HH:mm"),
-            ngayKetThuc: moment(formData.ngayKetThuc).format("DD/MM/YYYY HH:mm"),
+    const handleCreateNewCoupon = () => {
+        const newCouponData = {
+            ...coupon,
+            id: undefined,
+            ngayBatDau: moment().add(2, 'minutes').format('YYYY-MM-DDTHH:mm'),
+            ngayKetThuc: moment().add(1, 'days').format('YYYY-MM-DDTHH:mm'),
+            soLuong: undefined,
+            ngaySua: undefined,
+            trangThai: 2,
         };
-
-        try {
-            await api.post("/admin/phieu-giam-gia/them", requestData);
-            navigate("/admin/coupons", { state: { message: "Thêm phiếu giảm giá thành công" } });
-        } catch (error) {
-            if (error.response && error.response.data) {
-                setErrors(error.response.data);
-                console.error("Backend Error:", error.response.data);
-                Notification("Lỗi khi thêm phiếu giảm giá", "error");
-            } else {
-                console.error("Lỗi khi thêm phiếu giảm giá:", error.message);
-                Notification("Lỗi khi thêm phiếu giảm giá", "error");
-            }
-        }
+        navigate('/admin/add-coupon', { state: { couponData: newCouponData } });
     };
 
+    const isCouponEnded = coupon ? coupon.trangThai === 0 : false;
 
-    const handleConfirmSubmit = async () => {
-        await handleSubmit({
-            preventDefault: () => {
-            }
-        });
-        closeModal();
-    };
-
-    // page
+    //page
     const renderPageNumbers = () => {
         let pageNumbers = [];
         const maxPagesToShow = 6;
@@ -318,6 +323,18 @@ function AddCoupon() {
         });
     };
 
+
+    if (!coupon) {
+        return <div>Không tìm thấy phiếu giảm giá</div>;
+    }
+
+    const openModal = () => {
+        setIsConfirmOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsConfirmOpen(false);
+    };
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -327,15 +344,17 @@ function AddCoupon() {
         }
     };
 
-
     return (
         <div className="p-6 space-y-4">
             <ToastContainer />
-            <Dialog open={isConfirmOpen} onClose={closeModal}
-                className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="flex items-center font-semibold mb-4">
+                <h1>Phiếu Giảm Giá /</h1>
+                <h2 className="ml-1 font-normal">Chi Tiết Phiếu Giảm Giá</h2>
+            </div>
+            <Dialog open={isConfirmOpen} onClose={closeModal} className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                 <div className="flex items-center justify-center min-h-screen px-4">
                     <div className="bg-white rounded-lg shadow-md max-w-md w-full p-6">
-                        <Dialog.Title className="text-lg font-semibold">Xác nhận thêm phiếu giảm giá</Dialog.Title>
+                        <Dialog.Title className="text-lg font-semibold">Xác nhận cập nhật phiếu giảm giá</Dialog.Title>
                         <div className="mt-4 flex justify-between w-full">
                             <button
                                 onClick={closeModal}
@@ -344,40 +363,48 @@ function AddCoupon() {
                                 Hủy
                             </button>
                             <div className="w-4"></div>
-                            {/* Khoảng cách giữa 2 nút */}
                             <button
-                                onClick={handleConfirmSubmit}
-                                className="flex-1 border-2 border-black px-4 py-2 bg-black text-white rounded-md text-center"
+                                onClick={handleUpdateCoupon}
+                                className="flex-1 p-2 border-2 border-black bg-black text-white rounded-md text-center"
                             >
                                 Xác nhận
                             </button>
                         </div>
-
                     </div>
                 </div>
             </Dialog>
-            <div className="flex items-center font-semibold mb-4">
-                <h1>Phiếu Giảm Giá /</h1>
-                <h2 className="ml-1 font-normal">Thêm Phiếu Giảm Giá</h2>
-            </div>
             <div className="flex space-x-4">
                 <div className="bg-white p-4 rounded-lg shadow-md"
-                    style={{ width: formData.loai === 'Cá Nhân' ? '60%' : '100%' }}>
+                    style={{ width: coupon.loai === 'Cá Nhân' ? '60%' : '100%' }}>
                     <form onSubmit={(e) => {
                         e.preventDefault();
                         openModal();
                     }}>
-                        <div className="mb-4">
-                            <label className="block text-sm font-semibold mb-2">Tên Giảm Giá</label>
-                            <input
-                                type="text"
-                                name="tenKhuyenMai"
-                                value={formData.tenKhuyenMai}
-                                onChange={handleChange}
-                                onKeyDown={handleKeyDown}
-                                className={`w-full p-2 border rounded-md ${errors.tenKhuyenMai ? 'border-red-500' : ''}`}
-                            />
-                            {errors.tenKhuyenMai && <p className="text-red-500 text-xs mt-1">{errors.tenKhuyenMai}</p>}
+                        <div className="flex space-x-4 mb-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold mb-2">Mã Giảm Giá</label>
+                                <input
+                                    type="text"
+                                    name="maKhuyenMai"
+                                    value={coupon.maKhuyenMai}
+                                    readOnly
+                                    className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold mb-2">Tên Giảm Giá</label>
+                                <input
+                                    type="text"
+                                    name="tenKhuyenMai"
+                                    value={coupon.tenKhuyenMai}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    className={`w-full p-2 border rounded-md ${errors.tenKhuyenMai ? 'border-red-500' : ''} ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    readOnly={isCouponEnded}
+                                />
+                                {errors.tenKhuyenMai &&
+                                    <p className="text-red-500 text-xs mt-1">{errors.tenKhuyenMai}</p>}
+                            </div>
                         </div>
                         <div className="flex space-x-4 mb-4">
                             <div className="flex-1">
@@ -388,8 +415,8 @@ function AddCoupon() {
                                             type="radio"
                                             name="hinhThuc"
                                             value="VNĐ"
-                                            checked={formData.hinhThuc === 'VNĐ'}
-                                            onChange={handleChange}
+                                            checked={coupon.hinhThuc === 'VNĐ'}
+                                            onChange={handleInputChange}
                                             onKeyDown={handleKeyDown}
                                             className="form-radio"
                                         />
@@ -400,8 +427,8 @@ function AddCoupon() {
                                             type="radio"
                                             name="hinhThuc"
                                             value="%"
-                                            checked={formData.hinhThuc === '%'}
-                                            onChange={handleChange}
+                                            checked={coupon.hinhThuc === '%'}
+                                            onChange={handleInputChange}
                                             onKeyDown={handleKeyDown}
                                             className="form-radio"
                                         />
@@ -411,31 +438,31 @@ function AddCoupon() {
                                 {errors.hinhThuc && <p className="text-red-500 text-xs mt-1">{errors.hinhThuc}</p>}
                             </div>
                         </div>
-
                         <div className="flex space-x-4 mb-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-semibold mb-2">Giá Trị Giảm</label>
                                 <input
                                     type="number"
                                     name="giaTri"
-                                    value={formData.giaTri}
-                                    onChange={handleChange}
+                                    value={coupon.giaTri}
+                                    onChange={handleInputChange}
                                     onKeyDown={handleKeyDown}
-                                    className={`w-full p-2 border rounded-md ${errors.giaTri ? 'border-red-500' : ''}`}
+                                    className={`w-full p-2 border rounded-md ${errors.giaTri ? 'border-red-500' : ''} ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    readOnly={isCouponEnded}
                                 />
                                 {errors.giaTri && <p className="text-red-500 text-xs mt-1">{errors.giaTri}</p>}
                             </div>
-                            {formData.hinhThuc === '%' && (
+                            {coupon.hinhThuc === '%' && (
                                 <div className="flex-1">
                                     <label className="block text-sm font-semibold mb-2">Giá Trị Giảm Tối Đa</label>
                                     <input
                                         type="number"
                                         name="giaTriToiDa"
-                                        value={formData.giaTriToiDa}
-                                        onChange={handleChange}
+                                        value={coupon.giaTriToiDa}
+                                        onChange={handleInputChange}
                                         onKeyDown={handleKeyDown}
-                                        className={`w-full p-2 border rounded-md ${errors.giaTriToiDa ? 'border-red-500' : ''}`}
-
+                                        className={`w-full p-2 border rounded-md ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                        readOnly={isCouponEnded}
                                     />
                                     {errors.giaTriToiDa &&
                                         <p className="text-red-500 text-xs mt-1">{errors.giaTriToiDa}</p>}
@@ -448,11 +475,12 @@ function AddCoupon() {
                                 <input
                                     type="number"
                                     name="soLuong"
-                                    value={formData.soLuong}
-                                    onChange={handleChange}
+                                    value={coupon.soLuong}
+                                    onChange={handleInputChange}
                                     onKeyDown={handleKeyDown}
-                                    className={`w-full p-2 border rounded-md ${errors.soLuong ? 'border-red-500' : ''}`}
-                                    disabled={formData.loai === 'Cá Nhân'}
+                                    className={`w-full p-2 border rounded-md ${errors.soLuong ? 'border-red-500' : ''} ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    disabled={coupon.loai === 'Cá Nhân'}
+                                    readOnly={isCouponEnded}
                                 />
                                 {errors.soLuong && <p className="text-red-500 text-xs mt-1">{errors.soLuong}</p>}
                             </div>
@@ -462,20 +490,22 @@ function AddCoupon() {
                                 <input
                                     type="number"
                                     name="dieuKien"
-                                    value={formData.dieuKien}
-                                    onChange={handleChange}
+                                    value={coupon.dieuKien}
+                                    onChange={handleInputChange}
                                     onKeyDown={handleKeyDown}
                                     onBlur={() => {
-                                        if (formData.dieuKien === '') {
-                                            setFormData(prevState => ({
+                                        if (coupon.dieuKien === '') {
+                                            setCoupon(prevState => ({
                                                 ...prevState,
                                                 dieuKien: 0
                                             }));
                                         }
                                     }}
-                                    className={`w-full p-2 border rounded-md ${errors.dieuKien ? 'border-red-500' : ''}`}
+                                    className={`w-full p-2 border rounded-md ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    readOnly={isCouponEnded}
                                 />
                                 {errors.dieuKien && <p className="text-red-500 text-xs mt-1">{errors.dieuKien}</p>}
+
                             </div>
                         </div>
                         <div className="flex space-x-4 mb-4">
@@ -484,26 +514,76 @@ function AddCoupon() {
                                 <input
                                     type="datetime-local"
                                     name="ngayBatDau"
-                                    value={formData.ngayBatDau}
-                                    onChange={handleChange}
+                                    value={coupon.ngayBatDau}
+                                    onChange={handleInputChange}
                                     onKeyDown={handleKeyDown}
-                                    className={`w-full p-2 border rounded-md ${errors.ngayBatDau ? 'border-red-500' : ''}`}
+                                    className={`w-full p-2 border rounded-md ${errors.ngayBatDau ? 'border-red-500' : ''} ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    readOnly={isCouponEnded}
                                 />
-                                {errors.ngayBatDau && <p className="text-red-500 text-xs mt-1">{errors.ngayBatDau}</p>}
+                                {errors.ngayBatDau &&
+                                    <p className="text-red-500 text-xs mt-1">{errors.ngayBatDau}</p>}
                             </div>
-
                             <div className="flex-1">
                                 <label className="block text-sm font-semibold mb-2">Ngày Kết Thúc</label>
                                 <input
                                     type="datetime-local"
                                     name="ngayKetThuc"
-                                    value={formData.ngayKetThuc}
-                                    onChange={handleChange}
+                                    value={coupon.ngayKetThuc}
+                                    onChange={handleInputChange}
                                     onKeyDown={handleKeyDown}
-                                    className={`w-full p-2 border rounded-md ${errors.ngayKetThuc ? 'border-red-500' : ''}`}
+                                    className={`w-full p-2 border rounded-md ${errors.ngayKetThuc ? 'border-red-500' : ''} ${isCouponEnded ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    readOnly={isCouponEnded}
                                 />
                                 {errors.ngayKetThuc &&
                                     <p className="text-red-500 text-xs mt-1">{errors.ngayKetThuc}</p>}
+                            </div>
+                        </div>
+                        <div className="flex space-x-4 mb-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold mb-2">Người Tạo</label>
+                                <input
+                                    type="text"
+                                    name="nguoiTao"
+                                    value={coupon.nguoiTao}
+                                    onKeyDown={handleKeyDown}
+                                    readOnly
+                                    className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold mb-2">Ngày Tạo</label>
+                                <input
+                                    type="text"
+                                    name="ngayTao"
+                                    value={coupon.ngayTao}
+                                    onKeyDown={handleKeyDown}
+                                    readOnly
+                                    className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex space-x-4 mb-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold mb-2">Người Sửa</label>
+                                <input
+                                    type="text"
+                                    name="nguoiSua"
+                                    value={coupon.nguoiSua || ""}
+                                    onKeyDown={handleKeyDown}
+                                    readOnly
+                                    className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold mb-2">Ngày Sửa</label>
+                                <input
+                                    type="text"
+                                    name="ngaySua"
+                                    value={coupon.ngaySua}
+                                    onKeyDown={handleKeyDown}
+                                    readOnly
+                                    className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
+                                />
                             </div>
                         </div>
                         <div className="flex-1">
@@ -514,8 +594,8 @@ function AddCoupon() {
                                         type="radio"
                                         name="loai"
                                         value="Công Khai"
-                                        checked={formData.loai === 'Công Khai'}
-                                        onChange={handleChange}
+                                        checked={coupon.loai === 'Công Khai'}
+                                        onChange={handleInputChange}
                                         onKeyDown={handleKeyDown}
                                         className="form-radio"
                                     />
@@ -526,8 +606,8 @@ function AddCoupon() {
                                         type="radio"
                                         name="loai"
                                         value="Cá Nhân"
-                                        checked={formData.loai === 'Cá Nhân'}
-                                        onChange={handleChange}
+                                        checked={coupon.loai === 'Cá Nhân'}
+                                        onChange={handleInputChange}
                                         onKeyDown={handleKeyDown}
                                         className="form-radio"
                                     />
@@ -535,24 +615,41 @@ function AddCoupon() {
                                 </label>
                             </div>
                         </div>
-                        <div className="flex justify-end mt-4 gap-4">
-                            <button
-                                className="w-28 py-2 border-2 border-gray-500 text-black bg-white rounded-md hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
-                                onClick={() => navigate("/admin/coupons")}
-                            >
-                                Quay lại
-                            </button>
-                            <button
-                                type="submit"
-                                className="w-28 py-2 border-2 border-blue-500 bg-blue-500 text-white rounded-md text-center hover:bg-blue-700 hover:border-blue-700 transition duration-300"
-                            >
-                                Thêm
-                            </button>
-                        </div>
-
+                        {coupon.trangThai !== 0 ? (
+                            <div className="flex justify-end mt-4 gap-4">
+                                <button
+                                    className="w-28 py-2 border-2 border-gray-500 text-black bg-white rounded-md hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
+                                    onClick={() => navigate("/admin/coupons")}
+                                >
+                                    Quay lại
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="w-28 py-2 border-2 border-blue-500 bg-blue-500 text-white rounded-md text-center hover:bg-blue-700 hover:border-blue-700 transition duration-300"
+                                    disabled={isUpdating}
+                                >
+                                    {isUpdating ? "Đang cập nhật..." : "Cập nhật"}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex justify-end mt-4 gap-4">
+                                <button
+                                    className="w-28 py-2 border-2 border-gray-500 text-black bg-white rounded-md hover:border-gray-500 hover:bg-gray-500 hover:text-white transition duration-300"
+                                    onClick={() => navigate("/admin/coupons")}
+                                >
+                                    Quay lại
+                                </button>
+                                <button
+                                    className="w-28 py-2 border-2 border-green-500 bg-green-500 text-white rounded-md text-center hover:bg-green-700 hover:border-green-700 transition duration-300"
+                                    onClick={handleCreateNewCoupon}
+                                >
+                                    Tạo Nhanh
+                                </button>
+                            </div>
+                        )}
                     </form>
                 </div>
-                {formData.loai === 'Cá Nhân' && (
+                {coupon.loai === 'Cá Nhân' && (
                     <div className="bg-white flex flex-col p-4 rounded-lg shadow-md" style={{ width: '40%' }}>
                         <div className="relative text-sm col-span-2">
                             <label className="block text-sm font-semibold mb-2">Tìm Kiếm</label>
@@ -605,9 +702,9 @@ function AddCoupon() {
                                     ))}
                                 </tbody>
                             </table>
-                            {errors.selectedCustomers &&
-                                <p className="text-red-500 text-xs mt-1">{errors.selectedCustomers}</p>}
                         </div>
+                        {errors.selectedCustomers &&
+                            <p className="text-red-500 text-xs mt-1">{errors.selectedCustomers}</p>}
                         <div className="flex justify-center mt-4">
                             <button
                                 className="mx-1 p-1  rounded w-7 h-7 flex items-center justify-center"
@@ -631,5 +728,3 @@ function AddCoupon() {
         </div>
     );
 }
-
-export default AddCoupon;

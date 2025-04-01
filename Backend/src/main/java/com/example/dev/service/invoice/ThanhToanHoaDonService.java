@@ -19,10 +19,8 @@ public class ThanhToanHoaDonService {
     @Autowired
     private HoaDonRepository hoaDonRepository;
 
-    public ThanhToanHoaDon findByMaHoaDon(String maHoaDon) {
-        return thanhToanHoaDonRepository.findAll().stream().
-                filter(lichSuHoaDon -> lichSuHoaDon.getHoaDon().getMaHoaDon().equals(maHoaDon))
-                .findFirst().orElse(null);
+    public List<ThanhToanHoaDon> findByMaHoaDon(Integer idHoadon) {
+        return thanhToanHoaDonRepository.findAllByHoaDon_IdHoaDon(idHoadon);
     }
 
     public void thanhToanHoaDon(List<ThanhToanHoaDon> list) {
@@ -35,7 +33,7 @@ public class ThanhToanHoaDonService {
     }
     public void capNhatTrangThaiThanhToan(Integer idHoaDon, boolean daThanhToan) {
         System.out.println("HoaDon ID: " + idHoaDon);
-        ThanhToanHoaDon thanhToanHoaDonhoaDon = thanhToanHoaDonRepository.findByHoaDonId(idHoaDon);
+        ThanhToanHoaDon thanhToanHoaDonhoaDon = thanhToanHoaDonRepository.findByHoaDon_IdHoaDon(idHoaDon);
        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow();
 
         if (daThanhToan) {

@@ -8,9 +8,7 @@ import com.example.dev.service.invoice.HoaDonService;
 import com.example.dev.service.invoice.LichSuHoaDonService;
 import com.example.dev.service.invoice.ThanhToanHoaDonService;
 import jakarta.annotation.security.PermitAll;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -79,10 +77,9 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDon);
     }
 
-    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
-    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
-        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
-        return ResponseEntity.ok(thanhToanHoaDon);
+    @GetMapping("/{idHoaDon}/lich-su-thanh-toan")
+    public ResponseEntity<?> getPayment(@PathVariable Integer idHoaDon) {
+        return ResponseEntity.ok(thanhToanHoaDonService.findByMaHoaDon(idHoaDon));
     }
 
     @GetMapping("/thong-ke")

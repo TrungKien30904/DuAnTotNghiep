@@ -18,7 +18,7 @@ export default function ProductDetails() {
     const [quantity, setQuantity] = useState(0);
 
     const { cartCount, setCartCount } = useCart(); // Lấy hàm cập nhật số lượng giỏ hàng
-
+    
     const handleAddToCart = async () => {
         if (!productSelected?.idChiTietSanPham) {
             Notification("Vui lòng chọn size sản phẩm", "error");
@@ -57,6 +57,7 @@ export default function ProductDetails() {
         try {
             const response = await axios.get(`http://localhost:8080/hinh-anh/hien-thi/${product.idSanPham}`);
             setProductImage(response.data);
+            console.log(response.data);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu sản phẩm:", error);
         }
@@ -66,6 +67,7 @@ export default function ProductDetails() {
     const getProductDetailsByColor = async (idSanPham, idMauSac) => {
         try {
             const response = await axios.get(`http://localhost:8080/admin/chi-tiet-san-pham/hien-thi/online/${idSanPham}/${idMauSac}`);
+            console.log(response.data);
             setColorSelected(response.data.chiTietSanPham);
             setListImageByColor(response.data.listAnh);
             setProductSelected(null);
@@ -98,8 +100,6 @@ export default function ProductDetails() {
             getProductDetailsByColor(productImage[0].sanPham.idSanPham, productImage[0].mauSac.idMauSac);
         }
     }, [productImage]);
-
-
 
 
     return (
@@ -155,12 +155,12 @@ export default function ProductDetails() {
                                 src={img.lienKet}
                                 alt="img"
                                 className={`h-[70px] w-[70px] object-cover cursor-pointer rounded-lg transition-all duration-300 hover:scale-105 hover:ring-2 
-                                    ${selectedColorId === img.mauSac.idMauSac ? "border-2 border-black" : "hover:ring-black"}`}
+                                     ${selectedColorId === img.mauSac.idMauSac ? "border-2 border-black" : "hover:ring-black"}`}
                                 onClick={() => getProductDetailsByColor(img.sanPham.idSanPham, img.mauSac.idMauSac)}
                             />
                         ))}
                     </div>
-
+                    
                     {/* Chọn kích cỡ */}
                     <div className="flex-auto">
                         <h1 className="text-lg font-semibold ">Chọn kích cỡ</h1>

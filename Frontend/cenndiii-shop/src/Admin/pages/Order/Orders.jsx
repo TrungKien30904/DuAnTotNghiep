@@ -1,8 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Alert from "../../components/Alert";
-import Notification from '../../components/Notification';
+import Alert from "../../../components/Alert";
+import Notification from '../../../components/Notification';
 import { ToastContainer } from 'react-toastify';
 import {
     Dialog,
@@ -27,8 +27,8 @@ import {
 import { Trash, Ticket } from "lucide-react";
 import { Add, Remove } from '@mui/icons-material';
 import DetailsPayment from "./DetailsPayment";
-import { hasPermission } from '../../security/DecodeJWT';
-import api from '../../security/Axios';
+import { hasPermission } from '../../../security/DecodeJWT';
+import api from '../../../security/Axios';
 
 function TabPanel(props) {
     const { children, value, index, ...other } = props;

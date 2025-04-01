@@ -61,7 +61,7 @@ QontoStepIcon.propTypes = {
     completed: PropTypes.bool,
 };
 
-const OrderStepper = ({ order, id }) => {
+const OrderStepper = ({ order, id, onReload }) => {
     const [activeStep, setActiveStep] = useState(0);
     const [histories, setHistories] = useState([]);
     const [showHistory, setShowHistory] = useState(false);
@@ -96,6 +96,7 @@ const OrderStepper = ({ order, id }) => {
             const response = await api.put(`/admin/hoa-don/${order.maHoaDon}/xac-nhan`)
             if (response.data != "") {
                 fetchHistories();
+                onReload();
             }
         } catch (error) {
             console.log(error);
@@ -107,6 +108,7 @@ const OrderStepper = ({ order, id }) => {
             const response = await api.put(`/admin/hoa-don/${order.maHoaDon}/quay-lai`)
             if (response.data != "") {
                 fetchHistories();
+                onReload();
             }
         } catch (error) {
             console.log(error);
@@ -117,20 +119,32 @@ const OrderStepper = ({ order, id }) => {
 
     return (
         <div>
-            <Stepper activeStep={[histories.length - 1]} alternativeLabel connector={<QontoConnector />}>
-                {histories.map((history, index) => (
-                    history.hanhDong != "CREATE" && (
-                        <Step key={index}>
-                            <StepLabel StepIconComponent={QontoStepIcon}>
-                                <div>
-                                    <Typography variant="body2">{history.ghiChu}</Typography>
-                                    <Typography variant="caption" color="textSecondary">{formatDateFromArray(history.ngayTao)}</Typography>
-                                </div>
-                            </StepLabel>
-                        </Step>
-                    )
-                ))}
-            </Stepper>
+            <div
+                className="w-full flex justify-center"
+            >
+                <Stepper
+                    className="overflow-x-auto max-w-[1030px]"
+                    activeStep={histories.length}
+                    alternativeLabel
+                    connector={<QontoConnector />}
+                >
+                    {histories.map((history, index) => (
+                        history.hanhDong !== "CREATE" && (
+                            <Step key={index} sx={{ minWidth: "150px", flex: 1 }}>
+                                <StepLabel StepIconComponent={QontoStepIcon}>
+                                    <div className="text-center">
+                                        <Typography variant="body2">{history.ghiChu}</Typography>
+                                        <Typography variant="caption" color="textSecondary">
+                                            {formatDateFromArray(history.ngayTao)}
+                                        </Typography>
+                                    </div>
+                                </StepLabel>
+                            </Step>
+                        )
+                    ))}
+                </Stepper>
+            </div>
+
 
             <div className="flex justify-around w-full mt-4">
                 <div className="flex justify-between w-[300px]">
@@ -143,14 +157,14 @@ const OrderStepper = ({ order, id }) => {
                 </div>
                 <div>
                     <Button variant="contained" color="info" onClick={() => setShowHistory(true)}>
-                        Lịch sử thanh toán
+                        Lịch sử hóa đơn
                     </Button>
                 </div>
             </div>
 
             {/* Dialog hiển thị lịch sử đơn hàng */}
             <Dialog open={showHistory} onClose={() => setShowHistory(false)} maxWidth="md" fullWidth>
-                <DialogTitle>Lịch sử đơn hàng</DialogTitle>
+                <DialogTitle>Lịch sử hóa đơn</DialogTitle>
                 <DialogContent>
                     <TableContainer component={Paper}>
                         <Table>

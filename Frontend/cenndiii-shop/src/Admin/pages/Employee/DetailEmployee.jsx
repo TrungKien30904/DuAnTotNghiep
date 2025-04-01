@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import api from "../../security/Axios";
-import { hasPermission } from "../../security/DecodeJWT";
+import api from "../../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
 export default function DetailEmployee() {
   const { id } = useParams(); // Lấy ID từ URL
   const navigate = useNavigate();

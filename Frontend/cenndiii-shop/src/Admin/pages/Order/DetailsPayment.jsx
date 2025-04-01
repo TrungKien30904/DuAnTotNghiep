@@ -18,11 +18,11 @@ import {
     InputLabel,
     MenuItem,
 } from '@mui/material';
-import CustomerDialog from "./AddCustomerDialog";
+import CustomerDialog from "../Customer/AddCustomerDialog";
 import Delivery from "./Delivery";
-import api from "../../security/Axios";
-import { hasPermission } from "../../security/DecodeJWT";
-import Alert from "../../components/Alert";
+import api from "../../../security/Axios";
+import { hasPermission } from "../../../security/DecodeJWT";
+import Alert from "../../../components/Alert";
 const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
@@ -734,7 +734,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
     const getSelectedCustomer = () => {
         const activeTabData = tabs.find(tab => tab.id === activeTab);
-        return activeTabData ? activeTabData.khachHang : null;
+        return activeTabData ? activeTabData.khachHang : {hoTen:"Khách lẻ"};
     };
 
 

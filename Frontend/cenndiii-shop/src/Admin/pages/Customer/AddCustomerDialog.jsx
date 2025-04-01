@@ -14,7 +14,7 @@ import {
     FormControlLabel,
 } from "@mui/material";
 import axios from "axios";
-import api from "../../security/Axios";
+import api from "../../../security/Axios";
 const CustomerDialog = ({ open, onClose, reload }) => {
     const [formData, setFormData] = useState({
         hoTen: "",

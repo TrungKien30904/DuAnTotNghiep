@@ -18,9 +18,10 @@ import com.example.dev.repository.customer.KhachHangRepo;
 import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.repository.invoice.LichSuHoaDonRepository;
+import com.example.dev.repository.invoice.ThanhToanHoaDonRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
 import com.example.dev.service.payments.VNPayService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -30,7 +31,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -56,7 +56,7 @@ public class HoaDonService {
     private final KhachHangRepo khachHangRepo;
     private final NhanVienRepo nhanVienRepo;
     private final VNPayService vnPayService;
-
+    private final ThanhToanHoaDonRepository thanhToanHoaDonRepository;
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
         LocalDateTime endDateTime = endDate.map(date -> date.atTime(23, 59, 59)).orElse(null);
@@ -86,10 +86,23 @@ public class HoaDonService {
 
     public HoaDon xacnhan(String maHoaDon, Authentication auth) {
         HoaDon hoaDon = findInvoice(maHoaDon);
+        List<HoaDonChiTiet> cart = hoaDonChiTietRepository.findByHoaDon_MaHoaDon(maHoaDon);
+        BigDecimal total = BigDecimal.ZERO;
+        ThanhToanHoaDon tt = thanhToanHoaDonRepository.findByHoaDon_IdHoaDon(hoaDon.getIdHoaDon());
+
         if (hoaDon.getTrangThai().equalsIgnoreCase("Đã hoàn thành") || hoaDon.getTrangThai().equalsIgnoreCase("Hủy")) return null;
         String trangThai = hoaDon.getTrangThai();
         if ("Chờ xác nhận".equals(trangThai)) {
             hoaDon.setTrangThai("Đã xác nhận");
+            for (HoaDonChiTiet chiTiet : cart) {
+                total = total.add(chiTiet.getThanhTien());
+                ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(chiTiet.getChiTietSanPham().getIdChiTietSanPham()).orElse(null);
+                if (ctsp != null) {
+                    chiTietSanPhamRepo.updateQuantity(ctsp.getIdChiTietSanPham(), ctsp.getSoLuong() - chiTiet.getSoLuong());
+                }
+            }
+            hoaDon.setTongTien(total);
+            tt.setSoTienThanhToan(total);
         }
         if ("Đã xác nhận".equals(trangThai)) {
             hoaDon.setTrangThai("Chờ vận chuyển");
@@ -99,21 +112,36 @@ public class HoaDonService {
         }
         if ("Đang vận chuyển".equals(trangThai)) {
             hoaDon.setTrangThai("Đã hoàn thành");
+            tt.setTrangThai(true);
         }
         UserLogin user = (UserLogin) auth.getPrincipal();
         hoaDon.setNguoiSua(user.getUsername());
         hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
         taoHoaDon(hoaDon, BaseConstant.Action.UPDATE.getValue(), auth);
+        thanhToanHoaDonRepository.save(tt);
         return hoaDonRepository.save(hoaDon);
     }
 
     public HoaDon quaylai(String maHoaDon, Authentication auth) {
         HoaDon hoaDon = findInvoice(maHoaDon);
-        if (hoaDon.getTrangThai().equalsIgnoreCase("Hủy")) return null;
+        List<HoaDonChiTiet> cart = hoaDonChiTietRepository.findByHoaDon_MaHoaDon(maHoaDon);
+        BigDecimal total = BigDecimal.ZERO;
         String trangThai = hoaDon.getTrangThai();
-        if ("Đã xác nhận".equals(trangThai)) {
+        ThanhToanHoaDon tt = thanhToanHoaDonRepository.findByHoaDon_IdHoaDon(hoaDon.getIdHoaDon());
+
+        if (trangThai.equalsIgnoreCase("Hủy")) return null;
+        if("Đã xác nhận".equals(trangThai)){
             hoaDon.setTrangThai("Chờ xác nhận");
-        }
+            for (HoaDonChiTiet chiTiet : cart) {
+                total = total.add(chiTiet.getThanhTien());
+                ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(chiTiet.getChiTietSanPham().getIdChiTietSanPham()).orElse(null);
+                if (ctsp != null) {
+                    chiTietSanPhamRepo.updateQuantity(ctsp.getIdChiTietSanPham(), ctsp.getSoLuong() + chiTiet.getSoLuong());
+                }
+            }
+            hoaDon.setTongTien(total);
+            tt.setSoTienThanhToan(total);
+        };
         if ("Chờ vận chuyển".equals(trangThai)) {
             hoaDon.setTrangThai("Đã xác nhận");
         }
@@ -122,11 +150,14 @@ public class HoaDonService {
         }
         if ("Đã hoàn thành".equals(trangThai)) {
             hoaDon.setTrangThai("Hủy");
+            tt.setTrangThai(false);
         }
         UserLogin user = (UserLogin) auth.getPrincipal();
         hoaDon.setNguoiSua(user.getUsername());
         hoaDon.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
         taoHoaDon(hoaDon, BaseConstant.Action.UPDATE.getValue(), auth);
+        thanhToanHoaDonRepository.save(tt);
+
         return hoaDonRepository.save(hoaDon);
     }
 
@@ -390,7 +421,8 @@ public class HoaDonService {
         // ✅ Ghi lịch sử đơn hàng
         LichSuHoaDon lichSu = new LichSuHoaDon();
         lichSu.setHoaDon(hoaDon);
-        lichSu.setHanhDong("Đặt hàng - COD");
+        lichSu.setGhiChu(hoaDon.getTrangThai());
+        lichSu.setHanhDong(BaseConstant.Action.UPDATE.getValue());
         lichSu.setNgayTao(LocalDateTime.now());
         lichSu.setNguoiTao(auth != null ? ((UserLogin) auth.getPrincipal()).getUsername() : "Guest");
 

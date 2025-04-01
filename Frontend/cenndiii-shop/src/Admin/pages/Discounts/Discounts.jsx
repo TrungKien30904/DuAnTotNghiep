@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Search, Eye, Plus } from "lucide-react";
 import { NavLink, useNavigate} from "react-router-dom";
 import axios from "axios";
-import api from "../../security/Axios";
+import api from "../../../security/Axios";
 import moment from "moment";
 import { ToastContainer } from "react-toastify";
-import Loading from "../../components/Loading";
-import Notification from "../../components/Notification";
-import { formatDateFromArray } from "../../untils/FormatDate";
-import { hasPermission } from "../../security/DecodeJWT";
+import Loading from "../../../components/Loading";
+import Notification from "../../../components/Notification";
+import { formatDateFromArray } from "../../../untils/FormatDate";
+import { hasPermission } from "../../../security/DecodeJWT";
 export default function Discounts() {
   const navigate = useNavigate();
   const [loading, setLoadingState] = useState(false);

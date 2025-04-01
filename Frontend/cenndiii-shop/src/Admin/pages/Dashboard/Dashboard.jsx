@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Button, Card, Table, DatePicker, message } from "antd";
-import StatisticWidget from "../components/StatisticWidget";
-import ChartWidget from "../components/ChartWidget";
-import PieChartWidget from "../components/PieChartWidget";
-import { formatCurrency } from "../utils/formatCurrency";
-import User from "../assets/teamwork.png";
-import Order from "../assets/shopping-bag.png";
-import Product from "../assets/best-seller.png";
-import COD from "../assets/cash-on-delivery.png";
+import StatisticWidget from "../../components/StatisticWidget";
+import ChartWidget from "../../components/ChartWidget";
+import PieChartWidget from "../../components/PieChartWidget";
+import { formatCurrency } from "../../utils/formatCurrency";
+import User from "../../assets/teamwork.png";
+import Order from "../../assets/shopping-bag.png";
+import Product from "../../assets/best-seller.png";
+import COD from "../../assets/cash-on-delivery.png";
 import moment from "moment"; // Import moment for date formatting
 
 const generatePaymentMethod = (method) => {

@@ -7,11 +7,11 @@ import { SketchPicker } from "react-color";
 import { Dialog } from "@headlessui/react";
 import { Trash } from "lucide-react";
 import { ToastContainer } from "react-toastify";
-import Notification from '../../components/Notification';
+import Notification from '../../../../components/Notification';
 import "react-toastify/dist/ReactToastify.css";
-import Loading from "../../components/Loading";
-import Alert from "../../components/Alert";
-import api from "../../security/Axios";
+import Loading from "../../../../components/Loading";
+import Alert from "../../../../components/Alert";
+import api from "../../../../security/Axios";
 
 const removeDiacritics = (str) => {
   return str
@@ -97,7 +97,7 @@ export default function ProductDetails() {
       handleSubmit();
     }
   };
-
+  
   const showAlert = () => {
     setAlertMessage("Bạn có chắc chắn muốn thêm chi tiết sản phẩm này không?");
     setAlertOpen(true);
@@ -127,9 +127,11 @@ export default function ProductDetails() {
 
     const formData = new FormData();
 
-    selectedImages.forEach((image) => {
-      formData.append("file", image);
-      formData.append("tenMau", selectedColors.label);
+    Object.entries(selectedImages).forEach(([color, images]) => {
+      images.forEach((image) => {
+        formData.append("file", image); 
+        formData.append("tenMau", color);
+      });
     });
 
     try {
@@ -140,6 +142,7 @@ export default function ProductDetails() {
       );
       Notification("Thêm ảnh thành công", "success");
     } catch (error) {
+      console.log(error);
       Notification("Lỗi khi thêm ảnh", "error");
     }
   };
@@ -230,7 +233,7 @@ export default function ProductDetails() {
       setIsAddingColor(false);
       setNewColor("");
       Notification("Thêm kích cỡ thành công", "success");
-      await fetchData("/admin/mau-sac/hien-thi/true", setSizes);
+      await fetchData("/admin/mau-sac/hien-thi/true", setColors);
     } catch (error) {
       Notification("Lỗi khi thêm mau-sac!", "error");
     }
@@ -595,7 +598,7 @@ export default function ProductDetails() {
       }
     }
   };
-
+  
   return (
     <div className="p-2 space-y-4 text-sm">
       {/* Breadcrumb */}
