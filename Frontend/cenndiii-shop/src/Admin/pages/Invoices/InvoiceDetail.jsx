@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDateFromArray } from '../../../untils/FormatDate';
 import Alert from '../../../components/Alert';
 import { set } from 'react-hook-form';
-import Stepper from "../../components/stepper/Stepper"
+import Stepper from "./Stepper"
 import {
     Dialog,
     DialogTitle,
@@ -27,16 +27,36 @@ import {
     TableContainer,
     Paper,
     TextField,
+    Box,
+    Typography,
+    FormControl,
+    Select,
+    InputLabel,
+    MenuItem
 } from "@mui/material";
-import { Trash, Ticket } from "lucide-react";
-import { Add, Remove } from '@mui/icons-material';
+import { Trash } from "lucide-react";
+import { Add, Remove, PersonRounded, PhoneRounded, EmailRounded } from '@mui/icons-material';
 import PaymentHistory from './PaymentHistory';
+import AddressDialog from './AddNewAddress';
 export default function InvoiceDetail() {
     const { id, idHd } = useParams();
     const [invoice, setInvoice] = useState();
     const navigate = useNavigate();
     const [total, setTotal] = useState(0);
     const [openPaymentHistory, setOpenPaymentHistory] = useState(false)
+    const [openAddressDialog, setOpenAddressDialog] = useState(false);
+
+    // tính toán giao hàng
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [amount, setAmount] = useState(0);
+
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [customerAddress, setCustomerAddress] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState(null);
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [selectedWard, setSelectedWard] = useState(null);
 
     useEffect(() => {
         if (localStorage.getItem("token")) {
@@ -45,19 +65,19 @@ export default function InvoiceDetail() {
             }
         }
     }, [navigate]);
-    useEffect(() => {
-        fetchInvoice(id);
-        getProductFromDetailsInvoice();
-    }, [idHd]);
 
-    const reload = () => {
-        fetchInvoice(id);
-        getProductFromDetailsInvoice();
-    }
-    const fetchInvoice = async (maHoaDon) => {
-        const response = await api.get(`/admin/hoa-don/${maHoaDon}`);
-        setInvoice(response.data);
+
+
+    const fetchInvoice = async () => {
+        if (idHd) {
+            const response = await api.get(`/admin/hoa-don/hien-thi/${idHd}`);
+            console.log(response.data);
+            setInvoice(response.data.hoaDon);
+            setCustomerAddress(response.data.diaChiKhachHang)
+            setSelectedAddress(response.data.diaChiKhachHang.find(addr => addr.macDinh === true)?.id);
+        }
     };
+
 
     const handleRemoveOrderItem = async (idHdct, idCtsp) => {
         try {
@@ -94,10 +114,7 @@ export default function InvoiceDetail() {
         setTotal(total);
     }, [orderItemsByTab]);
 
-    useEffect(() => {
 
-        getProductFromDetailsInvoice()
-    }, [])
     const getProductFromDetailsInvoice = async () => {
         try {
             const response = await api.get(`/admin/hdct/get-cart/${idHd}`);
@@ -106,10 +123,28 @@ export default function InvoiceDetail() {
             console.error("Error fetching product details:", error);
         }
     };
+    const reload = async () => {
+        fetchInvoice();
+        getProductFromDetailsInvoice();
+    }
+    useEffect(() => {
+        fetchInvoice();
+        getProductFromDetailsInvoice();
+    }, [idHd]);
+    useEffect(() => {
+        getProductFromDetailsInvoice()
+    }, [])
     const handleCloseDialog = (confirm) => {
         setOpenDeleteProductDialog(false);
         if (confirm) {
             handleRemoveOrderItem(removeItem.idHdct, removeItem.idCtsp)
+        }
+    }
+    const handleCloseAddressDialog = (confirm) => {
+        setOpenAddressDialog(false);
+        if (confirm) {
+            Notification("Thêm địa chỉ thành công!", "success")
+            // reload()
         }
     }
     const handleOpenDialog = (idHdct, idCtsp) => {
@@ -133,6 +168,7 @@ export default function InvoiceDetail() {
 
         setOpenDialogProduct(true);
     };
+
     const handleCloseDialogProduct = () => {
         setOpenDialogProduct(false);
     };
@@ -223,6 +259,125 @@ export default function InvoiceDetail() {
         }
 
     };
+
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            try {
+                const response = await api.get(
+                    "/admin/dia-chi/get-province",
+                );
+                setProvinces(response.data.data || []);
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách tỉnh:", error);
+            }
+        };
+        fetchProvinces();
+    }, []);
+
+    const handleProvinceChange = async (e) => {
+        const province = provinces.find(p => p.ProvinceID == e.target.value);
+        setSelectedProvince(province);
+        setDistricts([]);
+        setWards([]);
+        setSelectedDistrict(null);
+        setSelectedWard(null);
+        setAmount(0);
+
+        try {
+            const response = await api.get(
+                "/admin/dia-chi/get-districts",
+                { params: { provinceID: province.ProvinceID } }
+            );
+            setDistricts(response.data.data || []);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách district:", error);
+        }
+    };
+
+    const handleDistrictChange = async (e) => {
+        const district = districts.find(d => d.DistrictID == e.target.value);
+        setSelectedDistrict(district);
+        setWards([]);
+        setSelectedWard(null);
+        setAmount(0);
+
+        try {
+            const response = await api.get(
+                "/admin/dia-chi/get-wards",
+                { params: { districtID: district.DistrictID } }
+            );
+            setWards(response.data.data || []);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách ward:", error);
+        }
+    };
+
+    const handleWardChange = (e) => {
+        const ward = wards.find(w => w.WardCode == e.target.value);
+        setSelectedWard(ward);
+    };
+
+    // useEffect(() => {
+    //     const getAmount = async () => {
+    //         if (selectedWard && selectedDistrict) {
+    //             try {
+    //                 const response = await api.get(
+    //                     "/admin/dia-chi/shipping-fee",
+    //                     { params: { districtID: Number(selectedDistrict.DistrictID), wardCode: selectedWard.WardCode, idHoaDon: idHd } }
+    //                 );
+    //                 if (response.status === 200) {
+    //                     setAmount(response.data.total);
+    //                 } else {
+    //                     setAmount(30000);
+    //                 }
+    //             } catch (error) {
+    //                 if (error.response) {
+    //                     console.error("Phản hồi lỗi từ API:", error.response.data);
+    //                 }
+    //                 setAmount(33000);
+    //             }
+    //         } else {
+    //             setAmount(0);
+    //         }
+    //     }
+    //     getAmount();
+    // }, [selectedWard, selectedDistrict, orderItemsByTab]);
+
+    const handleAddressChange = (event) => {
+        setSelectedAddress(event.target.value);
+    };
+
+    useEffect(() => {
+        if (customerAddress.length > 0) {
+            setSelectedAddress(prev => {
+                return prev || customerAddress.find(addr => addr.macDinh)?.id || customerAddress[0].id;
+            });
+        }
+    }, [customerAddress]);
+
+    const handleInputChange = (field, value) => {
+        setCustomerAddress((prev) =>
+            prev.map((addr) =>
+                addr.id === selectedAddress ? { ...addr, [field]: value } : addr
+            )
+        );
+    };
+
+    const handleUpdateAddress = async () => {
+        const req = customerAddress.find(a => a.id == selectedAddress);
+        console.log(selectedAddress);
+        console.log(req);
+        await api.post(
+            `/admin/dia-chi/update-address/${selectedAddress}/${idHd}`,
+            req
+        ).then(res => {
+            if (res.status == 200) {
+                Notification("Cập nhật thành công!", "success")
+            }
+        })
+        fetchInvoice();
+        getProductFromDetailsInvoice();
+    }
     return (
         <div className="p-6 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow-md ">
@@ -334,10 +489,11 @@ export default function InvoiceDetail() {
                                                                                     "tru",
                                                                                     item.giaDuocTinh
                                                                                 );
-                                                                            } else {
-                                                                                Notification("Đã là số lượng nhỏ nhất !", "warning");
-                                                                                return;
                                                                             }
+                                                                            // else {
+                                                                            //     Notification("Đã là số lượng nhỏ nhất !", "warning");
+                                                                            //     return;
+                                                                            // }
                                                                         }}
                                                                     >
                                                                         <Remove sx={{ fontSize: 15 }} />
@@ -352,10 +508,10 @@ export default function InvoiceDetail() {
                                                                     value={item.soLuongMua}
                                                                     onChange={(e) => {
                                                                         if (
-                                                                            e.target.value > 0 &&
-                                                                            e.target.value <= item.soLuongMua + item.kho
+                                                                            Number(e.target.value) > 0 &&
+                                                                            Number(e.target.value) <= Number(item.soLuongMua) + Number(item.kho)
                                                                         ) {
-                                                                            if (e.target.value - item.soLuongMua <= item.kho) {
+                                                                            if (e.target.value <= item.kho) {
                                                                                 handleQuantityChange(
                                                                                     item.idHoaDonChiTiet,
                                                                                     item.idChiTietSanPham,
@@ -363,10 +519,11 @@ export default function InvoiceDetail() {
                                                                                     item.giaDuocTinh
                                                                                 );
                                                                             }
-                                                                        } else {
-                                                                            Notification("Chọn số lượng hợp lệ", "error");
-                                                                            return;
                                                                         }
+                                                                        // else {
+                                                                        //     Notification("Chọn số lượng hợp lệ", "error");
+                                                                        //     return;
+                                                                        // }
                                                                     }}
                                                                     className="text-center w-8"
                                                                 />
@@ -379,21 +536,25 @@ export default function InvoiceDetail() {
                                                                 item.trangThai && (
                                                                     <button
                                                                         onClick={() => {
-                                                                            if (item.kho > 0) {
-                                                                                if (!item.giaDuocTinh) {
-                                                                                    handleQuantityChange(
-                                                                                        item.idHoaDonChiTiet,
-                                                                                        item.idChiTietSanPham,
-                                                                                        "cong",
-                                                                                        item.giaDuocTinh
-                                                                                    );
-                                                                                } else {
-                                                                                    Notification(
-                                                                                        "Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!",
-                                                                                        "warning"
-                                                                                    );
+                                                                            if (Number(item.kho) > 0) {
+                                                                                if (Number(item.soLuongMua) < Number(item.kho)) {
+                                                                                    if (!item.giaDuocTinh) {
+                                                                                        handleQuantityChange(
+                                                                                            item.idHoaDonChiTiet,
+                                                                                            item.idChiTietSanPham,
+                                                                                            "cong",
+                                                                                            item.giaDuocTinh
+                                                                                        );
+                                                                                    } else {
+                                                                                        Notification(
+                                                                                            "Sản phẩm đã thay đổi giá chỉ có thể mua hoặc trả lại!",
+                                                                                            "warning"
+                                                                                        );
+                                                                                        return;
+                                                                                    }
                                                                                 }
-                                                                            } else {
+                                                                            }
+                                                                            else {
                                                                                 Notification("Đã hết hàng trong kho!", "warning");
                                                                                 return;
                                                                             }
@@ -414,13 +575,14 @@ export default function InvoiceDetail() {
                                                 <TableCell align="center" sx={{ fontSize: "12px" }}>{item.thanhTien.toLocaleString()} đ</TableCell>
                                                 <TableCell sx={{ width: "10px", padding: "4px", }}>
                                                     {invoice?.trangThai === "Chờ xác nhận" && (
+
                                                         <button
-                                                            onClick={() =>
-                                                                handleOpenDialog(item.idHoaDonChiTiet, item.idChiTietSanPham)
-                                                            }
+                                                            disabled={Number(item.soLuongMua) === 1 && Number(orderItemsByTab.length) === 1}
+                                                            onClick={() => handleOpenDialog(item.idHoaDonChiTiet, item.idChiTietSanPham)}
                                                         >
-                                                            <Trash size={16} sx={{ width: "10px" }} className="text-red-600" />
+                                                            <Trash size={16} className={`${Number(item.soLuongMua) === 1 && Number(orderItemsByTab.length) === 1 ? 'text-[#ADAAAB]' : 'text-red-600'}`} />
                                                         </button>
+
                                                     )}
                                                 </TableCell>
                                             </TableRow>
@@ -437,39 +599,173 @@ export default function InvoiceDetail() {
                         </TableContainer>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-md grid grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-lg shadow-md grid grid-cols-5 gap-4 h-[400px]">
                     {/* Bên trái: Form chỉnh sửa thông tin khách hàng */}
-                    <div className="col-span-2 bg-gray-50 p-4 rounded-lg">
+                    {/* <Box className="col-span-3 bg-gray-50 p-4 rounded-lg">
+                        <Typography variant="h6" className="font-semibold mb-4">
+                            Thông tin khách hàng
+                        </Typography>
+                        <Box className="grid grid-cols-2 gap-4 text-sm">
+                            <TextField
+                                label="Tên khách hàng"
+                                name="khachHang"
+                                variant="outlined"
+                                value={invoice?.khachHang?.hoTen ?? (invoice?.tenNguoiNhan || "K")}
+                                fullWidth
+                                size='small'
+                            />
+                            <TextField
+                                label="SĐT người nhận"
+                                name="soDienThoai"
+                                variant="outlined"
+                                value={invoice?.khachHang?.soDienThoai ?? (invoice?.soDienThoai || "Không có")}
+                                fullWidth
+                                size='small'
+                            />
+                            <TextField
+                                label="Email người nhận"
+                                name="email"
+                                variant="outlined"
+                                value={invoice?.khachHang?.email ?? (invoice?.email || "Không có")}
+                                fullWidth
+                                size='small'
+                            />
+                            <TextField
+                                label="Địa chỉ"
+                                name="diaChi"
+                                variant="outlined"
+                                value={invoice?.khachHang?.diaChi ?? (invoice?.diaChi || "Không có")}
+                                fullWidth
+                                size='small'
+                            />
+                            <FormControl fullWidth >
+                                <InputLabel id="thanh-pho">
+                                    Tỉnh/Thành phố
+                                </InputLabel>
+                                <Select
+                                    value={selectedProvince?.ProvinceID || ""} onChange={handleProvinceChange}
+
+                                    labelId="thanh-pho"
+                                    label="Tỉnh/Thành phố"
+                                >
+                                    {provinces.map((p) => (<MenuItem key={p.ProvinceID} value={p.ProvinceID}>{p.ProvinceName}</MenuItem>))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl fullWidth disabled={!selectedProvince}>
+                                <InputLabel id="huyen">Quận/Huyện</InputLabel>
+                                <Select
+
+                                    labelId="huyen"
+                                    label="Quận/Huyện"
+                                    value={selectedDistrict?.DistrictID || ""}
+                                    onChange={handleDistrictChange}
+                                >
+                                    {districts.map((d) => (<MenuItem key={d.DistrictID} value={d.DistrictID}>{d.DistrictName}</MenuItem>))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl fullWidth disabled={!selectedDistrict}>
+                                <InputLabel id="xa">Xã/Phường</InputLabel>
+                                <Select
+                                    value={selectedWard?.WardCode || ""}
+                                    onChange={handleWardChange}
+
+                                    labelId="xa"
+                                    label="Xã/Phường"
+                                >
+                                    {wards.map((w) => (<MenuItem key={w.WardCode} value={w.WardCode}>{w.WardName}</MenuItem>))}
+                                </Select>
+                            </FormControl>
+                        </Box>
+                    </Box> */}
+                    <div className="flex flex-col justify-between bg-white p-4 rounded-lg border col-span-3 h-full">
                         <h1 className="text-lg font-semibold mb-4">Thông tin khách hàng</h1>
-                        <div className='grid grid-cols-2 gap-4 text-sm'>
-                            <div className='flex flex-col'>
-                                <label className='font-bold'>Tên khách hàng:</label>
-                                <input className="border rounded p-2" name="khachHang" value={invoice?.khachHang?.hoTen || "Không có"} />
-                            </div>
-                            <div className='flex flex-col'>
-                                <label className='font-bold'>SĐT người nhận:</label>
-                                <input className="border rounded p-2" name="soDienThoai" value={invoice?.khachHang?.soDienThoai || "Không có"} />
-                            </div>
-                            <div className='flex flex-col'>
-                                <label className='font-bold'>Email người nhận:</label>
-                                <input className="border rounded p-2" name="email" value={invoice?.khachHang?.email || "Không có"} />
-                            </div>
-                            <div className='flex flex-col'>
-                                <label className='font-bold'>Địa chỉ:</label>
-                                <input className="border rounded p-2" name="diaChi" value={invoice?.khachHang?.diaChi || "Không có"} />
+                        <div className='flex-none flex justify-between'>
+                            <h2><span><PersonRounded /></span> {invoice?.khachHang?.hoTen}</h2>
+                            <h2><span><PhoneRounded /></span> {invoice?.khachHang?.soDienThoai}</h2>
+                            <h2><span><EmailRounded /></span> {invoice?.khachHang?.email}</h2>
+                        </div>
+                        <div>
+                            <div className='flex flex-col justify-between text-sm'>
+
+                                <div className='flex-auto'>
+                                    <div className='flex justify-between'>
+                                        <div>Địa chỉ</div>
+                                        <div>
+                                            <button onClick={e => setOpenAddressDialog(true)}>Thêm địa chỉ</button>
+                                        </div>
+                                    </div>
+                                    <div className='flex flex-col gap-4'>
+                                        <FormControl fullWidth>
+                                            <Select
+                                                value={selectedAddress}
+                                                onChange={handleAddressChange}
+                                                labelId="address"
+                                                size='small'
+                                                sx={{ fontSize: '10px' }}
+                                            >
+                                                {customerAddress.map((address) => (
+                                                    <MenuItem key={address.id} value={address.id}>
+                                                        {address.diaChiChiTiet}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                        <Box display="flex" gap={2}>
+                                            <TextField
+                                                label="Tên người nhận"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                sx={{ fontSize: "10px" }}
+                                                value={customerAddress.find((addr) => addr.id === selectedAddress)?.tenNguoiNhan || ""}
+                                                onChange={(e) => handleInputChange("tenNguoiNhan", e.target.value)}
+                                            />
+                                            <TextField
+                                                label="Số điện thoại"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                sx={{ fontSize: "10px" }}
+                                                value={customerAddress.find((addr) => addr.id === selectedAddress)?.soDienThoai || ""}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    if (/^\d*$/.test(value)) {  // Chỉ chấp nhận số
+                                                        handleInputChange("soDienThoai", value);
+                                                    }
+                                                }}
+                                            />
+
+                                        </Box>
+
+                                        {/* Ô nhập ghi chú */}
+                                        <TextField
+                                            label="Ghi chú"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            sx={{ fontSize: "10px" }}
+                                            value={customerAddress.find((addr) => addr.id === selectedAddress)?.ghiChu || ""}
+                                            onChange={(e) => handleInputChange("ghiChu", e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <Button variant="contained" onClick={handleUpdateAddress}>
+                            Cập nhật thông tin
+                        </Button>
                     </div>
-
                     {/* Bên phải: Hóa đơn */}
-                    <div className="bg-white p-4 rounded-lg border ">
+                    <div className='col-span-2 h-full bg-white p-4 rounded-lg border '>
                         <h1 className="text-lg font-semibold mb-4">Hóa đơn</h1>
                         <div>
                             <div className='flex flex-col justify-between text-sm h-3/4'>
                                 <div className='flex justify-between'><span className='font-bold flex-none'>Giảm giá:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
                                 <div className='flex justify-between'><span className='font-bold flex-none'>Phí vận chuyển:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
-                                <div className='flex justify-between'><span className='font-bold flex-none'>Phụ phí:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
-                                <div className='flex justify-between'><span className='font-bold flex-none'>Hoàn phí:</span> <span className=' font-semibold'>{invoice?.hoanPhi?.toLocaleString() || 0} đ</span></div>
+                                <div className='flex justify-between'><span className='font-bold flex-none'>Phụ phí:</span> <span>{invoice?.phuPhi} đ</span></div>
+                                <div className='flex justify-between'><span className='font-bold flex-none'>Hoàn phí:</span> <span className=' font-semibold'>{invoice?.hoanPhi} đ</span></div>
 
                                 <div className='flex-col justify-between border-y py-2'>
                                     <div className='flex justify-between'><span className='font-bold flex-none'>Tổng tiền:</span> <span className='text-red-500 font-semibold'>{invoice?.tongTien.toLocaleString()} đ</span></div>
@@ -672,6 +968,8 @@ export default function InvoiceDetail() {
                     <Button onClick={handleCloseSelectQuantity}>Hủy</Button>
                 </DialogActions>
             </Dialog>
+
+            <AddressDialog hoaDon={invoice} reload={reload} open={openAddressDialog} onClose={handleCloseAddressDialog} />
             {/* ô lịch sử thanh toán */}
             <PaymentHistory idHoaDon={idHd} open={openPaymentHistory} onClose={() => setOpenPaymentHistory(false)} />
             <ToastContainer />

@@ -148,7 +148,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
         setFilteredVouchers(total > 0 ? originalVouchers.filter(v => total >= v.dieuKien) : originalVouchers);
     }, [total]);
 
-    
+
     const [vnpayUrl, setVnpayUrl] = useState(null);
 
     const onSubmit = async () => {
@@ -173,13 +173,14 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             ngaySua: new Date().toISOString(),
             nguoiSua: null,
             loaiDon: "Tại cửa hàng",
-            phuongThucNhanHang:deliveryMethod,
+            phuongThucNhanHang: deliveryMethod,
             thanhToanHoaDon,
             tenNguoiNhan: deliveryMethod === "giaohang" ? (deliveryData?.hoTen || null) : null,
             soDienThoai: deliveryMethod === "giaohang" ? (deliveryData?.soDienThoai || null) : null,
             email: deliveryMethod === "giaohang" ? (deliveryData?.email || null) : null,
             ghiChu: deliveryMethod === "giaohang" ? (deliveryData?.ghiChu || "") : "",
             diaChi: selectedCustomer?.diaChi || deliveryData?.diaChi || "",
+            idPhieuGiamGia: selectedVoucher || null,
         };
 
         if (lastTotal <= 0) {
@@ -187,7 +188,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             return;
         }
 
-    
+
 
         try {
             const response = await api.post('/admin/hoa-don/thanh-toan', requestData);
@@ -210,7 +211,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
                 fetchOrders();
                 reloadTab();
                 navigate("/admin/orders", { state: { message: "Thanh toán thành công", type: "success" } });
-        handlePrint(requestData, totalItem, selectedCustomer.hoTen);
+                handlePrint(requestData, totalItem, selectedCustomer.hoTen);
             }
         } catch (error) {
             console.error("Error processing payment:", error);
@@ -225,7 +226,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
             handleSubmit(onSubmit)();
         }
     }, []);
-    
+
     useEffect(() => {
         const fetchPublicVouchers = async () => {
             try {
@@ -734,7 +735,7 @@ const DeliveryForm = ({ totalItem, total, invoiceId, reloadTab }) => {
 
     const getSelectedCustomer = () => {
         const activeTabData = tabs.find(tab => tab.id === activeTab);
-        return activeTabData ? activeTabData.khachHang : {hoTen:"Khách lẻ"};
+        return activeTabData ? activeTabData.khachHang : { hoTen: "Khách lẻ" };
     };
 
 

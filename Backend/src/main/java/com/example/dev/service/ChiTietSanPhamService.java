@@ -361,26 +361,26 @@ public class ChiTietSanPhamService {
                 throw new RuntimeException("Số lượng cập nhật không hợp lệ!");
             }
         }
-        if (chenhLech > ctsp.getSoLuong()) {
-            throw new RuntimeException("Không đủ hàng trong kho!");
+
+        // Nếu đơn không phải Online, cập nhật số lượng tồn kho
+        if (!isOnlineOrder) {
+            if (chenhLech > ctsp.getSoLuong()) {
+                throw new RuntimeException("Không đủ hàng trong kho!");
+            }
+            // Xử lý logic khi `giaDuocTinh` khác null
+            if (giaDuocTinh == null) {
+                chiTietSanPhamRepo.updateQuantity(ctsp.getIdChiTietSanPham(), ctsp.getSoLuong() - chenhLech);
+            } else {
+                chiTietSanPhamRepo.updateQuantity(ctsp.getTaoBoi(), ctsp.getSoLuong() - chenhLech);
+            }
+        }else{
+            if (slThem > ctsp.getSoLuong()){
+                throw new RuntimeException("Không đủ hàng trong kho!");
+            }
         }
-
-
-        // Cập nhật số lượng hóa đơn chi tiết
         hdct.setSoLuong(slThem);
         hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(slThem)));
         hoaDonChiTietRepository.save(hdct);
-        // Nếu đơn không phải Online, cập nhật số lượng tồn kho
-        if (!isOnlineOrder) {
-            // Xử lý logic khi `giaDuocTinh` khác null
-            if (giaDuocTinh == null) {
-                System.out.println("San pham bth");
-                chiTietSanPhamRepo.updateQuantity(ctsp.getIdChiTietSanPham(), ctsp.getSoLuong() - chenhLech);
-            } else {
-                System.out.println("San pham doi gia");
-                chiTietSanPhamRepo.updateQuantity(ctsp.getTaoBoi(), ctsp.getSoLuong() - chenhLech);
-            }
-        }
     }
 
 
@@ -401,9 +401,16 @@ public class ChiTietSanPhamService {
                     chiTietSanPhamRepo.updateQuantity(ctsp.getTaoBoi(), ctsp.getSoLuong() + hdct.getSoLuong());
                 }
             }
+            hoaDonChiTietRepository.delete(hdct);
+        }else{
+            List<HoaDonChiTiet> isEmpty = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
+            if (isEmpty.size() > 1) {
+                hoaDonChiTietRepository.delete(hdct);
+            }else{
+                hdct.setSoLuong(1);
+                hoaDonChiTietRepository.save(hdct);
+            }
         }
-        // Xóa hóa đơn chi tiết
-        hoaDonChiTietRepository.delete(hdct);
 
         // Trả về danh sách hóa đơn chi tiết còn lại
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hdct.getHoaDon().getIdHoaDon());

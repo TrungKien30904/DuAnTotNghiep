@@ -102,14 +102,14 @@ const Checkout = () => {
             phiVanChuyen: shippingFee,
             trangThai: "Chờ xác nhận",
             loaiDon: "Online",
-            voucher: selectedVoucher ? selectedVoucher.maKhuyenMai : null,
+            idPhieuGiamGia: selectedVoucher ? selectedVoucher.id : null,
             danhSachSanPham: selectedItems.map(item => ({
                 idChiTietSanPham: item.productId,
                 soLuongMua: item.soLuong,
                 giaSauGiam: item.gia
             }))
         };
-        console.log("dữ liệu gửi lên:"+orderData)
+        console.log(orderData)
 
         try {
             let response;

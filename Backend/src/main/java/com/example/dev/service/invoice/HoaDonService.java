@@ -1,32 +1,33 @@
 package com.example.dev.service.invoice;
 
 import com.example.dev.DTO.UserLogin.UserLogin;
+import com.example.dev.DTO.request.HoaDonRequest;
 import com.example.dev.DTO.response.HoaDon.HoaDonResponse;
 import com.example.dev.DTO.response.HoaDon.ThanhToanHoaDonResponse;
 import com.example.dev.DTO.response.HoaDonChiTiet.SanPhamCartResponse;
 import com.example.dev.constant.BaseConstant;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.PhieuGiamGia;
-import com.example.dev.entity.customer.KhachHang;
+import com.example.dev.entity.customer.DiaChi;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.entity.invoice.LichSuHoaDon;
 import com.example.dev.entity.invoice.ThanhToanHoaDon;
 import com.example.dev.repository.ChiTietSanPhamRepo;
 import com.example.dev.repository.NhanVienRepo;
+import com.example.dev.repository.customer.DiaChiRepo;
 import com.example.dev.repository.customer.KhachHangRepo;
 import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.repository.invoice.LichSuHoaDonRepository;
 import com.example.dev.repository.invoice.ThanhToanHoaDonRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
+import com.example.dev.service.customer.DiaChiService;
 import com.example.dev.service.payments.VNPayService;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.hibernate.sql.Update;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
@@ -57,6 +58,8 @@ public class HoaDonService {
     private final NhanVienRepo nhanVienRepo;
     private final VNPayService vnPayService;
     private final ThanhToanHoaDonRepository thanhToanHoaDonRepository;
+    private final DiaChiService diaChiService;
+
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
         LocalDateTime endDateTime = endDate.map(date -> date.atTime(23, 59, 59)).orElse(null);
@@ -67,6 +70,16 @@ public class HoaDonService {
     public Map<String, Long> getInvoiceStatistics() {
         List<HoaDon> invoices = hoaDonRepository.findAll();
         return invoices.stream().collect(Collectors.groupingBy(HoaDon::getTrangThai, Collectors.counting()));
+    }
+
+    public HoaDonRequest findInvoiceByID(Integer idHoaDon) {
+        HoaDonRequest request = new HoaDonRequest();
+        HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow();
+        request.setHoaDon(hd);
+        if (hd.getKhachHang() != null) {
+            request.setDiaChiKhachHang(diaChiService.getAddressCustomer(hd.getKhachHang().getIdKhachHang()));
+        }
+        return request;
     }
 
     public HoaDon findInvoice(String maHoaDon) {
@@ -98,6 +111,9 @@ public class HoaDonService {
                 total = total.add(chiTiet.getThanhTien());
                 ChiTietSanPham ctsp = chiTietSanPhamRepo.findById(chiTiet.getChiTietSanPham().getIdChiTietSanPham()).orElse(null);
                 if (ctsp != null) {
+                    if (chiTiet.getSoLuong() > ctsp.getSoLuong()) {
+                        chiTiet.setSoLuong(ctsp.getSoLuong());
+                    }
                     chiTietSanPhamRepo.updateQuantity(ctsp.getIdChiTietSanPham(), ctsp.getSoLuong() - chiTiet.getSoLuong());
                 }
             }
@@ -327,10 +343,15 @@ public class HoaDonService {
 
     public void pay(HoaDonResponse hoaDonResponse, Authentication auth) {
         HoaDon find = hoaDonRepository.findById(hoaDonResponse.getIdHoaDon()).orElseThrow();
+        PhieuGiamGia pgg = phieuGiamGiaRepository.findById(hoaDonResponse.getIdPhieuGiamGia()).orElseThrow();
+
+        find.setPhieuGiamGia(pgg);
         find.setTongTien(hoaDonResponse.getTongTien());
         find.setLoaiDon(hoaDonResponse.getLoaiDon());
         find.setPhuongThucNhanHang(hoaDonResponse.getPhuongThucNhanHang());
-        find.setDiaChi(hoaDonResponse.getDiaChi());
+        find.setTinhThanhPho(hoaDonResponse.getTinhThanhPho());
+        find.setQuanHuyen(hoaDonResponse.getQuanHuyen());
+        find.setXaPhuong(hoaDonResponse.getXaPhuong());
         find.setGhiChu(hoaDonResponse.getGhiChu());
         find.setPhiVanChuyen(hoaDonResponse.getPhiVanChuyen());
         find.setKhachHang(khachHangRepo.findById(hoaDonResponse.getKhachHang()).orElse(null));
@@ -363,13 +384,17 @@ public class HoaDonService {
         if (hoaDonResponse == null || hoaDonResponse.getTongTien() == null) {
             throw new RuntimeException("Dữ liệu đơn hàng không hợp lệ");
         }
+        PhieuGiamGia pgg = phieuGiamGiaRepository.findById(hoaDonResponse.getIdPhieuGiamGia()).orElseThrow();
 
         HoaDon hoaDon = new HoaDon();
+        hoaDon.setPhieuGiamGia(pgg);
         hoaDon.setMaHoaDon(generateMaHoaDon());
         hoaDon.setTongTien(hoaDonResponse.getTongTien());
         hoaDon.setLoaiDon("Online");
         hoaDon.setNgayTao(LocalDateTime.now());
-        hoaDon.setDiaChi(hoaDonResponse.getDiaChi());
+        hoaDon.setTinhThanhPho(hoaDonResponse.getTinhThanhPho());
+        hoaDon.setQuanHuyen(hoaDonResponse.getQuanHuyen());
+        hoaDon.setXaPhuong(hoaDonResponse.getXaPhuong());
         hoaDon.setSoDienThoai(hoaDonResponse.getSoDienThoai());
         hoaDon.setTenNguoiNhan(hoaDonResponse.getTenNguoiNhan());
         hoaDon.setEmail(hoaDonResponse.getEmail());
@@ -441,7 +466,9 @@ public class HoaDonService {
         hoaDon.setTongTien(hoaDonResponse.getTongTien());
         hoaDon.setLoaiDon("Online");
         hoaDon.setNgayTao(LocalDateTime.now());
-        hoaDon.setDiaChi(hoaDonResponse.getDiaChi());
+        hoaDon.setTinhThanhPho(hoaDonResponse.getTinhThanhPho());
+        hoaDon.setQuanHuyen(hoaDonResponse.getQuanHuyen());
+        hoaDon.setXaPhuong(hoaDonResponse.getXaPhuong());
         hoaDon.setSoDienThoai(hoaDonResponse.getSoDienThoai());
         hoaDon.setTenNguoiNhan(hoaDonResponse.getTenNguoiNhan());
         hoaDon.setEmail(hoaDonResponse.getEmail());
@@ -519,7 +546,52 @@ public class HoaDonService {
         }
     }
 
+    public void UpdateInvoice(Integer idHoaDon){
+        HoaDon invoice = hoaDonRepository.findById(idHoaDon).orElseThrow();
+        List<HoaDonChiTiet> listCart = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
 
+        BigDecimal total = BigDecimal.ZERO;
+
+// Tính tổng tiền hàng
+        for (HoaDonChiTiet chiTiet : listCart) {
+            total = total.add(chiTiet.getThanhTien()); // Cộng dồn thay vì multiply
+        }
+
+// Kiểm tra nếu có phiếu giảm giá
+        PhieuGiamGia pgg = invoice.getPhieuGiamGia();
+        if (pgg != null && total.compareTo(pgg.getDieuKien()) >= 0) {
+            BigDecimal discount = BigDecimal.ZERO;
+
+            if (pgg.getHinhThuc().equalsIgnoreCase("VND")) {
+                // Giảm giá cố định (VND)
+                discount = pgg.getGiaTri();
+            } else {
+                // Giảm theo phần trăm
+                BigDecimal percentage = pgg.getGiaTri().divide(new BigDecimal(100)); // Chuyển về hệ số phần trăm
+                discount = total.multiply(percentage); // Tính số tiền giảm
+
+                // Nếu giảm giá vượt quá mức tối đa, giới hạn lại
+                if (discount.compareTo(pgg.getGiaTriToiDa()) > 0) {
+                    discount = pgg.getGiaTriToiDa();
+                }
+            }
+
+            // Trừ giảm giá vào tổng tiền
+            total = total.subtract(discount);
+
+            // Đảm bảo total không âm
+            if (total.compareTo(BigDecimal.ZERO) < 0) {
+                total = BigDecimal.ZERO;
+            }
+        }
+        if(invoice.getHoanPhi() != null) total = total.subtract(invoice.getHoanPhi());
+        if(invoice.getPhuPhi() != null) total = total.add(invoice.getPhuPhi());
+        if(invoice.getPhiVanChuyen() != null) total = total.add(invoice.getPhiVanChuyen());
+// In kết quả
+        System.out.println("Tổng tiền sau giảm: " + total);
+
+
+    }
 
 
 }

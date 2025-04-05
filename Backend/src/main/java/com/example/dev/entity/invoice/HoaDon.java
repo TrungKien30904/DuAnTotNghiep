@@ -41,6 +41,8 @@ public class HoaDon {
     private String email;
     private LocalDateTime ngayGiaoHang;
     private BigDecimal phiVanChuyen;
+    private BigDecimal phuPhi;
+    private BigDecimal hoanPhi;
     private String trangThai;
     private LocalDateTime ngayTao;
     private LocalDateTime ngaySua;
@@ -50,7 +52,9 @@ public class HoaDon {
     @Column(name = "loai_don")
     private String loaiDon;
     private String phuongThucNhanHang;
-    private String diaChi;
+    private String tinhThanhPho;
+    private String quanHuyen;
+    private String xaPhuong;
     private String ghiChu;
 
     public Integer getIdHoaDon() {

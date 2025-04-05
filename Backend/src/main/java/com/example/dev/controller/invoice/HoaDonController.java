@@ -55,6 +55,11 @@ public class HoaDonController {
         return ResponseEntity.ok(invoices);
     }
 
+    @GetMapping("/hien-thi/{idHoaDon}")
+    public ResponseEntity<?> getInvoiceById(@PathVariable Integer idHoaDon) {
+        return ResponseEntity.ok(hoaDonService.findInvoiceByID(idHoaDon));
+    }
+
     @PutMapping("/update-voucher/{idHoaDon}")
     public ResponseEntity<?> updateVoucherForOrder(
             @PathVariable("idHoaDon") Integer idHoaDon,
@@ -165,7 +170,6 @@ public class HoaDonController {
     @PermitAll
     public ResponseEntity<?> thanhToanCOD(@RequestBody HoaDonResponse hoaDon, Authentication auth) {
         try {
-            System.out.println("Dữ liệu nhận từ frontend: " + hoaDon); // Ghi log để kiểm tra
             hoaDonService.payCOD(hoaDon, auth);
             return ResponseEntity.ok(Map.of("message", "Đặt hàng COD thành công!"));
         } catch (RuntimeException e) {
@@ -199,7 +203,16 @@ public class HoaDonController {
     }
 
 
-
+    @GetMapping("/test/{idHoaDon}")
+    public ResponseEntity<?> test(@PathVariable Integer idHoaDon, Authentication auth) {
+        try {
+            hoaDonService.UpdateInvoice(idHoaDon);
+            return ResponseEntity.ok(Map.of("message", "ok"));
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 
 
 }
