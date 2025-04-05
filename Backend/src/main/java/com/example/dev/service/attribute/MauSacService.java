@@ -20,8 +20,12 @@ public class MauSacService {
     }
 
     public MauSac themMauSac(MauSac ms){
-        mauSacRepo.save(ms);
-        return ms;
+        MauSac check =  mauSacRepo.findMauSacByTenEqualsIgnoreCase(ms.getTen());
+        if(check == null){
+            mauSacRepo.save(ms);
+            return ms;
+        }
+        return null;
     }
 
     public List<MauSac> suaMauSac(MauSac ms,Integer id){

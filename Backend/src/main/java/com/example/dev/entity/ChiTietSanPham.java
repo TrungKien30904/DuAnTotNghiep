@@ -1,5 +1,6 @@
 package com.example.dev.entity;
 import com.example.dev.entity.attribute.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -23,7 +24,7 @@ public class ChiTietSanPham {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idChiTietSanPham;
 
-    @TrackChange
+    @TrackChange(columnName = "ma")
     private String ma;
     @ManyToOne
     @JoinColumn(name = "id_mui_giay")
@@ -105,12 +106,15 @@ public class ChiTietSanPham {
 //    @EqualsAndHashCode.Include
     @TrackChange(columnName = "gia")
     private BigDecimal gia;
-
+    private BigDecimal giaDuocTinh;
+    private Integer taoBoi;
     private String moTa;
     private Boolean trangThai = true;
 
     @Column(updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime ngayTao;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime ngaySua;
 
     @Column(updatable = false)

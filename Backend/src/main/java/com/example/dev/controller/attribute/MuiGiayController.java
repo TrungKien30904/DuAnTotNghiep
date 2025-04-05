@@ -4,6 +4,7 @@ import com.example.dev.entity.attribute.MuiGiay;
 import com.example.dev.service.attribute.MuiGiayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,16 +18,18 @@ public class MuiGiayController {
         return ResponseEntity.ok(muiGiayService.getMg());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @GetMapping("/hien-thi/true")
     public ResponseEntity<?> hienThiDangBan() {
         return ResponseEntity.ok(muiGiayService.getMuiGiayBan());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
     public ResponseEntity<?> themMuiGiay(@RequestBody MuiGiay mg) {
         return ResponseEntity.ok(muiGiayService.themMuiGiay(mg));
     }
-
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
     public ResponseEntity<?> suaMuiGiay(@RequestBody MuiGiay mg, @PathVariable Integer id) {
         return ResponseEntity.ok(muiGiayService.suaMuiGiay(mg, id));

@@ -30,7 +30,7 @@
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "trung",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Nguyen Thanh Trung/Documents/DuAnTotNghiep/Backend",
+    "last_opened_file_path": "D:/DuAnTotNghiep",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -46,10 +46,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\utils" />
+      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\components" />
+      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\Admin\assets" />
       <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src" />
       <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\components\ui" />
-      <recent name="D:\DuAnTotNghiep\Frontend\cenndiii-shop\src\pages" />
-      <recent name="D:\DuAnTotNghiep\Backend\src\main\resources" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -74,6 +75,7 @@
       <workItem from="1739983433867" duration="27000" />
       <workItem from="1739983477778" duration="475000" />
       <workItem from="1739984190138" duration="29000" />
+      <workItem from="1742228548094" duration="747000" />
     </task>
     <servers />
   </component>

@@ -4,6 +4,8 @@ import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.service.attribute.SanPhamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,13 +24,20 @@ public class SanPhamController {
         return ResponseEntity.ok(sanPhamService.getSanPhamBan());
     }
 
-    @PostMapping("/them")
-    public ResponseEntity<?> themSp(@RequestBody SanPham sanPham) {
-        return ResponseEntity.ok(sanPhamService.themSanPham(sanPham));
+    @GetMapping("/hien-thi/online")
+    public ResponseEntity<?> hienThiOnline() {
+        return ResponseEntity.ok(sanPhamService.getProductOnl());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PostMapping("/them")
+    public ResponseEntity<?> themSp(@RequestBody SanPham sanPham,Authentication authentication) {
+        return ResponseEntity.ok(sanPhamService.themSanPham(sanPham,authentication));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaSp(@RequestBody SanPham sanPham, @PathVariable Integer id) {
-        return ResponseEntity.ok(sanPhamService.suaSanPham(sanPham, id));
+    public ResponseEntity<?> suaSp(@RequestBody SanPham sanPham, @PathVariable Integer id, Authentication authentication) {
+        return ResponseEntity.ok(sanPhamService.suaSanPham(sanPham, id,authentication));
     }
 }

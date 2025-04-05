@@ -7,21 +7,25 @@ import com.example.dev.entity.invoice.ThanhToanHoaDon;
 import com.example.dev.service.invoice.HoaDonService;
 import com.example.dev.service.invoice.LichSuHoaDonService;
 import com.example.dev.service.invoice.ThanhToanHoaDonService;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.annotation.security.PermitAll;
+import javax.servlet.http.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/admin/hoa-don")
-@CrossOrigin(origins = "*")
+//@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class HoaDonController {
 
     @Autowired
@@ -40,24 +44,31 @@ public class HoaDonController {
             @RequestParam(required = false) Optional<LocalDate> endDate,
             @RequestParam(required = false) String searchQuery) {
 
-        if(loaiDon.trim().length() == 0) {
+        if (loaiDon.trim().length() == 0) {
             loaiDon = null;
         }
 
-        if(searchQuery.trim().length() == 0) {
+        if (searchQuery.trim().length() == 0) {
             searchQuery = null;
         }
         List<HoaDon> invoices = hoaDonService.findInvoices(loaiDon, startDate, endDate, searchQuery);
         return ResponseEntity.ok(invoices);
     }
 
+    @GetMapping("/hien-thi/{idHoaDon}")
+    public ResponseEntity<?> getInvoiceById(@PathVariable Integer idHoaDon) {
+        return ResponseEntity.ok(hoaDonService.findInvoiceByID(idHoaDon));
+    }
+
     @PutMapping("/update-voucher/{idHoaDon}")
     public ResponseEntity<?> updateVoucherForOrder(
             @PathVariable("idHoaDon") Integer idHoaDon,
-            @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body,
+            Authentication auth
+    ) {
         try {
             Integer voucherId = body.get("voucherId"); // Lấy voucherId từ body gửi lên
-            hoaDonService.updateVoucher(idHoaDon, voucherId);
+            hoaDonService.updateVoucher(idHoaDon, voucherId, auth);
             return ResponseEntity.ok("Cập nhật voucher thành công!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Có lỗi khi cập nhật voucher: " + e.getMessage());
@@ -71,10 +82,9 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDon);
     }
 
-    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
-    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
-        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
-        return ResponseEntity.ok(thanhToanHoaDon);
+    @GetMapping("/{idHoaDon}/lich-su-thanh-toan")
+    public ResponseEntity<?> getPayment(@PathVariable Integer idHoaDon) {
+        return ResponseEntity.ok(thanhToanHoaDonService.findByMaHoaDon(idHoaDon));
     }
 
     @GetMapping("/thong-ke")
@@ -84,28 +94,28 @@ public class HoaDonController {
     }
 
     @PutMapping("/{maHoaDon}/xac-nhan")
-    public ResponseEntity<Object> xacNhan(@PathVariable String maHoaDon) {
-        HoaDon hoaDon = hoaDonService.xacnhan(maHoaDon);
+    public ResponseEntity<Object> xacNhan(@PathVariable String maHoaDon, Authentication auth) {
+        HoaDon hoaDon = hoaDonService.xacnhan(maHoaDon, auth);
         return ResponseEntity.ok(hoaDon);
     }
 
     @PutMapping("/{maHoaDon}/huy")
-    public ResponseEntity<Object> huy(@PathVariable String maHoaDon) {
-        HoaDon hoaDon = hoaDonService.huy(maHoaDon);
+    public ResponseEntity<Object> huy(@PathVariable String maHoaDon, Authentication auth) {
+        HoaDon hoaDon = hoaDonService.huy(maHoaDon, auth);
         return ResponseEntity.ok(hoaDon);
     }
 
     @PutMapping("/{maHoaDon}/quay-lai")
-    public ResponseEntity<Object> quayLai(@PathVariable String maHoaDon) {
-        HoaDon hoaDon = hoaDonService.quaylai(maHoaDon);
+    public ResponseEntity<Object> quayLai(@PathVariable String maHoaDon, Authentication auth) {
+        HoaDon hoaDon = hoaDonService.quaylai(maHoaDon, auth);
         return ResponseEntity.ok(hoaDon);
     }
 
     @GetMapping("/{maHoaDon}/lich-su-hoa-don")
-    public ResponseEntity<Object> lichSuHoaDon(@PathVariable String maHoaDon) {
-        List<LichSuHoaDon> lichSuHoaDons = lichSuHoaDonService.findAllByHoaDonId(maHoaDon);
-        return ResponseEntity.ok(lichSuHoaDons);
+    public ResponseEntity<Object> lichSuHoaDon(@PathVariable Integer maHoaDon) {
+        return ResponseEntity.ok(lichSuHoaDonService.findAllByHoaDonId(maHoaDon));
     }
+
     @GetMapping("/export-excel")
     public ResponseEntity<Resource> exportExcel(HttpServletResponse response) {
         Resource file = hoaDonService.xuatExcel();
@@ -118,10 +128,9 @@ public class HoaDonController {
 
     //l123
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createHoaDon(@RequestBody HoaDon hoaDon) {
-        HoaDon savedHoaDon = hoaDonService.createHoaDon(hoaDon);
-        return ResponseEntity.ok(savedHoaDon);
+    @GetMapping("/create")
+    public ResponseEntity<?> createHoaDon(Authentication auth) {
+        return ResponseEntity.ok(hoaDonService.createHoaDon(auth));
     }
 
     @GetMapping("/listHoaDon")
@@ -136,9 +145,9 @@ public class HoaDonController {
     }
 
     @GetMapping("/delete/{idHoaDon}")
-    public ResponseEntity<String> deleteHoaDon(@PathVariable Integer idHoaDon) {
+    public ResponseEntity<String> deleteHoaDon(@PathVariable Integer idHoaDon, Authentication auth) {
         try {
-            hoaDonService.deleteById(idHoaDon);
+            hoaDonService.deleteById(idHoaDon, auth);
             return ResponseEntity.ok("Xóa hóa đơn thành công!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -146,12 +155,64 @@ public class HoaDonController {
     }
 
     @PostMapping("/thanh-toan")
-    public ResponseEntity<?> thanhToan(@RequestBody HoaDonResponse hoaDon) {
+    public ResponseEntity<?> thanhToan(@RequestBody HoaDonResponse hoaDon, Authentication auth) {
         try {
-            hoaDonService.pay(hoaDon);
-            return ResponseEntity.ok("Xóa hóa đơn thành công!");
+            hoaDonService.pay(hoaDon, auth);
+            return ResponseEntity.ok("thanh toán hóa đơn thành công!");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
+    // online
+    @PostMapping("/thanh-toan-cod")
+    @PermitAll
+    public ResponseEntity<?> thanhToanCOD(@RequestBody HoaDonResponse hoaDon, Authentication auth) {
+        try {
+            hoaDonService.payCOD(hoaDon, auth);
+            return ResponseEntity.ok(Map.of("message", "Đặt hàng COD thành công!"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+
+    @PostMapping("/thanh-toan-vnpay")
+    @PermitAll
+    public ResponseEntity<?> taoHoaDonVaThanhToan(@RequestBody HoaDonResponse hoaDonResponse, Authentication auth, HttpServletRequest request) {
+        try {
+            String paymentUrl = hoaDonService.taoHoaDonVaThanhToan(hoaDonResponse, auth, request);
+            return ResponseEntity.ok(Collections.singletonMap("paymentUrl", paymentUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi tạo hóa đơn: " + e.getMessage());
+        }
+    }
+    @GetMapping("/vnpay-return")
+    @PermitAll
+    public void vnpayReturn(@RequestParam Map<String, String> params, HttpServletResponse response, HttpSession session) throws IOException {
+        boolean isSuccess = hoaDonService.xuLyKetQuaThanhToan(params);
+        System.out.println("Đã chạy vào đây");
+        if (isSuccess) {
+            session.removeAttribute("cart"); // Xóa giỏ hàng trong session
+            response.sendRedirect("http://localhost:3000/home"); // Trang thông báo thành công
+        } else {
+            response.sendRedirect("http://localhost:3000/cart"); // Trang thông báo thất bại
+        }
+    }
+
+
+    @GetMapping("/test/{idHoaDon}")
+    public ResponseEntity<?> test(@PathVariable Integer idHoaDon, Authentication auth) {
+        try {
+            hoaDonService.UpdateInvoice(idHoaDon);
+            return ResponseEntity.ok(Map.of("message", "ok"));
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
 }

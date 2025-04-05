@@ -4,12 +4,14 @@ import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.service.invoice.HoaDonChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin/hdct")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class HoaDonChiTietController {
 
     @Autowired

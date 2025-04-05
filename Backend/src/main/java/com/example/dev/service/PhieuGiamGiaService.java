@@ -64,7 +64,6 @@ public class PhieuGiamGiaService {
         PhieuGiamGia phieuGiamGia = timPhieuGiamTheoID(id);
         if (phieuGiamGia.getSoLuong() > 0) {
             phieuGiamGia.setSoLuong(phieuGiamGia.getSoLuong() - 1);
-            System.out.println("Đã trừ"+phieuGiamGia.getSoLuong());
             if (phieuGiamGia.getSoLuong()==0){
                 phieuGiamGia.setNgayKetThuc(LocalDateTime.now());
                 phieuGiamGia.setTrangThai(0);
@@ -118,7 +117,7 @@ public class PhieuGiamGiaService {
                 phieuGiamGia.getDanhSachKhachHang().add(chiTiet);
 
                 // Gửi email cho khách hàng
-//                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
+                emailService.sendDiscountEmailCongKhai(customer, phieuGiamGia);
             }
         } else if ("Cá Nhân".equals(phieuGiamGia.getLoai())) {
             if (phieuGiamGia.getDanhSachKhachHang() != null && !phieuGiamGia.getDanhSachKhachHang().isEmpty()) {

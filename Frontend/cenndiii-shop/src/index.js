@@ -1,18 +1,16 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // Import đúng module cho React 18
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { CartProvider } from './User/pages/cart/CartContext';
 
-// Tạo root container
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// Render ứng dụng
 root.render(
-  <React.StrictMode >
-      <App/>
-  </React.StrictMode>
+  <CartProvider>  {/* Thêm Provider vào đây */}
+    <App />
+  </CartProvider>
 );
 
-// Tùy chọn đo hiệu năng
 reportWebVitals();

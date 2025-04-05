@@ -1,5 +1,6 @@
 package com.example.dev.DTO.response.HoaDon;
 
+import com.example.dev.DTO.response.HoaDonChiTiet.SanPhamCartResponse;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.invoice.ThanhToanHoaDon;
@@ -30,7 +31,12 @@ public class HoaDonResponse {
     private LocalDateTime ngaySua;
     private String nguoiSua;
     private String loaiDon;
-    private String diaChi;
+    private String phuongThucNhanHang;
+    private String tinhThanhPho;
+    private String quanHuyen;
+    private String xaPhuong;
     private String ghiChu;
+    private Integer idPhieuGiamGia;
     private List<ThanhToanHoaDonResponse> thanhToanHoaDon;
+    private List<SanPhamCartResponse> danhSachSanPham;
 }

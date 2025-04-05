@@ -1,8 +1,8 @@
 package com.example.dev.controller;
 
-import com.example.dev.DTO.dotgiamgia.DotGiamGiaRequestDTO;
-import com.example.dev.DTO.dotgiamgia.GetSanPhamChiTietDTO;
-import com.example.dev.DTO.dotgiamgia.GetSanPhamDTO;
+import com.example.dev.DTO.request.DotGiamGia.DotGiamGiaRequestDTO;
+import com.example.dev.DTO.request.DotGiamGia.GetSanPhamChiTietDTO;
+import com.example.dev.DTO.request.DotGiamGia.GetSanPhamDTO;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.DotGiamGia;
 import com.example.dev.entity.attribute.SanPham;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/dot-giam-gia")
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
 public class DotGiamGiaController {
     @Autowired
     DotGiamGiaService dotGiamGiaService;

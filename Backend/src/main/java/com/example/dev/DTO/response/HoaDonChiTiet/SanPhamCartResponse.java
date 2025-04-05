@@ -17,4 +17,5 @@ public class SanPhamCartResponse {
     private int soLuongMua;
     private BigDecimal giaSauGiam;
     private Integer idHoaDonChiTiet;
+    private BigDecimal giaDuocTinh;
 }

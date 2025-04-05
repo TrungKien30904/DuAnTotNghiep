@@ -1,6 +1,7 @@
 package com.example.dev.repository.attribute;
 
 import com.example.dev.DTO.response.product.SanPhamDTO;
+import com.example.dev.DTO.response.product.SanPhamOnlResponse;
 import com.example.dev.entity.attribute.SanPham;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,10 +25,12 @@ public interface SanPhamRepo extends JpaRepository<SanPham, Integer> {
     );
 
     @Query(value = """
-                  select sp.id_san_pham, sp.ma_san_pham, sp.ten_san_pham as 'ten', sum(ctsp.so_luong) as 'so_luong',sp.trang_thai, sp.ngay_tao,sp.ngay_sua,sp.nguoi_tao,sp.nguoi_sua   from san_pham sp\s
-                  left join chi_tiet_san_pham ctsp\s
-                  on sp.id_san_pham = ctsp.id_san_pham
-                  group by sp.id_san_pham, sp.ma_san_pham, sp.ten_san_pham, sp.trang_thai, sp.ngay_tao,sp.ngay_sua,sp.nguoi_sua,sp.nguoi_tao
+            select sp.id_san_pham, sp.ma_san_pham, sp.ten_san_pham as 'ten', sum(ctsp.so_luong) as 'so_luong',sp.trang_thai, sp.ngay_tao,sp.ngay_sua,sp.nguoi_tao,sp.nguoi_sua
+            from san_pham sp
+            left join chi_tiet_san_pham ctsp
+            on sp.id_san_pham = ctsp.id_san_pham
+            where ctsp.gia_duoc_tinh is null
+            group by sp.id_san_pham, sp.ma_san_pham, sp.ten_san_pham, sp.trang_thai, sp.ngay_tao,sp.ngay_sua,sp.nguoi_sua,sp.nguoi_tao
                   """
             ,nativeQuery = true
     )
@@ -37,4 +40,8 @@ public interface SanPhamRepo extends JpaRepository<SanPham, Integer> {
 
     Page<SanPham> findByTenContaining(String tenSanPham, Pageable pageable);
 
+    @Query(value = """
+        exec sp_LaySanPham
+    """,nativeQuery = true)
+    List<SanPhamOnlResponse> getListProductOnl();
 }
