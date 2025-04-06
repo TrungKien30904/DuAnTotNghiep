@@ -35,7 +35,7 @@ public class ThanhToanHoaDonService {
     }
     public void capNhatTrangThaiThanhToan(Integer idHoaDon, boolean daThanhToan) {
         System.out.println("HoaDon ID: " + idHoaDon);
-        ThanhToanHoaDon thanhToanHoaDonhoaDon = thanhToanHoaDonRepository.findByHoaDonId(idHoaDon);
+        ThanhToanHoaDon thanhToanHoaDonhoaDon = thanhToanHoaDonRepository.findByHoaDonId1(idHoaDon);
        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow();
 
         if (daThanhToan) {

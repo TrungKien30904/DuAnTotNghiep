@@ -32,8 +32,14 @@ public class HoaDonResponse {
     private String nguoiSua;
     private String loaiDon;
     private String phuongThucNhanHang;
-    private String diaChi;
     private String ghiChu;
     private List<ThanhToanHoaDonResponse> thanhToanHoaDon;
     private List<SanPhamCartResponse> danhSachSanPham;
+
+    private Integer voucher;
+    private BigDecimal phuPhi;
+    private BigDecimal hoanPhi;
+    private Integer tinhThanhPho;
+    private Integer quanHuyen;
+    private String xaPhuong;
 }

@@ -2,6 +2,7 @@ package com.example.dev.entity.invoice;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.nhanvien.NhanVien;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -50,8 +51,13 @@ public class HoaDon {
     @Column(name = "loai_don")
     private String loaiDon;
     private String phuongThucNhanHang;
-    private String diaChi;
     private String ghiChu;
+
+    private BigDecimal phuPhi;
+    private BigDecimal hoanPhi;
+    private Integer tinhThanhPho;
+    private Integer quanHuyen;
+    private String xaPhuong;
 
     public Integer getIdHoaDon() {
         return idHoaDon;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { CreditCard, Ticket, Trash2 } from "lucide-react";
+import { Link, Navigate, useLocation } from "react-router-dom";
+import { ArchiveX, CreditCard, ShoppingBag, Ticket, Trash2 } from "lucide-react";
 import { useCart } from "./CartContext"; // Import context
 import axios from "axios";
 import VoucherModal from "./VoucherModal";
@@ -21,7 +21,6 @@ const Cart = () => {
     const [selectedCustomerId, setSelectedCustomerId] = useState(null); // giả định sẽ lấy được từ đâu đó
     const [bestVoucherId, setBestVoucherId] = useState(null);
     const [shouldRedirect, setShouldRedirect] = useState(false);
-    const [customerInfo, setCustomerInfo] = useState(null);
 
 
 
@@ -33,20 +32,6 @@ const Cart = () => {
             setSelectedCustomerId(userId);
         }
     }, []);
-
-    useEffect(() => {
-        if (selectedCustomerId) {
-            axios.get(`http://localhost:8080/admin/khach-hang/detail/${selectedCustomerId}`, {
-                withCredentials: true
-            })
-                .then(res => {
-                    setCustomerInfo(res.data); // Lưu thông tin khách hàng
-                    console.log(res.data)
-                })
-                .catch(err => console.error("Lỗi khi lấy thông tin khách hàng:", err));
-        }
-    }, [selectedCustomerId]);
-
 
 
     useEffect(() => {
@@ -239,7 +224,7 @@ const Cart = () => {
         <div className="mt-[64px] mx-24 flex justify-content-center">
             <ToastContainer />
             <div className="container mx-auto p-4">
-                <h2 className="text-3xl font-bold text-center mb-16">🛒 Giỏ Hàng</h2>
+                <h2 className="text-3xl font-bold text-center mb-16">Giỏ Hàng</h2>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-4">
@@ -251,39 +236,46 @@ const Cart = () => {
                             <div className="flex-1 ml-4">Sản phẩm</div>
                             <div className="w-32 text-right">Tổng cộng</div>
                         </div>
-                        {cartItems.map(item => (
-                            <div key={item.productId} className="flex border rounded-lg p-4 items-center justify-between">
-                                <input
-                                    type="checkbox"
-                                    className="mr-3"
-                                    checked={selectedItems.includes(item.productId)}
-                                    onChange={() => handleSelectItem(item.productId)}
-                                />
 
-                                <img src={item.img} alt={item.tenSanPham} className="w-24 h-24 object-cover" />
-                                <div className="flex-1 ml-4">
-                                    <h4 className="font-semibold">Tên: {item.tenSanPham} -- Màu Sắc: {item.mauSac} -- Kích Cỡ: {item.kichCo}</h4>
-                                    {/* <p className="text-gray-500 line-through text-sm">Giá: {(item.gia).toLocaleString()} VND</p> thay vào đây giá trước khi giảm */}
-                                    <p className="text-red-500 font-medium">{item.trangThai}</p>
-                                    <div className="flex items-center mt-2">
-                                        <button onClick={() => handleQuantityChange(item.productId, -1, item.stock)} className="px-2 border">-</button>
-                                        <span className="px-3">{item.soLuong}</span>
-                                        <button onClick={() => handleQuantityChange(item.productId, 1, item.stock)} className="px-2 border">+</button>
+                        {cartItems.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
+                            <ShoppingBag className="text-4xl text-gray-300 opacity-70" size={150} />
+                            <span className="mt-2 text-sm text-gray-600">Giỏ hàng trống</span>
+                          </div>
+                        ) : (
+                            cartItems.map(item => (
+                                <div key={item.productId} className="flex border rounded-lg p-4 items-center justify-between">
+                                    <input
+                                        type="checkbox"
+                                        className="mr-3"
+                                        checked={selectedItems.includes(item.productId)}
+                                        onChange={() => handleSelectItem(item.productId)}
+                                    />
+
+                                    <img src={item.img} alt={item.tenSanPham} className="w-24 h-24 object-cover" />
+                                    <div className="flex-1 ml-4">
+                                        <h4 className="font-semibold">Tên: {item.tenSanPham} -- Màu Sắc: {item.mauSac} -- Kích Cỡ: {item.kichCo}</h4>
+                                        <p className="text-red-500 font-medium">{item.trangThai}</p>
+                                        <div className="flex items-center mt-2">
+                                            <button onClick={() => handleQuantityChange(item.productId, -1, item.stock)} className="px-2 border">-</button>
+                                            <span className="px-3">{item.soLuong}</span>
+                                            <button onClick={() => handleQuantityChange(item.productId, 1, item.stock)} className="px-2 border">+</button>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col justify-between items-end h-full">
+                                        <p className="font-semibold text-lg">{(item.gia * item.soLuong).toLocaleString()} VND</p>
+                                        <button
+                                            className="text-red-500 text-sm mt-auto"
+                                            onClick={() => handleDelete(item.productId)}
+                                        >
+                                            <Trash2 size={21} stroke="red" className="mt-8" />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex flex-col justify-between items-end h-full">
-                                    <p className="font-semibold text-lg">{(item.gia * item.soLuong).toLocaleString()} VND</p>
-                                    <button
-                                        className="text-red-500 text-sm mt-auto"
-                                        onClick={() => handleDelete(item.productId)}
-                                    >
-                                        <Trash2 size={21} stroke="red" className="mt-8" />
-                                    </button>
-                                </div>
-
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
+
 
                     {showVoucherModal && (
                         <VoucherModal
@@ -379,7 +371,6 @@ const Cart = () => {
                                     totalPrice,
                                     discountAmount,
                                     selectedVoucher: voucherList.find(v => v.id === selectedVoucherId),
-                                    customerInfo, // Truyền thông tin khách hàng
                                 }}
                             />
                         )}

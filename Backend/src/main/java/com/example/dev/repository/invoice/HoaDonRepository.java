@@ -3,6 +3,7 @@ package com.example.dev.repository.invoice;
 import com.example.dev.entity.invoice.HoaDon;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,4 +28,9 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
 //    @Query("SELECT hd FROM HoaDon  hd where  hd.")fsdfds
 
     List<HoaDon> findAllByTrangThaiEqualsIgnoreCase(String status);
+
+
+    //
+    @Query("SELECT h FROM HoaDon h WHERE h.khachHang.idKhachHang = :idKhachHang")
+    List<HoaDon> findHoaDonByKhachHangId(@Param("idKhachHang") Integer idKhachHang);
 }

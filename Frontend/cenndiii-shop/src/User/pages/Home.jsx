@@ -5,14 +5,15 @@ import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 export default function Home() {
     const location = useLocation();
-    const successMessage = location.state?.successMessage || localStorage.getItem("paymentSuccess");
-
+    const success = location.state?.success; // Nhận true hoặc false
     useEffect(() => {
-        if (successMessage) {
-            Notification(successMessage, "success");
-            localStorage.removeItem("paymentSuccess"); // Xóa sau khi hiển thị để tránh lặp lại
+        if (success !== undefined) {
+            Notification(
+                success ? "Đặt hàng thành công!" : "Đặt hàng thất bại",
+                success ? "success" : "error"
+            );
         }
-    }, [successMessage]);
+    }, [success]);
 
     return (
         <div>

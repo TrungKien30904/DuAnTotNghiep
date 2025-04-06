@@ -47,7 +47,10 @@ const Navbar = () => {
     handleClose();
   };
   
-
+  const handleOrder = () => {
+    navigate("/ordersCustomer");
+    handleClose();
+  };
 
 
   const handleScroll = useCallback(() => {
@@ -128,6 +131,7 @@ const Navbar = () => {
             <MenuItem disabled>
               {userName}
             </MenuItem>
+            <MenuItem onClick={handleOrder}>Đơn hàng</MenuItem>
             <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
           </Menu>
         </div>
