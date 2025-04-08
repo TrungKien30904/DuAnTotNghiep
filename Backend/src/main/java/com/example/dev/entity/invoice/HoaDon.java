@@ -58,12 +58,6 @@ public class HoaDon {
     private String xaPhuong;
     private String ghiChu;
 
-    private BigDecimal phuPhi;
-    private BigDecimal hoanPhi;
-    private Integer tinhThanhPho;
-    private Integer quanHuyen;
-    private String xaPhuong;
-
     public Integer getIdHoaDon() {
         return idHoaDon;
     }

@@ -274,7 +274,7 @@ public class VNPayService {
         }
     }
 
-    public String createPaymentUrl(Integer orderId, BigDecimal amount, HttpServletRequest req ) {
+    public String createPaymentUrl(Integer orderId, BigDecimal amount) {
         try {
 
             Map<String, String> params = new HashMap<>();
@@ -287,16 +287,13 @@ public class VNPayService {
             params.put("vnp_TmnCode", VNP_TMN_CODE);
             params.put("vnp_Amount", String.valueOf(amount1)); // Sửa cách làm tròn
             params.put("vnp_CurrCode", "VND");
-            String bankCode = req.getParameter("bankCode");
-            if (bankCode != null && !bankCode.isEmpty()) {
-                params.put("vnp_BankCode", "NCB");
-            }
+            params.put("vnp_BankCode", "NCB");
             params.put("vnp_TxnRef", vnp_TxnRef);
             params.put("vnp_OrderInfo", "Thanh toán đơn hàng: " + orderId.toString());
             params.put("vnp_Locale", "vn");
             params.put("vnp_OrderType", orderType);
             params.put("vnp_ReturnUrl", VNP_RETURN_URL_CLIENT);
-            params.put("vnp_IpAddr", vnp_IpAddr); // Lấy địa chỉ IP của khách hàng
+            params.put("vnp_IpAddr", IP_ADDRESS); // Lấy địa chỉ IP của khách hàng
 
             Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
             SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");

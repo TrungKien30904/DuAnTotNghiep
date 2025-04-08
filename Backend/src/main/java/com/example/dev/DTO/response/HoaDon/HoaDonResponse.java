@@ -43,7 +43,4 @@ public class HoaDonResponse {
     private Integer voucher;
     private BigDecimal phuPhi;
     private BigDecimal hoanPhi;
-    private Integer tinhThanhPho;
-    private Integer quanHuyen;
-    private String xaPhuong;
 }

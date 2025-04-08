@@ -86,10 +86,9 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDon);
     }
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
-    @GetMapping("/{maHoaDon}/lich-su-thanh-toan")
-    public ResponseEntity<ThanhToanHoaDon> getPayment(@PathVariable String maHoaDon) {
-        ThanhToanHoaDon thanhToanHoaDon = thanhToanHoaDonService.findByMaHoaDon(maHoaDon);
-        return ResponseEntity.ok(thanhToanHoaDon);
+    @GetMapping("/{id}/lich-su-thanh-toan")
+    public ResponseEntity<?> getPayment(@PathVariable Integer id) {
+        return ResponseEntity.ok(thanhToanHoaDonService.findByMaHoaDon(id));
     }
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @GetMapping("/thong-ke")

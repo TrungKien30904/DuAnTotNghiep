@@ -10,6 +10,7 @@ import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.customer.DiaChi;
 
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.entity.invoice.LichSuHoaDon;
@@ -548,7 +549,7 @@ public class HoaDonService {
         lichSuHoaDonService.themLichSu(lichSu);
 
         // Bước 5: Gọi VNPayService để tạo URL thanh toán
-        return vnPayService.createPaymentUrl(hoaDon.getIdHoaDon(), hoaDon.getTongTien(), vnp_IpAddr, req);
+        return vnPayService.createPaymentUrl(hoaDon.getIdHoaDon(), hoaDon.getTongTien());
     }
 
 
