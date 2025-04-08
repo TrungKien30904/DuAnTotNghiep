@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -38,10 +39,14 @@ public class JWTConfig {
             "/admin/hoa-don/thanh-toan-cod",
             "/admin/hoa-don/thanh-toan-vnpay",
             "/admin/hoa-don/vnpay-return",
-            "/admin/khach-hang/detail/**",
+            "/admin/khach-hang/detail-client/**",
             "/auth/**",
             "/api/payment/**",
-            "/admin/dia-chi/**"
+            "/admin/dia-chi/**",
+            "/admin/khach-hang/update-address-selected",
+            "/admin/khach-hang/update-address-direct",
+            "/admin/khach-hang/them-dia-chi",
+            "/admin/hoa-don/hien-thi-hoa-don"
     };
 
 
@@ -70,7 +75,7 @@ public class JWTConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                     authorizeRequests
                             .requestMatchers(PUBLIC_URL).permitAll()
-                            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "STAFF")
+                            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "STAFF","CUSTOMER")
                             .anyRequest().authenticated()
                 )
 //                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

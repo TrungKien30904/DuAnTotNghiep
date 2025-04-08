@@ -18,4 +18,6 @@ public class SanPhamCartResponse {
     private BigDecimal giaSauGiam;
     private Integer idHoaDonChiTiet;
     private BigDecimal giaDuocTinh;
+    private String tenSanPham;
+    private String anhSanPham;
 }

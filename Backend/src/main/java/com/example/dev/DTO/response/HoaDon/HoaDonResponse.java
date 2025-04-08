@@ -39,4 +39,11 @@ public class HoaDonResponse {
     private Integer idPhieuGiamGia;
     private List<ThanhToanHoaDonResponse> thanhToanHoaDon;
     private List<SanPhamCartResponse> danhSachSanPham;
+
+    private Integer voucher;
+    private BigDecimal phuPhi;
+    private BigDecimal hoanPhi;
+    private Integer tinhThanhPho;
+    private Integer quanHuyen;
+    private String xaPhuong;
 }

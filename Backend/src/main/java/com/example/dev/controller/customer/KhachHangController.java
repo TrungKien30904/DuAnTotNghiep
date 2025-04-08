@@ -1,13 +1,17 @@
 package com.example.dev.controller.customer;
 
+import com.example.dev.entity.customer.DiaChi;
 import com.example.dev.entity.customer.KhachHang;
+import com.example.dev.mapper.AddressMapper;
 import com.example.dev.mapper.CustomerMapper;
 import com.example.dev.service.customer.KhachHangService;
 import com.example.dev.util.baseModel.BaseListResponse;
 import com.example.dev.util.baseModel.BaseResponse;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +35,7 @@ public class KhachHangController {
     public ResponseEntity<List<KhachHang>> hienThiKhachHang() {
         return ResponseEntity.ok(khachHangService.getAllCustomerIsStatusTrue());
     }
+
     @GetMapping("/export-excel")
     public ResponseEntity<List<KhachHang>> hienThi() {
         return ResponseEntity.ok(khachHangService.getAll());
@@ -38,8 +43,8 @@ public class KhachHangController {
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> detail(@PathVariable Integer id) {
-        CustomerMapper khachHang = khachHangService.detailKhachHangTest(id);
-        return  ResponseEntity.ok(khachHang);
+        CustomerMapper khachHang = khachHangService.detailKhachHang(id);
+        return ResponseEntity.ok(khachHang);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
@@ -53,7 +58,7 @@ public class KhachHangController {
     public ResponseEntity<BaseResponse<KhachHang>> sua(@Valid @RequestBody CustomerMapper model) {
         return ResponseEntity.ok(khachHangService.suaKhachHang(model));
     }
-    
+
 
     @PostMapping("/update-address")
     public ResponseEntity<?> updateAddress(@Valid @RequestBody CustomerMapper model) {
@@ -100,4 +105,34 @@ public class KhachHangController {
         return ResponseEntity.ok(khachHangService.themKhachHang(khachHang));
     }
 
+    @PutMapping("/update-address-selected")
+    public ResponseEntity<?> updateSelectedAddress(@RequestBody AddressMapper addressMapper) {
+        try {
+            DiaChi updatedAddress = khachHangService.updateSelectedAddress(addressMapper);
+            return ResponseEntity.ok(updatedAddress);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    @PutMapping("/update-address-direct")
+    public ResponseEntity<?> updateDirectAddress(@RequestBody AddressMapper addressMapper) {
+        try {
+            KhachHang updatedCustomer = khachHangService.updateDirectAddress(addressMapper);
+            return ResponseEntity.ok(updatedCustomer);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/detail-client/{id}")
+    public ResponseEntity<?> detailClient(@PathVariable Integer id) {
+        CustomerMapper khachHang = khachHangService.detailKhachHangClient(id);
+        return ResponseEntity.ok(khachHang);
+    }
+
+    @PostMapping("/them-dia-chi")
+    public ResponseEntity<DiaChi> themDiaChi(@Valid @RequestBody AddressMapper addressMapper) {
+        DiaChi newDiaChi = khachHangService.themDiaChi(addressMapper);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newDiaChi);
+    }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -14,14 +15,15 @@ import java.math.BigDecimal;
 @Builder
 public class ChiTietThanhToan {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private String maDoiTac ;
     private String maGiaoDichDoiTac ;
     private String thongTinGiaoDich;
     private BigDecimal soTien;
     private String maGiaoDich;
     private String nganHang;
-    private String thoiGianTao;
+    private LocalDateTime thoiGianTao;
     @JoinColumn(name = "id_thanh_toan")
     @ManyToOne
     private ThanhToanHoaDon thanhToanHoaDon;

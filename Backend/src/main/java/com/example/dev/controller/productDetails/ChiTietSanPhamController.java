@@ -89,20 +89,20 @@ public class ChiTietSanPhamController {
         return ResponseEntity.ok("Upload successfully");
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @PostMapping("/them-sp")
     public ResponseEntity<?> themSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
         return ResponseEntity.ok(chiTietSanPhamService.themSp(sanPhamCartResponse.getIdHoaDon(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(), sanPhamCartResponse.getGiaSauGiam()));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @PostMapping("/sua-sp")
     public ResponseEntity<?> suaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
         chiTietSanPhamService.suaSoLuongHoaDonChiTiet(sanPhamCartResponse.getIdHoaDon(),sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());
         return ResponseEntity.ok("ok");
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @PostMapping("/xoa-sp")
     public ResponseEntity<?> xoaSp(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
         return ResponseEntity.ok(chiTietSanPhamService.xoaSp(sanPhamCartResponse.getIdHoaDon(),sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham()));
@@ -113,7 +113,7 @@ public class ChiTietSanPhamController {
         return ResponseEntity.ok(chiTietSanPhamService.getSpGiamGia(idChiTietSanPham));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STAFF','CUSTOMER')")
     @PostMapping("/cap-nhat-sl")
     public ResponseEntity<?> capNhat(@RequestBody SanPhamCartResponse sanPhamCartResponse) {
         chiTietSanPhamService.capNhatSl(sanPhamCartResponse.getIdHoaDon(), sanPhamCartResponse.getIdHoaDonChiTiet(), sanPhamCartResponse.getIdChiTietSanPham(), sanPhamCartResponse.getSoLuongMua(),sanPhamCartResponse.getGiaDuocTinh());

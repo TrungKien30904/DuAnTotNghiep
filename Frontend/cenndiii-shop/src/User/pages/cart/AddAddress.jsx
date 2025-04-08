@@ -8,7 +8,9 @@ const AddAddress = ({ onConfirm, existingData }) => {
         hoTen: '',
         soDienThoai: '',
         email: '',
-        diaChi: '',
+        districtID:'',
+        provinceID:'',
+        wardCode:'',
         ghiChu: ''
     });
 
@@ -107,7 +109,10 @@ const AddAddress = ({ onConfirm, existingData }) => {
             let shippingFee = 0;
             if (selectedWard && selectedDistrict) {
                 try {
-                    const fee = await calculateShippingFee(`${selectedProvince.ProvinceID}, ${selectedDistrict.DistrictID}, ${selectedWard.WardCode}`, []);
+                    const fee = await calculateShippingFee(
+                        `${selectedProvince.ProvinceID}, ${selectedDistrict.DistrictID}, ${selectedWard.WardCode}`,
+                        []
+                    );
                     shippingFee = fee;
                 } catch (error) {
                     console.error("Lỗi khi tính phí vận chuyển:", error);
@@ -115,14 +120,17 @@ const AddAddress = ({ onConfirm, existingData }) => {
                 }
             }
 
-            onConfirm({ 
-                ...formData, 
-                diaChi: `${selectedProvince.ProvinceID}, ${selectedDistrict.DistrictID}, ${selectedWard.WardCode}`, // Send address ID
+            onConfirm({
+                ...formData,
+                provinceID: selectedProvince.ProvinceID,
+                districtID: selectedDistrict.DistrictID,
+                wardCode: selectedWard.WardCode,
                 phiVanChuyen: shippingFee,
-                diaChiHienThi: fullAddress // Send address name for display
+                diaChiHienThi: fullAddress // Hiển thị địa chỉ cho người dùng
             });
         }
     };
+
 
     return (
         <div>

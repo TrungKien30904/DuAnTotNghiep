@@ -14,8 +14,18 @@ public class AddressMapper {
     private String provinceName;
     private String districtName;
     private String wardName;
+    private String addressId;
     private int stage;
     private boolean visiable;
+
+    public String getAddressId() {
+        return addressId;
+    }
+
+    public void setAddressId(String addressId) {
+        this.addressId = addressId;
+    }
+
     public AddressMapper() {
     }
 
