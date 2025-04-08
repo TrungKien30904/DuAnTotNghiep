@@ -30,7 +30,6 @@ import AddCustomers from "./pages/Customer/AddCustomers";
 import EditCustomer from "./pages/Customer/EditCustomer";
 import "react-toastify/dist/ReactToastify.css";
 import InvoiceDetail from "./pages/Invoices/InvoiceDetail";
-import VoucherOrder from "./pages/VoucherOrder";
 import Test from "./pages/test";
 import LoginPage from "./components/ui/Login"
 import PaymentStatus from "./pages/Order/PaymentStatus"

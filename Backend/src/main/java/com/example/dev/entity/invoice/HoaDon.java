@@ -52,8 +52,8 @@ public class HoaDon {
     @Column(name = "loai_don")
     private String loaiDon;
     private String phuongThucNhanHang;
-    private String tinhThanhPho;
-    private String quanHuyen;
+    private Integer tinhThanhPho;
+    private Integer quanHuyen;
     private String xaPhuong;
     private String ghiChu;
 

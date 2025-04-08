@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Dialog } from "@headlessui/react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
-import Notification from "../components/Notification";
+import Notification from "../../../components/Notification";
 import "react-toastify/dist/ReactToastify.css";
 
 
