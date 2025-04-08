@@ -90,7 +90,7 @@ export default function InvoiceDetail() {
 
             await api.post("/admin/chi-tiet-san-pham/xoa-sp", requestData);
             getProductFromDetailsInvoice();
-
+            fetchInvoice();
         } catch (error) {
             console.log(error);
         }
@@ -203,7 +203,7 @@ export default function InvoiceDetail() {
             if (response.status === 200) {
                 getProductFromDetailsInvoice();
                 Notification(`Sản phẩm ${productDetailSelected.sanPham} đã được thêm thành công!`, "success");
-
+                fetchInvoice();
                 api
                     .get("/admin/chi-tiet-san-pham/dot-giam/hien-thi/-1")
                     .then((response) => {
@@ -233,6 +233,7 @@ export default function InvoiceDetail() {
                 };
                 // console.log(newQuantity);
                 await api.post("/admin/chi-tiet-san-pham/cap-nhat-sl", requestData);
+                fetchInvoice();
                 getProductFromDetailsInvoice()
             } catch (error) {
                 console.error("Error updating product quantity:", error);
@@ -251,6 +252,7 @@ export default function InvoiceDetail() {
                 await api.post("/admin/chi-tiet-san-pham/sua-sp", requestData);
 
                 getProductFromDetailsInvoice()
+                fetchInvoice();
 
             } catch (error) {
                 console.error("Error updating product quantity:", error);

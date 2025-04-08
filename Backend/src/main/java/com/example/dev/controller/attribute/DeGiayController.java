@@ -13,15 +13,15 @@ public class DeGiayController {
     @Autowired
     DeGiayService deGiayService;
 
-    @GetMapping("/hien-thi")
-    public ResponseEntity<?> hienThi() {
-        return ResponseEntity.ok(deGiayService.getDeGiay());
-    }
+//    @GetMapping("/hien-thi")
+//    public ResponseEntity<?> hienThi() {
+//        return ResponseEntity.ok(deGiayService.getDeGiay());
+//    }
 
-    @GetMapping("/hien-thi/true")
-    public ResponseEntity<?> hienThiDangBan() {
-        return ResponseEntity.ok(deGiayService.getDeGiayBan());
-    }
+//    @GetMapping("/hien-thi/true")
+//    public ResponseEntity<?> hienThiDangBan() {
+//        return ResponseEntity.ok(deGiayService.getDeGiayBan());
+//    }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")

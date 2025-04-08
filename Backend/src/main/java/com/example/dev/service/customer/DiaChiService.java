@@ -239,7 +239,7 @@ public class DiaChiService {
         }
     }
 
-    private void updateShippingFee(DiaChi diaChi, Integer idHoaDon) {
+    public void updateShippingFee(DiaChi diaChi, Integer idHoaDon) {
         HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow();
         BigDecimal newShippingFee = BigDecimal.valueOf(Long.parseLong(shippingFee(diaChi.getQuanHuyen(), diaChi.getXaPhuong(),hd.getIdHoaDon())));
         BigDecimal oldShippingFee =  hd.getPhiVanChuyen();

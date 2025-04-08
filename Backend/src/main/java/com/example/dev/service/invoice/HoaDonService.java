@@ -9,6 +9,7 @@ import com.example.dev.constant.BaseConstant;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.PhieuGiamGia;
 import com.example.dev.entity.customer.DiaChi;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.entity.invoice.LichSuHoaDon;
@@ -24,7 +25,6 @@ import com.example.dev.repository.invoice.ThanhToanHoaDonRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
 import com.example.dev.service.customer.DiaChiService;
 import com.example.dev.service.payments.VNPayService;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -32,6 +32,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -59,6 +61,7 @@ public class HoaDonService {
     private final VNPayService vnPayService;
     private final ThanhToanHoaDonRepository thanhToanHoaDonRepository;
     private final DiaChiService diaChiService;
+    private final DiaChiRepo diaChiRepo;
 
     public List<HoaDon> findInvoices(String loaiDon, Optional<LocalDate> startDate, Optional<LocalDate> endDate, String searchQuery) {
         LocalDateTime startDateTime = startDate.map(date -> date.atStartOfDay()).orElse(null);
@@ -78,6 +81,16 @@ public class HoaDonService {
         request.setHoaDon(hd);
         if (hd.getKhachHang() != null) {
             request.setDiaChiKhachHang(diaChiService.getAddressCustomer(hd.getKhachHang().getIdKhachHang()));
+        }
+        if(hd.getTenNguoiNhan() != null || hd.getSoDienThoai() != null) {
+            String provinceName = diaChiService.getProvince(hd.getTinhThanhPho());
+            String districtName = diaChiService.getDistricts(hd.getTinhThanhPho(), hd.getQuanHuyen());
+            String wardName = diaChiService.getWards(hd.getQuanHuyen(),hd.getXaPhuong());
+            String fullAddress = "";
+//            DiaChi dc = DiaChi.builder()
+//                    .id(idHoaDon)
+//                    .diaChiChiTiet()
+//                    .build();
         }
         return request;
     }
@@ -103,7 +116,8 @@ public class HoaDonService {
         BigDecimal total = BigDecimal.ZERO;
         ThanhToanHoaDon tt = thanhToanHoaDonRepository.findByHoaDon_IdHoaDon(hoaDon.getIdHoaDon());
 
-        if (hoaDon.getTrangThai().equalsIgnoreCase("Đã hoàn thành") || hoaDon.getTrangThai().equalsIgnoreCase("Hủy")) return null;
+        if (hoaDon.getTrangThai().equalsIgnoreCase("Đã hoàn thành") || hoaDon.getTrangThai().equalsIgnoreCase("Hủy"))
+            return null;
         String trangThai = hoaDon.getTrangThai();
         if ("Chờ xác nhận".equals(trangThai)) {
             hoaDon.setTrangThai("Đã xác nhận");
@@ -146,7 +160,7 @@ public class HoaDonService {
         ThanhToanHoaDon tt = thanhToanHoaDonRepository.findByHoaDon_IdHoaDon(hoaDon.getIdHoaDon());
 
         if (trangThai.equalsIgnoreCase("Hủy")) return null;
-        if("Đã xác nhận".equals(trangThai)){
+        if ("Đã xác nhận".equals(trangThai)) {
             hoaDon.setTrangThai("Chờ xác nhận");
             for (HoaDonChiTiet chiTiet : cart) {
                 total = total.add(chiTiet.getThanhTien());
@@ -157,7 +171,7 @@ public class HoaDonService {
             }
             hoaDon.setTongTien(total);
             tt.setSoTienThanhToan(total);
-        };
+        }
         if ("Chờ vận chuyển".equals(trangThai)) {
             hoaDon.setTrangThai("Đã xác nhận");
         }
@@ -307,15 +321,7 @@ public class HoaDonService {
             invoiceRemove.setNhanVien(nhanVienRepo.findById(user.getId()).orElse(null));
             invoiceRemove.setTrangThai("Hủy");
             hoaDonRepository.save(invoiceRemove);
-            lichSuHoaDonService.themLichSu(
-                    LichSuHoaDon.builder()
-                            .hoaDon(invoiceRemove)
-                            .hanhDong(BaseConstant.Action.DELETE.getValue())
-                            .ngayTao(LocalDateTime.now())
-                            .nguoiTao(user.getUsername())
-                            .ghiChu(invoiceRemove.getTrangThai())
-                            .build()
-            );
+            lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(invoiceRemove).hanhDong(BaseConstant.Action.DELETE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu(invoiceRemove.getTrangThai()).build());
 
         } else {
             throw new RuntimeException("Hóa đơn không tồn tại với id: " + idHoaDon);
@@ -376,7 +382,6 @@ public class HoaDonService {
 
         lichSuHoaDonService.themLichSu(LichSuHoaDon.builder().hoaDon(find).hanhDong(BaseConstant.Action.UPDATE.getValue()).ngayTao(LocalDateTime.now()).nguoiTao(user.getUsername()).ghiChu(find.getTrangThai()).build());
     }
-
 
 
     // Online
@@ -484,8 +489,8 @@ public class HoaDonService {
         }
 
 
-            hoaDon.setNguoiTao("Guest");
-            hoaDon.setNhanVien(null);
+        hoaDon.setNguoiTao("Guest");
+        hoaDon.setNhanVien(null);
 
 
         // Lưu hóa đơn vào database
@@ -546,9 +551,23 @@ public class HoaDonService {
         }
     }
 
-    public void UpdateInvoice(Integer idHoaDon){
+    public void UpdateInvoice(Integer idHoaDon) {
         HoaDon invoice = hoaDonRepository.findById(idHoaDon).orElseThrow();
         List<HoaDonChiTiet> listCart = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
+        KhachHang kh = invoice.getKhachHang();
+        List<DiaChi> dckh = diaChiRepo.findByKhachHang_IdKhachHang(kh.getIdKhachHang());
+
+        if (dckh.isEmpty()){
+            throw new RuntimeException("Khong tim thay dia chi khach");
+        }
+        DiaChi addressChange = new DiaChi();
+        for (DiaChi dc : dckh) {
+            if (dc.isMacDinh()){
+                addressChange = dc;
+                break;
+            }
+        }
+        diaChiService.updateShippingFee(addressChange,idHoaDon);
 
         BigDecimal total = BigDecimal.ZERO;
 
@@ -560,21 +579,7 @@ public class HoaDonService {
 // Kiểm tra nếu có phiếu giảm giá
         PhieuGiamGia pgg = invoice.getPhieuGiamGia();
         if (pgg != null && total.compareTo(pgg.getDieuKien()) >= 0) {
-            BigDecimal discount = BigDecimal.ZERO;
-
-            if (pgg.getHinhThuc().equalsIgnoreCase("VND")) {
-                // Giảm giá cố định (VND)
-                discount = pgg.getGiaTri();
-            } else {
-                // Giảm theo phần trăm
-                BigDecimal percentage = pgg.getGiaTri().divide(new BigDecimal(100)); // Chuyển về hệ số phần trăm
-                discount = total.multiply(percentage); // Tính số tiền giảm
-
-                // Nếu giảm giá vượt quá mức tối đa, giới hạn lại
-                if (discount.compareTo(pgg.getGiaTriToiDa()) > 0) {
-                    discount = pgg.getGiaTriToiDa();
-                }
-            }
+            BigDecimal discount = getDiscount(pgg, total);
 
             // Trừ giảm giá vào tổng tiền
             total = total.subtract(discount);
@@ -584,13 +589,34 @@ public class HoaDonService {
                 total = BigDecimal.ZERO;
             }
         }
-        if(invoice.getHoanPhi() != null) total = total.subtract(invoice.getHoanPhi());
-        if(invoice.getPhuPhi() != null) total = total.add(invoice.getPhuPhi());
-        if(invoice.getPhiVanChuyen() != null) total = total.add(invoice.getPhiVanChuyen());
-// In kết quả
-        System.out.println("Tổng tiền sau giảm: " + total);
+
+        if (invoice.getHoanPhi() != null) total = total.subtract(invoice.getHoanPhi());
+        if (invoice.getPhuPhi() != null) total = total.add(invoice.getPhuPhi());
+        if (invoice.getPhiVanChuyen() != null) total = total.add(invoice.getPhiVanChuyen());
 
 
+        invoice.setTongTien(total);
+
+        hoaDonRepository.save(invoice);
+    }
+
+    private static BigDecimal getDiscount(PhieuGiamGia pgg, BigDecimal total) {
+        BigDecimal discount = BigDecimal.ZERO;
+
+        if (pgg.getHinhThuc().equalsIgnoreCase("VND")) {
+            // Giảm giá cố định (VND)
+            discount = pgg.getGiaTri();
+        } else {
+            // Giảm theo phần trăm
+            BigDecimal percentage = pgg.getGiaTri().divide(new BigDecimal(100)); // Chuyển về hệ số phần trăm
+            discount = total.multiply(percentage); // Tính số tiền giảm
+
+            // Nếu giảm giá vượt quá mức tối đa, giới hạn lại
+            if (discount.compareTo(pgg.getGiaTriToiDa()) > 0) {
+                discount = pgg.getGiaTriToiDa();
+            }
+        }
+        return discount;
     }
 
 

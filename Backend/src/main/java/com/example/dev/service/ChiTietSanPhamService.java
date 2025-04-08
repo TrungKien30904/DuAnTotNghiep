@@ -19,6 +19,7 @@ import com.example.dev.repository.history.LichSuRepo;
 import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.service.history.HistoryImpl;
+import com.example.dev.service.invoice.HoaDonService;
 import com.example.dev.util.FileUpLoadUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class ChiTietSanPhamService {
     private final LichSuRepo lichSuRepo;
     private final ChiTietLichSuRepo chiTietLichSuRepo;
     private final HistoryImpl historyImpl;
-
+    private final HoaDonService hoaDonService;
     public List<ChiTietSanPham> getListChiTietSanPham() {
         return chiTietSanPhamRepo.findAll();
     }
@@ -336,6 +337,8 @@ public class ChiTietSanPhamService {
         // Trừ số lượng sản phẩm nếu không phải đơn online
         if (!"Online".equalsIgnoreCase(hoaDon.getLoaiDon())) {
             chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() - soLuongThem);
+        }else{
+            hoaDonService.UpdateInvoice(idHoaDon);
         }
 
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
@@ -361,7 +364,9 @@ public class ChiTietSanPhamService {
                 throw new RuntimeException("Số lượng cập nhật không hợp lệ!");
             }
         }
-
+        hdct.setSoLuong(slThem);
+        hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(slThem)));
+        hoaDonChiTietRepository.save(hdct);
         // Nếu đơn không phải Online, cập nhật số lượng tồn kho
         if (!isOnlineOrder) {
             if (chenhLech > ctsp.getSoLuong()) {
@@ -377,10 +382,9 @@ public class ChiTietSanPhamService {
             if (slThem > ctsp.getSoLuong()){
                 throw new RuntimeException("Không đủ hàng trong kho!");
             }
+            hoaDonService.UpdateInvoice(idHoaDon);
         }
-        hdct.setSoLuong(slThem);
-        hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(slThem)));
-        hoaDonChiTietRepository.save(hdct);
+
     }
 
 
@@ -410,9 +414,11 @@ public class ChiTietSanPhamService {
                 hdct.setSoLuong(1);
                 hoaDonChiTietRepository.save(hdct);
             }
+            hoaDonService.UpdateInvoice(idHoaDon);
         }
 
         // Trả về danh sách hóa đơn chi tiết còn lại
+
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(hdct.getHoaDon().getIdHoaDon());
     }
 
@@ -433,7 +439,10 @@ public class ChiTietSanPhamService {
                     chiTietSanPhamRepo.updateQuantity(ctsp.getTaoBoi(), ctsp.getSoLuong() - slThem);
                 }
             }
+        }else{
+            hoaDonService.UpdateInvoice(idHoaDon);
         }
+
     }
 
 
