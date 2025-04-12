@@ -541,7 +541,7 @@ export default function InvoiceDetail() {
 
                                         {invoice?.trangThai == "Chờ xác nhận" && (
                                             <div className='m-2'>
-                                                <Button variant="contained" color="primary" size='small' onClick={e => setOpenAddressDialog(true)}>{invoice?.loaiDon === "Online" ? "Sửa địa chỉ" : "Thêm địa chỉ"}</Button>
+                                                <Button variant="contained" color="primary" size='small' onClick={e => setOpenAddressDialog(true)}>{invoice?.loaiDon === "Online" && invoice?.khachHang === null  ? "Sửa địa chỉ" : "Thêm địa chỉ"}</Button>
                                             </div>
                                         )}
                                     </div>

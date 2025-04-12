@@ -173,11 +173,9 @@ public class HoaDonService {
             hoaDon.setTongTien(total);
             tt.setSoTienThanhToan(total);
         }
-        if ("Chờ vận chuyển".equals(trangThai)) {
-            hoaDon.setTrangThai("Đã xác nhận");
-        }
-        if ("Đang vận chuyển".equals(trangThai)) {
-            hoaDon.setTrangThai("Chờ vận chuyển");
+        if ("Chờ xác nhận".equals(trangThai)) {
+            hoaDon.setTrangThai("Hủy");
+            tt.setTrangThai(false);
         }
         if ("Đã hoàn thành".equals(trangThai)) {
             hoaDon.setTrangThai("Hủy");

@@ -115,8 +115,22 @@ const OrderStepper = ({ order, id, onReload }) => {
         }
     }
 
+    const statusBtn = (status) => {
+        if (status === "Chờ xác nhận" || status === "Đã hoàn thành") {
+            return "Hủy"
+        }
+        if (status === "Đã xác nhận") {
+            return "Về chờ xác nhận"
+        }
+    }
 
-
+    const isVisible = () => {
+        const trangThai = order?.trangThai;
+        if (trangThai === "Chờ vận chuyển" || trangThai === "Đang vận chuyển" || trangThai === "Hủy") {
+            return false;
+        }
+        return true
+    }
     return (
         <div>
             <div
@@ -148,12 +162,16 @@ const OrderStepper = ({ order, id, onReload }) => {
 
             <div className="flex justify-around w-full mt-4">
                 <div className="flex justify-between w-[300px]">
-                    <Button variant="contained" color="primary" onClick={() => continues()} >
-                        Tiếp tục
-                    </Button>
-                    <Button variant="contained" color="secondary" onClick={() => back()} >
-                        Quay lại
-                    </Button>
+                    {order?.trangThai != "Hủy" && (
+                        <Button variant="contained" color="primary" onClick={() => continues()} >
+                            Tiếp tục
+                        </Button>
+                    )}
+                    {isVisible() && (
+                        <Button variant="contained" color="secondary" onClick={() => back()} >
+                            {statusBtn(order?.trangThai)}
+                        </Button>
+                    )}
                 </div>
                 <div>
                     <Button variant="contained" color="info" onClick={() => setShowHistory(true)}>
