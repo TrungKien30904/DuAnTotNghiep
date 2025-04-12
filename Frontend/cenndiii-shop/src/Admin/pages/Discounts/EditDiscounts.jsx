@@ -7,7 +7,18 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../../../security/Axios";
-import { formatDateFromArray } from "../../../untils/FormatDate";
+export const formatDateFromArray = (dateArray) => {
+  if (!dateArray) return '';
+  
+  const year = dateArray[0];
+  const month = String(dateArray[1]).padStart(2, '0');
+  const day = String(dateArray[2]).padStart(2, '0');
+  const hour = String(dateArray[3]).padStart(2, '0');
+  const minute = String(dateArray[4]).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+}
+
 export default function EditDiscounts() {
   const { idDGG } = useParams();
   const [filters, setFilters] = useState({ search: "" });

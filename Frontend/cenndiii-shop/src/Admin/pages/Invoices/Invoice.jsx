@@ -22,12 +22,14 @@ export default function Invoices() {
         startDate: '',
         endDate: '',
     });
-    
-        useEffect(() => {
-            if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
-                navigate("/admin/login");
-            }
-        }, [navigate]);
+    const pageSize = 5;
+
+
+    useEffect(() => {
+        if (!hasPermission("ADMIN") && !hasPermission("STAFF")) {
+            navigate("/admin/login");
+        }
+    }, [navigate]);
     const [statistics, setStatistics] = useState({
         totalInvoices: 0,
     });
@@ -109,7 +111,7 @@ export default function Invoices() {
         fetchInvoices();
     };
 
-    const goToDetail = (maHoaDon,id) => {
+    const goToDetail = (maHoaDon, id) => {
         navigate(`/admin/invoice-detail/${maHoaDon}/${id}`);
     }
 
@@ -130,7 +132,9 @@ export default function Invoices() {
         filteredInvoices = filteredInvoices.filter(invoice => invoice.trangThai === selectedStatus)
     }
 
-    const totalPage = filteredInvoices.length / 5 > 1 ? filteredInvoices.length / 5 : 1;
+    // const totalPage = filteredInvoices.length / 5 > 1 ? filteredInvoices.length / 5 : 1;
+    const totalPage = Math.ceil(filteredInvoices.length / pageSize);
+
     filteredInvoices = filteredInvoices.slice((currentPage - 1) * 5, (currentPage - 1) * 5 + 5);
 
     return (
@@ -201,7 +205,7 @@ export default function Invoices() {
                 </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className="bg-white p-4 rounded-lg shadow-md relative h-[420px]">
                 <div className="flex justify-between">
                     <h3 className="text-lg font-semibold flex items-center">
                         <FileText className="mr-2" /> Danh sách hoá đơn
@@ -237,7 +241,7 @@ export default function Invoices() {
                     )}
                 </ul>
 
-                <table className="min-w-full border-collapse">
+                <table className="min-w-full border-collapse mb-8">
                     <thead className=''>
                         <tr className="bg-gray-100 text-left ">
                             <th className="px-4 py-2 ">STT</th>
@@ -261,16 +265,16 @@ export default function Invoices() {
                                 <td className="px-4 py-2">{formatDateFromArray(invoice.ngayTao)}</td>
                                 <td className="px-4 py-2">{invoice.loaiDon}</td>
                                 <td className="px-4 py-2"><EyeIcon className="hover:cursor-pointer"
-                                    onClick={() => goToDetail(invoice.maHoaDon,invoice.idHoaDon)} /></td>
+                                    onClick={() => goToDetail(invoice.maHoaDon, invoice.idHoaDon)} /></td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
-                <div className='mt-2 flex justify-center'>
+                <div className='mt-2 flex justify-center absolute bottom-2 right-10'>
                     <nav aria-label="Page navigation example">
                         <ul className="flex items-center -space-x-px h-8 text-sm">
-                            <li onClick={() => changePageHandler(currentPage - 1)}>
+                            <li onClick={() => changePageHandler(Math.max(currentPage - 1, 1))}>
                                 <a href="#"
                                     className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-dark bg-gray-300 border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                     <span className="sr-only">Previous</span>
@@ -281,13 +285,18 @@ export default function Invoices() {
                                     </svg>
                                 </a>
                             </li>
-                            {Array.from({ length: totalPage }, (_, i) => i + 1).map((page) =>
+
+                            {Array.from({ length: totalPage }, (_, i) => i + 1).map((page) => (
                                 <li key={page} onClick={() => changePageHandler(page)}>
                                     <a href="#"
-                                        className={`flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${page === currentPage && 'z-10 leading-tight text-white border-blue-300 bg-blue-500'}`}>{page}</a>
+                                        className={`flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${page === currentPage ? 'z-10 text-white border-blue-300 bg-blue-500' : ''
+                                            }`}>
+                                        {page}
+                                    </a>
                                 </li>
-                            )}
-                            <li onClick={() => changePageHandler(currentPage + 1)}>
+                            ))}
+
+                            <li onClick={() => changePageHandler(Math.min(currentPage + 1, totalPage))}>
                                 <a href="#"
                                     className="flex items-center justify-center px-3 h-8 leading-tight text-dark bg-gray-300 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                     <span className="sr-only">Next</span>
@@ -302,8 +311,9 @@ export default function Invoices() {
                     </nav>
                 </div>
 
+
             </div>
-            <ToastContainer/>
+            <ToastContainer />
         </div>
     );
 }

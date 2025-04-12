@@ -412,6 +412,7 @@ public class ChiTietSanPhamService {
                 hoaDonChiTietRepository.delete(hdct);
             }else{
                 hdct.setSoLuong(1);
+                hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(hdct.getSoLuong())));
                 hoaDonChiTietRepository.save(hdct);
             }
             hoaDonService.UpdateInvoice(idHoaDon);

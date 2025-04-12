@@ -74,9 +74,9 @@ public class KhachHangService {
         return khachHangList;
     }
 
-    public List<KhachHang> getAll() {
-        return khachHangRepo.findAll();
-    }
+//    public List<KhachHang> getAll() {
+//        return khachHangRepo.findAll();
+//    }
 
     public KhachHang themKhachHang(KhachHang khachHang) {
         String password = iUtil.generatePassword();
@@ -423,5 +423,14 @@ public class KhachHangService {
         diaChi.setMacDinh(addressMapper.isStatus());
         diaChi.setStage(addressMapper.getStage());
         return diaChiRepo.save(diaChi);
+    }
+
+    // _____________________________________
+    public List<KhachHang> getAll() {
+        return khachHangRepo.findAll();
+    }
+
+    public List<DiaChi> getCustomerAddress(Integer idKhachHang) {
+        return diaChiRepo.findByKhachHang_IdKhachHang(idKhachHang);
     }
 }

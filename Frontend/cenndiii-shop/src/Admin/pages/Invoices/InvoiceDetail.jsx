@@ -71,10 +71,13 @@ export default function InvoiceDetail() {
     const fetchInvoice = async () => {
         if (idHd) {
             const response = await api.get(`/admin/hoa-don/hien-thi/${idHd}`);
-            console.log(response.data);
             setInvoice(response.data.hoaDon);
-            setCustomerAddress(response.data.diaChiKhachHang)
-            setSelectedAddress(response.data.diaChiKhachHang.find(addr => addr.macDinh === true)?.id);
+            if (response.data.diaChiKhachHang) {
+                setCustomerAddress(response.data.diaChiKhachHang)
+                setSelectedAddress(response.data.diaChiKhachHang.find(addr => addr.macDinh === true)?.id);
+            }
+            console.log(response.data.hoaDon);
+
         }
     };
 
@@ -262,97 +265,15 @@ export default function InvoiceDetail() {
 
     };
 
-    useEffect(() => {
-        const fetchProvinces = async () => {
-            try {
-                const response = await api.get(
-                    "/admin/dia-chi/get-province",
-                );
-                setProvinces(response.data.data || []);
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách tỉnh:", error);
-            }
-        };
-        fetchProvinces();
-    }, []);
-
-    const handleProvinceChange = async (e) => {
-        const province = provinces.find(p => p.ProvinceID == e.target.value);
-        setSelectedProvince(province);
-        setDistricts([]);
-        setWards([]);
-        setSelectedDistrict(null);
-        setSelectedWard(null);
-        setAmount(0);
-
-        try {
-            const response = await api.get(
-                "/admin/dia-chi/get-districts",
-                { params: { provinceID: province.ProvinceID } }
-            );
-            setDistricts(response.data.data || []);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách district:", error);
-        }
-    };
-
-    const handleDistrictChange = async (e) => {
-        const district = districts.find(d => d.DistrictID == e.target.value);
-        setSelectedDistrict(district);
-        setWards([]);
-        setSelectedWard(null);
-        setAmount(0);
-
-        try {
-            const response = await api.get(
-                "/admin/dia-chi/get-wards",
-                { params: { districtID: district.DistrictID } }
-            );
-            setWards(response.data.data || []);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách ward:", error);
-        }
-    };
-
-    const handleWardChange = (e) => {
-        const ward = wards.find(w => w.WardCode == e.target.value);
-        setSelectedWard(ward);
-    };
-
-    // useEffect(() => {
-    //     const getAmount = async () => {
-    //         if (selectedWard && selectedDistrict) {
-    //             try {
-    //                 const response = await api.get(
-    //                     "/admin/dia-chi/shipping-fee",
-    //                     { params: { districtID: Number(selectedDistrict.DistrictID), wardCode: selectedWard.WardCode, idHoaDon: idHd } }
-    //                 );
-    //                 if (response.status === 200) {
-    //                     setAmount(response.data.total);
-    //                 } else {
-    //                     setAmount(30000);
-    //                 }
-    //             } catch (error) {
-    //                 if (error.response) {
-    //                     console.error("Phản hồi lỗi từ API:", error.response.data);
-    //                 }
-    //                 setAmount(33000);
-    //             }
-    //         } else {
-    //             setAmount(0);
-    //         }
-    //     }
-    //     getAmount();
-    // }, [selectedWard, selectedDistrict, orderItemsByTab]);
-
     const handleAddressChange = (event) => {
         setSelectedAddress(event.target.value);
     };
+    const currentAddress = customerAddress.length > 0 ? customerAddress.find((addr) => addr.id === selectedAddress) : invoice;
 
     useEffect(() => {
         if (customerAddress.length > 0) {
             setSelectedAddress(prev => {
-                return prev || customerAddress.find(addr => addr.macDinh)?.id || customerAddress[0].id;
+                return prev || customerAddress.find(addr => addr.macDinh)?.id || customerAddress[0]?.id;
             });
         }
     }, [customerAddress]);
@@ -601,119 +522,68 @@ export default function InvoiceDetail() {
                         </TableContainer>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-md grid grid-cols-5 gap-4 h-[400px]">
-                    {/* Bên trái: Form chỉnh sửa thông tin khách hàng */}
-                    {/* <Box className="col-span-3 bg-gray-50 p-4 rounded-lg">
-                        <Typography variant="h6" className="font-semibold mb-4">
-                            Thông tin khách hàng
-                        </Typography>
-                        <Box className="grid grid-cols-2 gap-4 text-sm">
-                            <TextField
-                                label="Tên khách hàng"
-                                name="khachHang"
-                                variant="outlined"
-                                value={invoice?.khachHang?.hoTen ?? (invoice?.tenNguoiNhan || "K")}
-                                fullWidth
-                                size='small'
-                            />
-                            <TextField
-                                label="SĐT người nhận"
-                                name="soDienThoai"
-                                variant="outlined"
-                                value={invoice?.khachHang?.soDienThoai ?? (invoice?.soDienThoai || "Không có")}
-                                fullWidth
-                                size='small'
-                            />
-                            <TextField
-                                label="Email người nhận"
-                                name="email"
-                                variant="outlined"
-                                value={invoice?.khachHang?.email ?? (invoice?.email || "Không có")}
-                                fullWidth
-                                size='small'
-                            />
-                            <TextField
-                                label="Địa chỉ"
-                                name="diaChi"
-                                variant="outlined"
-                                value={invoice?.khachHang?.diaChi ?? (invoice?.diaChi || "Không có")}
-                                fullWidth
-                                size='small'
-                            />
-                            <FormControl fullWidth >
-                                <InputLabel id="thanh-pho">
-                                    Tỉnh/Thành phố
-                                </InputLabel>
-                                <Select
-                                    value={selectedProvince?.ProvinceID || ""} onChange={handleProvinceChange}
-
-                                    labelId="thanh-pho"
-                                    label="Tỉnh/Thành phố"
-                                >
-                                    {provinces.map((p) => (<MenuItem key={p.ProvinceID} value={p.ProvinceID}>{p.ProvinceName}</MenuItem>))}
-                                </Select>
-                            </FormControl>
-
-                            <FormControl fullWidth disabled={!selectedProvince}>
-                                <InputLabel id="huyen">Quận/Huyện</InputLabel>
-                                <Select
-
-                                    labelId="huyen"
-                                    label="Quận/Huyện"
-                                    value={selectedDistrict?.DistrictID || ""}
-                                    onChange={handleDistrictChange}
-                                >
-                                    {districts.map((d) => (<MenuItem key={d.DistrictID} value={d.DistrictID}>{d.DistrictName}</MenuItem>))}
-                                </Select>
-                            </FormControl>
-
-                            <FormControl fullWidth disabled={!selectedDistrict}>
-                                <InputLabel id="xa">Xã/Phường</InputLabel>
-                                <Select
-                                    value={selectedWard?.WardCode || ""}
-                                    onChange={handleWardChange}
-
-                                    labelId="xa"
-                                    label="Xã/Phường"
-                                >
-                                    {wards.map((w) => (<MenuItem key={w.WardCode} value={w.WardCode}>{w.WardName}</MenuItem>))}
-                                </Select>
-                            </FormControl>
-                        </Box>
-                    </Box> */}
+                <div className="bg-white p-4 rounded-lg shadow-md grid grid-cols-5 gap-4 h-[350px]">
                     <div className="flex flex-col justify-between bg-white p-4 rounded-lg border col-span-3 h-full">
-                        <h1 className="text-lg font-semibold mb-4">Thông tin khách hàng</h1>
-                        <div className='flex-none flex justify-between'>
-                            <h2><span><PersonRounded /></span> {invoice?.khachHang?.hoTen}</h2>
-                            <h2><span><PhoneRounded /></span> {invoice?.khachHang?.soDienThoai}</h2>
-                            <h2><span><EmailRounded /></span> {invoice?.khachHang?.email}</h2>
-                        </div>
+
+                        {/* {customerAddress.length > 0 && (
+                            <div className='flex-none flex justify-between'>
+                                <h2><span><PersonRounded /></span> {invoice?.khachHang?.hoTen}</h2>
+                                <h2><span><PhoneRounded /></span> {invoice?.khachHang?.soDienThoai}</h2>
+                                <h2><span><EmailRounded /></span> {invoice?.khachHang?.email}</h2>
+                            </div>
+                        )} */}
                         <div>
                             <div className='flex flex-col justify-between text-sm'>
 
                                 <div className='flex-auto'>
                                     <div className='flex justify-between'>
-                                        <div>Địa chỉ</div>
-                                        <div>
-                                            <button onClick={e => setOpenAddressDialog(true)}>Thêm địa chỉ</button>
-                                        </div>
+                                        <h1 className="text-lg font-semibold mb-4">Thông tin khách hàng</h1>
+
+                                        {invoice?.trangThai == "Chờ xác nhận" && (
+                                            <div className='m-2'>
+                                                <Button variant="contained" color="primary" size='small' onClick={e => setOpenAddressDialog(true)}>{invoice?.loaiDon === "Online" ? "Sửa địa chỉ" : "Thêm địa chỉ"}</Button>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className='flex flex-col gap-4'>
-                                        <FormControl fullWidth>
-                                            <Select
-                                                value={selectedAddress}
-                                                onChange={handleAddressChange}
-                                                labelId="address"
-                                                size='small'
-                                                sx={{ fontSize: '10px' }}
-                                            >
-                                                {customerAddress.map((address) => (
-                                                    <MenuItem key={address.id} value={address.id}>
-                                                        {address.diaChiChiTiet}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        {customerAddress.length > 0 && (
+                                            <FormControl fullWidth>
+                                                <InputLabel id='address'>Địa chỉ</InputLabel>
+                                                <Select
+                                                    label="Địa chỉ"
+                                                    value={
+                                                        selectedAddress
+                                                        ?? (customerAddress
+                                                            ? customerAddress.find(a => a.diaChiChiTiet === invoice?.diaChiChiTiet)?.id
+                                                            : '')
+                                                    }
+                                                    onChange={handleAddressChange}
+                                                    labelId="address"
+                                                    size="small"
+                                                // sx={{ fontSize: '10px' }}
+                                                >
+                                                    {customerAddress.map((address) => (
+                                                        <MenuItem key={address.id} value={address.id}>
+                                                            {address.diaChiChiTiet}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+
+                                        )}
+                                        {customerAddress.length <= 0 && (
+                                            <Box>
+                                                <TextField
+                                                    disabled={invoice?.trangThai != "Chờ xác nhận"}
+                                                    label="Địa chỉ"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    sx={{ fontSize: "10px" }}
+                                                    value={currentAddress?.diaChiChiTiet || ""}
+                                                />
+                                            </Box>
+                                        )}
                                         <Box display="flex" gap={2}>
                                             <TextField
                                                 label="Tên người nhận"
@@ -721,7 +591,8 @@ export default function InvoiceDetail() {
                                                 size="small"
                                                 fullWidth
                                                 sx={{ fontSize: "10px" }}
-                                                value={customerAddress.find((addr) => addr.id === selectedAddress)?.tenNguoiNhan || ""}
+                                                disabled={invoice?.trangThai != "Chờ xác nhận"}
+                                                value={currentAddress?.tenNguoiNhan || ""}
                                                 onChange={(e) => handleInputChange("tenNguoiNhan", e.target.value)}
                                             />
                                             <TextField
@@ -729,16 +600,16 @@ export default function InvoiceDetail() {
                                                 variant="outlined"
                                                 size="small"
                                                 fullWidth
+                                                disabled={invoice?.trangThai != "Chờ xác nhận"}
                                                 sx={{ fontSize: "10px" }}
-                                                value={customerAddress.find((addr) => addr.id === selectedAddress)?.soDienThoai || ""}
+                                                value={currentAddress?.soDienThoai || ""}
                                                 onChange={(e) => {
                                                     const value = e.target.value;
-                                                    if (/^\d*$/.test(value)) {  // Chỉ chấp nhận số
+                                                    if (/^\d*$/.test(value)) {
                                                         handleInputChange("soDienThoai", value);
                                                     }
                                                 }}
                                             />
-
                                         </Box>
 
                                         {/* Ô nhập ghi chú */}
@@ -747,31 +618,51 @@ export default function InvoiceDetail() {
                                             variant="outlined"
                                             size="small"
                                             fullWidth
+                                            disabled={invoice?.trangThai != "Chờ xác nhận"}
                                             sx={{ fontSize: "10px" }}
-                                            value={customerAddress.find((addr) => addr.id === selectedAddress)?.ghiChu || ""}
+                                            value={currentAddress?.ghiChu || ""}
                                             onChange={(e) => handleInputChange("ghiChu", e.target.value)}
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <Button variant="contained" onClick={handleUpdateAddress}>
-                            Cập nhật thông tin
-                        </Button>
+                        {customerAddress.length > 0 && (
+                            <Button variant="contained" onClick={handleUpdateAddress}>
+                                Cập nhật thông tin
+                            </Button>
+                        )}
                     </div>
                     {/* Bên phải: Hóa đơn */}
-                    <div className='col-span-2 h-full bg-white p-4 rounded-lg border '>
+                    <div className='col-span-2 h-full bg-white p-4 rounded-lg border h-full text-sm'>
                         <h1 className="text-lg font-semibold mb-4">Hóa đơn</h1>
-                        <div>
-                            <div className='flex flex-col justify-between text-sm h-3/4'>
-                                <div className='flex justify-between'><span className='font-bold flex-none'>Giảm giá:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
-                                <div className='flex justify-between'><span className='font-bold flex-none'>Phí vận chuyển:</span> <span>{invoice?.phiVanChuyen.toLocaleString() || "0"} đ</span></div>
-                                <div className='flex justify-between'><span className='font-bold flex-none'>Phụ phí:</span> <span>{invoice?.phuPhi} đ</span></div>
-                                <div className='flex justify-between'><span className='font-bold flex-none'>Hoàn phí:</span> <span className=' font-semibold'>{invoice?.hoanPhi} đ</span></div>
 
-                                <div className='flex-col justify-between border-y py-2'>
-                                    <div className='flex justify-between'><span className='font-bold flex-none'>Tổng tiền:</span> <span className='text-red-500 font-semibold'>{invoice?.tongTien.toLocaleString()} đ</span></div>
-                                </div>
+                        <div className='flex flex-col justify-between py-4 h-3/4'>
+                            <div className='flex justify-between'>
+                                <span className='font-bold flex-none'>Tổng tiền:</span>
+                                <span>{total.toLocaleString() || "0"} đ</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span className='font-bold flex-none'>Giảm giá:</span>
+                                <span className='text-green-500'>- {invoice?.giaDuocGiam?.toLocaleString() || "0"} đ</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span className='font-bold flex-none'>Phí vận chuyển:</span>
+                                <span className='text-red-500 font-semibold'>+ {invoice?.phiVanChuyen?.toLocaleString() || "0"} đ</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span className='font-bold flex-none'>Phụ phí:</span>
+                                <span className='text-red-500 font-semibold'>+ {invoice?.phuPhi?.toLocaleString() || "0"} đ</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span className='font-bold flex-none'>Hoàn phí:</span>
+                                <span className='text-green-500 font-semibold'>- {invoice?.hoanPhi?.toLocaleString() || "0"} đ</span>
+                            </div>
+                        </div>
+                        <div className='flex-col justify-between border-t py-2'>
+                            <div className='flex justify-between'>
+                                <span className='font-bold flex-none'>Số tiền cần thanh toán:</span>
+                                <span className='text-red-500 font-semibold'>{invoice?.tongTien?.toLocaleString()} đ</span>
                             </div>
                         </div>
                     </div>

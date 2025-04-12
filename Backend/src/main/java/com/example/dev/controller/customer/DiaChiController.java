@@ -4,6 +4,7 @@ import com.example.dev.entity.customer.DiaChi;
 import com.example.dev.service.customer.DiaChiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.*;
 
@@ -49,9 +50,9 @@ public class DiaChiController {
     }
 
     @PostMapping("/add/{idHoaDon}")
-    public ResponseEntity<?> add(@RequestBody DiaChi diaChi,@PathVariable Integer idHoaDon) {
+    public ResponseEntity<?> add(@RequestBody DiaChi diaChi, @PathVariable Integer idHoaDon, Authentication auth) {
         try {
-            diaChiService.addNewAddress(diaChi,idHoaDon);
+            diaChiService.addNewAddress(diaChi,idHoaDon,auth);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -85,16 +85,14 @@ public class HoaDonService {
         if (hd.getKhachHang() != null) {
             request.setDiaChiKhachHang(diaChiService.getAddressCustomer(hd.getKhachHang().getIdKhachHang()));
         }
-        if(hd.getTenNguoiNhan() != null || hd.getSoDienThoai() != null) {
-            String provinceName = diaChiService.getProvince(hd.getTinhThanhPho());
-            String districtName = diaChiService.getDistricts(hd.getTinhThanhPho(), hd.getQuanHuyen());
-            String wardName = diaChiService.getWards(hd.getQuanHuyen(),hd.getXaPhuong());
-            String fullAddress = "";
-//            DiaChi dc = DiaChi.builder()
-//                    .id(idHoaDon)
-//                    .diaChiChiTiet()
-//                    .build();
-        }
+//        if(hd.getTenNguoiNhan() != null || hd.getSoDienThoai() != null) {
+//            String provinceName = diaChiService.getProvince(hd.getTinhThanhPho());
+//            String districtName = diaChiService.getDistricts(hd.getTinhThanhPho(), hd.getQuanHuyen());
+//            String wardName = diaChiService.getWards(hd.getQuanHuyen(),hd.getXaPhuong());
+//            String fullAddress = (hd.getDiaChiChiTiet() +"," +provinceName + "," + districtName + "," + wardName);;
+//            hd.setDiaChiChiTiet(fullAddress);
+//
+//        }
         return request;
     }
 
@@ -595,32 +593,41 @@ public class HoaDonService {
         HoaDon invoice = hoaDonRepository.findById(idHoaDon).orElseThrow();
         List<HoaDonChiTiet> listCart = hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
         KhachHang kh = invoice.getKhachHang();
-        List<DiaChi> dckh = diaChiRepo.findByKhachHang_IdKhachHang(kh.getIdKhachHang());
-
-        if (dckh.isEmpty()){
-            throw new RuntimeException("Khong tim thay dia chi khach");
-        }
+        List<DiaChi> dckh;
         DiaChi addressChange = new DiaChi();
-        for (DiaChi dc : dckh) {
-            if (dc.isMacDinh()){
-                addressChange = dc;
-                break;
+
+        if (kh != null){
+            dckh = diaChiRepo.findByKhachHang_IdKhachHang(kh.getIdKhachHang());
+            for (DiaChi dc : dckh) {
+                if (dc.isMacDinh()){
+                    addressChange = dc;
+                    break;
+                }
             }
+            if (dckh.isEmpty()){
+                throw new RuntimeException("Khong tim thay dia chi khach");
+            }
+        }else{
+            addressChange.setThanhPho(invoice.getTinhThanhPho());
+            addressChange.setQuanHuyen(invoice.getQuanHuyen());
+            addressChange.setXaPhuong(invoice.getXaPhuong());
+            addressChange.setDiaChiChiTiet(invoice.getDiaChiChiTiet());
         }
+
         diaChiService.updateShippingFee(addressChange,idHoaDon);
 
         BigDecimal total = BigDecimal.ZERO;
 
-// Tính tổng tiền hàng
+    // Tính tổng tiền hàng
         for (HoaDonChiTiet chiTiet : listCart) {
             total = total.add(chiTiet.getThanhTien()); // Cộng dồn thay vì multiply
         }
 
-// Kiểm tra nếu có phiếu giảm giá
+    // Kiểm tra nếu có phiếu giảm giá
         PhieuGiamGia pgg = invoice.getPhieuGiamGia();
         if (pgg != null && total.compareTo(pgg.getDieuKien()) >= 0) {
             BigDecimal discount = getDiscount(pgg, total);
-
+            invoice.setGiaDuocGiam(discount);
             // Trừ giảm giá vào tổng tiền
             total = total.subtract(discount);
 
@@ -641,7 +648,7 @@ public class HoaDonService {
     }
 
     private static BigDecimal getDiscount(PhieuGiamGia pgg, BigDecimal total) {
-        BigDecimal discount = BigDecimal.ZERO;
+        BigDecimal discount;
 
         if (pgg.getHinhThuc().equalsIgnoreCase("VND")) {
             // Giảm giá cố định (VND)
@@ -657,7 +664,9 @@ public class HoaDonService {
             }
         }
         return discount;
-    }    public List<HoaDon> hienThiHoaDonKhachHang(Integer idKhachHang) {
+    }
+
+    public List<HoaDon> hienThiHoaDonKhachHang(Integer idKhachHang) {
         return hoaDonRepository.findHoaDonByKhachHangId(idKhachHang);
     }
 
