@@ -21,5 +21,12 @@ public interface DotGiamGiaRepo extends JpaRepository<DotGiamGia, String>, JpaSp
 
     Optional<DotGiamGia> findById(String idDotGiamGia);
 
+    //làm bên quét qr
+    @Query(value = "SELECT * FROM dot_giam_gia " +
+            "where ngay_ket_thuc >= CAST(GETDATE() AS DATE) " +
+            "AND trang_thai = 1",
+            nativeQuery = true)
+    Optional<DotGiamGia> findActiveDotGiamGia();
+
 
 }

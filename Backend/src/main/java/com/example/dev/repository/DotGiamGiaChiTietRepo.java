@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DotGiamGiaChiTietRepo extends JpaRepository<DotGiamGiaChiTiet, Integer> {
     DotGiamGiaChiTiet save(DotGiamGiaChiTiet dotGiamGiaChiTiet);
@@ -26,6 +27,15 @@ public interface DotGiamGiaChiTietRepo extends JpaRepository<DotGiamGiaChiTiet, 
 
     @Query("SELECT d FROM ChiTietSanPham d WHERE d.idChiTietSanPham IN :idSanPhamChiTiet")
     List<ChiTietSanPham> findChiTietSanPhamByListId(@Param("idSanPhamChiTiet") List<Integer> idSanPhamChiTiet);
+
+    //    @Query("SELECT d FROM ChiTietSanPham d WHERE d.idChiTietSanPham IN :idSanPhamChiTiet")
+//    List<ChiTietSanPham> findChiTietSanPhamById(@Param("idSanPhamChiTiet") Integer idSanPhamChiTiet);
+    @Query("SELECT d FROM DotGiamGiaChiTiet d " +
+            "WHERE d.chiTietSanPham.idChiTietSanPham = :idChiTiet " +
+            "AND d.dotGiamGia.id = :idDotGiamGia")
+    Optional<DotGiamGiaChiTiet> findByChiTietAndDot(@Param("idChiTiet") Integer idChiTiet,
+                                                    @Param("idDotGiamGia") Integer idDotGiamGia);
+
 
     @Transactional
     @Modifying

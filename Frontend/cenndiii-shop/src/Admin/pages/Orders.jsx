@@ -300,7 +300,7 @@ export default function Orders() {
           giaSauGiam: product.gia
         };
 
-        alert(`http://localhost:8080/admin/chi-tiet-san-pham/them-sp/${requestData}`)
+        // alert(`http://localhost:8080/admin/chi-tiet-san-pham/them-sp/${requestData}`)
 
         // 4. Gọi API thêm vào giỏ
         const response = await api.post("/admin/chi-tiet-san-pham/them-sp", requestData);
