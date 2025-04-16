@@ -30,8 +30,13 @@ public class MuiGiayController {
         return ResponseEntity.ok(muiGiayService.themMuiGiay(mg));
     }
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaMuiGiay(@RequestBody MuiGiay mg, @PathVariable Integer id) {
-        return ResponseEntity.ok(muiGiayService.suaMuiGiay(mg, id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaMuiGiay(@RequestBody MuiGiay mg) {
+        try {
+            muiGiayService.suaMuiGiay(mg);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

@@ -1,17 +1,11 @@
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import OrderStatus from '../../components/ui/OrderStatus';
 import Notification from '../../../components/Notification';
 import { ToastContainer } from 'react-toastify';
-// import { confirmAlert } from 'react-confirm-alert';
-// import 'react-confirm-alert/src/react-confirm-alert.css';
 import api from '../../../security/Axios';
 import { hasPermission } from "../../../security/DecodeJWT";
 import { useNavigate } from 'react-router-dom';
-import { formatDateFromArray } from '../../../untils/FormatDate';
 import Alert from '../../../components/Alert';
-import { set } from 'react-hook-form';
 import Stepper from "./Stepper"
 import {
     Dialog,
@@ -35,28 +29,21 @@ import {
     MenuItem
 } from "@mui/material";
 import { Trash } from "lucide-react";
-import { Add, Remove, PersonRounded, PhoneRounded, EmailRounded } from '@mui/icons-material';
+import { Add, Remove } from '@mui/icons-material';
 import PaymentHistory from './PaymentHistory';
 import AddressDialog from './AddNewAddress';
 export default function InvoiceDetail() {
-    const { id, idHd } = useParams();
+    const { idHd } = useParams();
     const [invoice, setInvoice] = useState();
     const navigate = useNavigate();
     const [total, setTotal] = useState(0);
     const [openPaymentHistory, setOpenPaymentHistory] = useState(false)
     const [openAddressDialog, setOpenAddressDialog] = useState(false);
 
-    // tính toán giao hàng
-    const [provinces, setProvinces] = useState([]);
-    const [districts, setDistricts] = useState([]);
-    const [wards, setWards] = useState([]);
-    const [amount, setAmount] = useState(0);
 
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [customerAddress, setCustomerAddress] = useState([]);
-    const [selectedProvince, setSelectedProvince] = useState(null);
-    const [selectedDistrict, setSelectedDistrict] = useState(null);
-    const [selectedWard, setSelectedWard] = useState(null);
+
 
     useEffect(() => {
         if (localStorage.getItem("token")) {
@@ -76,8 +63,6 @@ export default function InvoiceDetail() {
                 setCustomerAddress(response.data.diaChiKhachHang)
                 setSelectedAddress(response.data.diaChiKhachHang.find(addr => addr.macDinh === true)?.id);
             }
-            console.log(response.data.hoaDon);
-
         }
     };
 
@@ -111,7 +96,7 @@ export default function InvoiceDetail() {
         }
 
         const total = orderItemsByTab.reduce((sum, item) => {
-            return sum + (item.giaDuocTinh ?? item.donGia) * item.soLuongMua;
+            return sum + item.thanhTien;
         }, 0);
 
         setTotal(total);
@@ -129,6 +114,7 @@ export default function InvoiceDetail() {
     const reload = async () => {
         fetchInvoice();
         getProductFromDetailsInvoice();
+
     }
     useEffect(() => {
         fetchInvoice();
@@ -301,16 +287,103 @@ export default function InvoiceDetail() {
         fetchInvoice();
         getProductFromDetailsInvoice();
     }
+
+    const validate = () => {
+        const hasError = orderItemsByTab?.some(item => {
+            if (item.soLuongMua > item.kho) {
+                Notification("Yêu cầu thương lượng với khách và cập nhật lại số lượng!", "error");
+                return true; // Nếu có lỗi → trả về true
+            }
+            return false;
+        });
+    
+        return !hasError; // Nếu có lỗi thì trả false
+    }
+    
+    const continues = async () => {
+        try {
+            if (validate()) {
+                const response = await api.put(`/admin/hoa-don/${invoice.maHoaDon}/xac-nhan`)
+                if (response.data != "") {
+                    reload();
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const back = async () => {
+        try {
+            const response = await api.put(`/admin/hoa-don/${invoice.maHoaDon}/quay-lai`)
+            if (response.data != "") {
+                reload();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const isVisible = () => {
+        const trangThai = invoice?.trangThai;
+        if (trangThai === "Chờ vận chuyển" || trangThai === "Đang vận chuyển" || trangThai === "Hủy") {
+            return false;
+        }
+        return true
+    }
+
+    const statusBtn = (status) => {
+        if (status === "Chờ xác nhận" || status === "Đã hoàn thành") {
+            return "Hủy"
+        }
+        if (status === "Đã xác nhận") {
+            return "Về chờ xác nhận"
+        }
+    }
+
+    const [showHistory, setShowHistory] = useState(false);
+
+    // Thêm hàm để xử lý đóng/mở Dialog
+    const handleOpenHistory = () => {
+        setShowHistory(true);
+    };
+
+    const handleCloseHistory = () => {
+        setShowHistory(false);
+    };
     return (
         <div className="p-6 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow-md ">
                 <h1 className="my-2 text-lg font-semibold flex items-center mb-4">Trạng thái đơn hàng</h1>
-                <Stepper order={invoice} onReload={reload} />
+                <Stepper
+                    order={invoice}
+                    showHistory={showHistory}
+                    onClose={handleCloseHistory}
+                />
+                <div className="flex justify-around w-full mt-4">
+                    <div className="flex justify-between w-[300px]">
+                        {invoice?.trangThai != "Hủy" && (
+                            <Button variant="contained" color="primary" onClick={() => continues()} >
+                                Tiếp tục
+                            </Button>
+                        )}
+                        {isVisible() && (
+                            <Button variant="contained" color="secondary" onClick={() => back()} >
+                                {statusBtn(invoice?.trangThai)}
+                            </Button>
+                        )}
+                    </div>
+                    <div>
+                        <Button variant="contained" color="info" onClick={handleOpenHistory}>
+                            Lịch sử hóa đơn
+                        </Button>
+                    </div>
+                </div>
             </div>
             <div>
                 <div className="bg-white p-4 rounded-lg shadow-md my-4">
                     <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-lg font-semibold">Thông tin đơn hàng có mã hóa đơn: {id}</h1>
+                        <h1 className="text-lg font-semibold">Thông tin đơn hàng có mã hóa đơn: {invoice?.maHoaDon}</h1>
                         <div>
                             <button className="p-2 bg-blue-600 text-white rounded-md me-2" onClick={() => setOpenPaymentHistory(true)}>Lịch sử thanh toán</button>
                             {invoice?.trangThai === "Chờ xác nhận" && (
@@ -369,31 +442,37 @@ export default function InvoiceDetail() {
                                 <TableBody>
                                     {orderItemsByTab && orderItemsByTab.length > 0 ? (
                                         orderItemsByTab.map((item) => (
-                                            <TableRow key={item.idHoaDonChiTiet}>
+                                            <TableRow key={item?.idHoaDonChiTiet}>
                                                 <TableCell align="center" sx={{ width: "200px" }}>
                                                     <div className="flex justify-content-center relative">
                                                         <div>
                                                             <img
-                                                                src={item.lienKet}
-                                                                alt={item.tenSanPham}
+                                                                src={item?.lienKet}
+                                                                alt={item?.tenSanPham}
                                                                 className="w-12 h-12 object-cover inset-0 rounded-md inline-block"
                                                             />
                                                         </div>
                                                         <div className="ms-1">
-                                                            <p>{item.tenSanPham}</p>
-                                                            <p className="text-[10px] text-[#8d8674]">{item.tenMau}</p>
-                                                            <p className="text-[10px] text-[#8d8674]">{item.tenKichCo}</p>
+                                                            <p>{item?.tenSanPham}</p>
+                                                            <p className="text-[10px] text-[#8d8674]">{item?.tenMau}</p>
+                                                            <p className="text-[10px] text-[#8d8674]">{item?.tenKichCo}</p>
                                                         </div>
-                                                        {!item.trangThai ? (
+                                                        {!item?.trangThai ? (
                                                             <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
                                                                 *Sản phẩm đã ngừng hoạt động! Chỉ có thể trả lại hoặc thanh toán!
                                                             </p>
                                                         ) : (
-                                                            item.giaDuocTinh && (
-                                                                <p className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
-                                                                    *Sản phẩm có sự thay đổi về giá {item.giaDuocTinh.toLocaleString()} đ → {" "}
-                                                                    {item.donGia.toLocaleString()} đ
-                                                                </p>
+                                                            item?.giaDuocTinh && (
+                                                                <span className="text-red-500 absolute -bottom-5 left-0 w-[500px] text-left">
+                                                                    *Sản phẩm có sự thay đổi về giá {item?.giaDuocTinh.toLocaleString()} đ → {" "}
+                                                                    {item?.donGia.toLocaleString()} đ
+                                                                </span>
+                                                            ) ||
+                                                            invoice?.trangThai === "Chờ xác nhận" &&
+                                                            item?.soLuongMua > item?.kho && (
+                                                                <span className="text-red-500 absolute -bottom-5 left-0 w-[650px] text-left">
+                                                                    *Sản phẩm đã hết hoặc mua từ bên khác, vui lòng thương lượng với khách và cập nhật lại số lượng!
+                                                                </span>
                                                             )
                                                         )}
                                                     </div>
@@ -524,14 +603,6 @@ export default function InvoiceDetail() {
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-md grid grid-cols-5 gap-4 h-[350px]">
                     <div className="flex flex-col justify-between bg-white p-4 rounded-lg border col-span-3 h-full">
-
-                        {/* {customerAddress.length > 0 && (
-                            <div className='flex-none flex justify-between'>
-                                <h2><span><PersonRounded /></span> {invoice?.khachHang?.hoTen}</h2>
-                                <h2><span><PhoneRounded /></span> {invoice?.khachHang?.soDienThoai}</h2>
-                                <h2><span><EmailRounded /></span> {invoice?.khachHang?.email}</h2>
-                            </div>
-                        )} */}
                         <div>
                             <div className='flex flex-col justify-between text-sm'>
 
@@ -541,7 +612,7 @@ export default function InvoiceDetail() {
 
                                         {invoice?.trangThai == "Chờ xác nhận" && (
                                             <div className='m-2'>
-                                                <Button variant="contained" color="primary" size='small' onClick={e => setOpenAddressDialog(true)}>{invoice?.loaiDon === "Online" && invoice?.khachHang === null  ? "Sửa địa chỉ" : "Thêm địa chỉ"}</Button>
+                                                <Button variant="contained" color="primary" size='small' onClick={e => setOpenAddressDialog(true)}>{invoice?.loaiDon === "Online" && invoice?.khachHang === null ? "Sửa địa chỉ" : "Thêm địa chỉ"}</Button>
                                             </div>
                                         )}
                                     </div>
@@ -557,6 +628,7 @@ export default function InvoiceDetail() {
                                                             ? customerAddress.find(a => a.diaChiChiTiet === invoice?.diaChiChiTiet)?.id
                                                             : '')
                                                     }
+                                                    disabled={invoice?.trangThai != "Chờ xác nhận"}
                                                     onChange={handleAddressChange}
                                                     labelId="address"
                                                     size="small"
@@ -628,9 +700,11 @@ export default function InvoiceDetail() {
                             </div>
                         </div>
                         {customerAddress.length > 0 && (
-                            <Button variant="contained" onClick={handleUpdateAddress}>
-                                Cập nhật thông tin
-                            </Button>
+                            invoice?.trangThai === "Chờ xác nhận" && (
+                                <Button variant="contained" onClick={handleUpdateAddress}>
+                                    Cập nhật thông tin
+                                </Button>
+                            )
                         )}
                     </div>
                     {/* Bên phải: Hóa đơn */}

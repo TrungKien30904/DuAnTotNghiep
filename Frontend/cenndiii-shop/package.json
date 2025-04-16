@@ -8,6 +8,7 @@
     "@headlessui/react": "^2.2.0",
     "@mui/icons-material": "^6.4.7",
     "@mui/material": "^6.4.6",
+    "@mui/x-data-grid": "^7.28.3",
     "antd": "^5.24.4",
     "axios": "^1.7.9",
     "cenndiii-shop": "file:",

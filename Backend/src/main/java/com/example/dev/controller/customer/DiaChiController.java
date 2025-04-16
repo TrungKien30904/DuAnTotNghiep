@@ -58,4 +58,14 @@ public class DiaChiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PostMapping("/add-address-customer/{idKhachHang}")
+    public ResponseEntity<?> addAddressCustomer(@RequestBody DiaChi diaChi, @PathVariable Integer idKhachHang) {
+        try {
+            diaChiService.addNewAddressInvoiceOnline(diaChi,idKhachHang);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

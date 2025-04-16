@@ -3,7 +3,7 @@ import axios from "axios";
 import { Dialog } from "@headlessui/react";
 import { MapPinHouse } from "lucide-react";
 import { getUserId } from "../../../security/DecodeJWT";
-import Notification from "../../../components/Notification"; 
+import Notification from "../../../components/Notification";
 import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Typography } from "@mui/material";
 
 const SelectAddress = ({ onSelect, onClose, currentAddress }) => {
@@ -30,7 +30,7 @@ const SelectAddress = ({ onSelect, onClose, currentAddress }) => {
     const [errors, setErrors] = useState({});
     const [selectedCustomerId, setSelectedCustomerId] = useState(null);
     const [customerAddresses, setCustomerAddresses] = useState([]);
-    
+
     const GHN_HEADERS = {
         token: "a9cd42d9-f28a-11ef-a268-9e63d516feb9",
         "Content-Type": "application/json",
@@ -74,14 +74,17 @@ const SelectAddress = ({ onSelect, onClose, currentAddress }) => {
     };
 
     const fetchAddressesFromBackend = async () => {
-        try {
-            const response = await axios.get(`http://localhost:8080/admin/khach-hang/detail-client/${selectedCustomerId}`, {
-                withCredentials: true
-            });
-            setCustomerAddresses(response.data.addressMappers);
-        } catch (err) {
-            console.error("Lỗi khi lấy thông tin khách hàng:", err);
+        if (selectedCustomerId != null) {
+            try {
+                const response = await axios.get(`http://localhost:8080/admin/khach-hang/detail-client/${selectedCustomerId}`, {
+                    withCredentials: true
+                });
+                setCustomerAddresses(response.data.addressMappers);
+            } catch (err) {
+                console.error("Lỗi khi lấy thông tin khách hàng:", err);
+            }
         }
+
     };
 
     useEffect(() => {
@@ -189,7 +192,7 @@ const SelectAddress = ({ onSelect, onClose, currentAddress }) => {
                 await fetchAddressesFromBackend(); // Gọi API để lấy lại danh sách địa chỉ
                 setSelectedAddress(savedAddress);
                 setIsAddingNewAddress(false);
-                 Notification("Thêm địa chỉ thành công!", "success");
+                Notification("Thêm địa chỉ thành công!", "success");
             } catch (error) {
                 console.error("Lỗi khi thêm địa chỉ mới:", error);
                 Notification("Thêm địa chỉ thất bại!", "error");
@@ -288,8 +291,8 @@ const SelectAddress = ({ onSelect, onClose, currentAddress }) => {
                             </div>
                         </div>
                     ) : (
-                        customerAddresses.length > 0 ? (
-                            customerAddresses.map((address, index) => (
+                        customerAddresses?.length > 0 ? (
+                            customerAddresses?.map((address, index) => (
                                 <div
                                     key={index}
                                     className={`border rounded-lg p-4 cursor-pointer flex items-center transition-all 

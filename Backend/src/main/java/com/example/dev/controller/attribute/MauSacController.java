@@ -29,8 +29,14 @@ public class MauSacController {
         return ResponseEntity.ok(mauSacService.themMauSac(ms));
     }
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaMauSac(@RequestBody MauSac ms, @PathVariable Integer id) {
-        return ResponseEntity.ok(mauSacService.suaMauSac(ms, id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaMauSac(@RequestBody MauSac ms) {
+        try {
+            mauSacService.suaMauSac(ms);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
     }
 }

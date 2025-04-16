@@ -4,10 +4,12 @@ import com.example.dev.DTO.UserLogin.UserLogin;
 import com.example.dev.DTO.request.DiaChi.Item;
 import com.example.dev.DTO.request.DiaChi.ShipRequest;
 import com.example.dev.entity.customer.DiaChi;
+import com.example.dev.entity.customer.KhachHang;
 import com.example.dev.entity.invoice.HoaDon;
 import com.example.dev.entity.invoice.HoaDonChiTiet;
 import com.example.dev.repository.NhanVienRepo;
 import com.example.dev.repository.customer.DiaChiRepo;
+import com.example.dev.repository.customer.KhachHangRepo;
 import com.example.dev.repository.invoice.HoaDonChiTietRepository;
 import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.service.invoice.HoaDonChiTietService;
@@ -40,6 +42,7 @@ public class DiaChiService {
     private final HoaDonRepository hoaDonRepository;
     private final DiaChiRepo diaChiRepo;
     private final NhanVienRepo nhanVienRepo;
+    private final KhachHangRepo khachHangRepo;
     RestTemplate restTemplate = new RestTemplate();
 
     private static HttpHeaders getHttpHeaders() {
@@ -184,7 +187,7 @@ public class DiaChiService {
 
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(response.getBody());
-            if (objectMapper.writeValueAsString(rootNode.path("code")).equalsIgnoreCase("200")) {
+            if (rootNode.path("code").asInt() == 200){
                 JsonNode dataNode = rootNode.path("data").path("total");
                 return objectMapper.writeValueAsString(dataNode); // Chuyển về JSON String
             }
@@ -217,7 +220,9 @@ public class DiaChiService {
             }
         }
         diaChiRepo.saveAll(listDiaChi);
-        updateShippingFee(diaChi, idHoaDon);
+        if (idHoaDon != -1) {
+            updateShippingFee(diaChi, idHoaDon);
+        }
     }
 
     public void addNewAddress(DiaChi diaChi, Integer idHoaDon, Authentication auth) {
@@ -285,4 +290,23 @@ public class DiaChiService {
         hoaDonRepository.save(hd);
     }
 
+    public void addNewAddressInvoiceOnline(DiaChi diaChi,Integer idKhachHang){
+        String provinceName,districtName,wardName = "";
+        List<DiaChi> listDiaChi = diaChiRepo.findByKhachHang_IdKhachHang(idKhachHang);
+        diaChi.setKhachHang(khachHangRepo.findById(idKhachHang).orElse(null));
+        provinceName = getProvince(diaChi.getThanhPho());
+        districtName = getDistricts(diaChi.getThanhPho(), diaChi.getQuanHuyen());
+        wardName = getWards(diaChi.getQuanHuyen(), diaChi.getXaPhuong());
+        diaChi.setMacDinh(true);
+        diaChi.setDiaChiChiTiet(diaChi.getDiaChiChiTiet() + "," + provinceName + "," + districtName + "," + wardName);
+
+        DiaChi n = diaChiRepo.save(diaChi);
+
+        for (DiaChi d : listDiaChi) {
+            if (!d.getId().equals(n.getId())) {
+                d.setMacDinh(false);
+            }
+        }
+        diaChiRepo.saveAll(listDiaChi);
+    }
 }

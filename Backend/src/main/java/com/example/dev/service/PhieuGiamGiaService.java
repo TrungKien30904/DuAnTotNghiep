@@ -6,7 +6,7 @@ import com.example.dev.entity.PhieuGiamGiaChiTiet;
 import com.example.dev.repository.customer.KhachHangRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaChiTietRepository;
 import com.example.dev.repository.voucher.PhieuGiamGiaRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

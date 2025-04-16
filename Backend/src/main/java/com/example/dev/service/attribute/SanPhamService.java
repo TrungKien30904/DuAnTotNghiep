@@ -5,7 +5,7 @@ import com.example.dev.DTO.response.product.SanPhamDTO;
 import com.example.dev.DTO.response.product.SanPhamOnlResponse;
 import com.example.dev.entity.attribute.SanPham;
 import com.example.dev.repository.attribute.SanPhamRepo;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;

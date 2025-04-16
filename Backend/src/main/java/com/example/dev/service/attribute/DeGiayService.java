@@ -13,10 +13,13 @@ public class DeGiayService {
     @Autowired
     private DeGiayRepo deGiayRepo;
 
-    public List<DeGiay> getCoGiay() {
+    public List<DeGiay> getDeGiay() {
         return deGiayRepo.findAll(Sort.by(Sort.Direction.DESC, "idDeGiay"));
     }
 
+    public List<DeGiay> deGiayBan(){
+        return deGiayRepo.findAllByTrangThaiIsTrue();
+    }
     public List<DeGiay> getDeGiays(String ten, Boolean trangThai) {
         if (ten != null && !ten.isEmpty() && trangThai != null) {
             return deGiayRepo.findByTenAndTrangThai(ten, trangThai);
@@ -25,17 +28,15 @@ public class DeGiayService {
         } else if (trangThai != null) {
             return deGiayRepo.findByTrangThai(trangThai);
         }
-        return getCoGiay();
+        return getDeGiay();
     }
 
     public DeGiay themDeGiay(DeGiay deGiay) {
         return deGiayRepo.save(deGiay);
     }
 
-    public List<DeGiay> suaDeGiay(DeGiay deGiay, Integer id) {
-        deGiay.setIdDeGiay(id);
+    public void suaDeGiay(DeGiay deGiay) {
         deGiayRepo.save(deGiay);
-        return getCoGiay();
     }
 
     public boolean existsByName(String ten) {

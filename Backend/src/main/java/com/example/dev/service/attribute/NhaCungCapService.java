@@ -24,9 +24,7 @@ public class NhaCungCapService {
         return ncc;
     }
 
-    public List<NhaCungCap> suaNhaCungCap(NhaCungCap ncc,Integer id){
-        ncc.setIdNhaCungCap(id);
+    public void suaNhaCungCap(NhaCungCap ncc){
         nhaCungCapRepo.save(ncc);
-        return getNcc();
     }
 }

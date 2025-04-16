@@ -61,10 +61,8 @@ QontoStepIcon.propTypes = {
     completed: PropTypes.bool,
 };
 
-const OrderStepper = ({ order, id, onReload }) => {
-    const [activeStep, setActiveStep] = useState(0);
+const OrderStepper = ({ order,showHistory,onClose}) => {
     const [histories, setHistories] = useState([]);
-    const [showHistory, setShowHistory] = useState(false);
 
     useEffect(() => {
         fetchHistories();
@@ -79,58 +77,7 @@ const OrderStepper = ({ order, id, onReload }) => {
             }
         }
     }
-    // const statusCustom = (history,order) => {
-    //     if(order.loaiDon === "Tại cửa hàng"){
-    //         if (order.phuongThucNhanHang ==="giaohang") {
-    //             return "Chờ giao hàng"
-    //         }else {
-    //             return "Đã hoàn thành"
-    //         }
-    //     }else{
-    //         return "Chờ xác nhận"
-    //     }
-    // }
 
-    const continues = async () => {
-        try {
-            const response = await api.put(`/admin/hoa-don/${order.maHoaDon}/xac-nhan`)
-            if (response.data != "") {
-                fetchHistories();
-                onReload();
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    const back = async () => {
-        try {
-            const response = await api.put(`/admin/hoa-don/${order.maHoaDon}/quay-lai`)
-            if (response.data != "") {
-                fetchHistories();
-                onReload();
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    const statusBtn = (status) => {
-        if (status === "Chờ xác nhận" || status === "Đã hoàn thành") {
-            return "Hủy"
-        }
-        if (status === "Đã xác nhận") {
-            return "Về chờ xác nhận"
-        }
-    }
-
-    const isVisible = () => {
-        const trangThai = order?.trangThai;
-        if (trangThai === "Chờ vận chuyển" || trangThai === "Đang vận chuyển" || trangThai === "Hủy") {
-            return false;
-        }
-        return true
-    }
     return (
         <div>
             <div
@@ -159,29 +106,8 @@ const OrderStepper = ({ order, id, onReload }) => {
                 </Stepper>
             </div>
 
-
-            <div className="flex justify-around w-full mt-4">
-                <div className="flex justify-between w-[300px]">
-                    {order?.trangThai != "Hủy" && (
-                        <Button variant="contained" color="primary" onClick={() => continues()} >
-                            Tiếp tục
-                        </Button>
-                    )}
-                    {isVisible() && (
-                        <Button variant="contained" color="secondary" onClick={() => back()} >
-                            {statusBtn(order?.trangThai)}
-                        </Button>
-                    )}
-                </div>
-                <div>
-                    <Button variant="contained" color="info" onClick={() => setShowHistory(true)}>
-                        Lịch sử hóa đơn
-                    </Button>
-                </div>
-            </div>
-
             {/* Dialog hiển thị lịch sử đơn hàng */}
-            <Dialog open={showHistory} onClose={() => setShowHistory(false)} maxWidth="md" fullWidth>
+            <Dialog open={showHistory} onClose={onClose} maxWidth="md" fullWidth>
                 <DialogTitle>Lịch sử hóa đơn</DialogTitle>
                 <DialogContent>
                     <TableContainer component={Paper}>
@@ -214,7 +140,7 @@ const OrderStepper = ({ order, id, onReload }) => {
                     </TableContainer>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setShowHistory(false)} color="primary">Đóng</Button>
+                    <Button onClick={onClose} color="primary">Đóng</Button>
                 </DialogActions>
             </Dialog>
         </div>

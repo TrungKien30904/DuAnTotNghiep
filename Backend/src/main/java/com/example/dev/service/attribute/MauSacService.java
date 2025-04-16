@@ -28,9 +28,7 @@ public class MauSacService {
         return null;
     }
 
-    public List<MauSac> suaMauSac(MauSac ms,Integer id){
-        ms.setIdMauSac(id);
+    public void suaMauSac(MauSac ms){
         mauSacRepo.save(ms);
-        return getMs();
     }
 }

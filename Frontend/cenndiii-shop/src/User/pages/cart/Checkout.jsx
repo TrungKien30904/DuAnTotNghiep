@@ -10,9 +10,11 @@ import { ToastContainer } from "react-toastify";
 import { getUserId } from "../../../security/DecodeJWT";
 import { calculateShippingFee } from "./calculateShippingFee";
 import SelectAddress from "./SelectAddress"; // Import SelectAddress component
-import UpdateAddress from "./UpdateAddress";
+import AddressDialog from "./UpdateAddress";
 import axios from "axios";
-
+import { FormControl, Select, MenuItem, InputLabel, Box, TextField } from "@mui/material";
+import Alert from "../../../components/Alert";
+import api from "../../../security/Axios";
 const Checkout = () => {
     const location = useLocation();
     const { selectedItems, totalPrice, discountAmount, selectedVoucher } = location.state || {};
@@ -31,17 +33,42 @@ const Checkout = () => {
     const [customerAddresses, setCustomerAddresses] = useState([]);
     const [selectedCustomerId, setSelectedCustomerId] = useState(null);
 
+    // 
+    const [openAddressDialog, setOpenAddressDialog] = useState(false);
 
+    const handleCloseAddressDialog = (confirm) => {
+        setOpenAddressDialog(false);
+        if (confirm) {
+            Notification("Thêm địa chỉ thành công!", "success")
+        }
+    }
+    //
 
-    // Add a function to handle opening the update address dialog
-    const handleUpdateAddress = () => {
-        setIsUpdateAddressDialogOpen(true);
-    };
+    const handleUpdateAddress = async () => {
+        try {
+            if (userId != "") {
+                const req = customerAddresses.find(a => a.id == selectedAddress);
+                await api.post(
+                    `/admin/dia-chi/update-address/${selectedAddress}/-1`,
+                    req
+                ).then(res => {
+                    if (res.status == 200) {
+                        Notification("Cập nhật thành công!", "success")
+                    }
+                })
+            }
+
+        } catch (error) {
+            console.log(error);
+            setShippingFee(34000);
+        }
+        reload();
+    }
+    const userId = getUserId();
 
     useEffect(() => {
         // Lấy userId từ JWT
-        const userId = getUserId();
-        if (userId) {
+        if (userId != "") {
             setSelectedCustomerId(userId);
         }
     }, []);
@@ -67,40 +94,83 @@ const Checkout = () => {
         setIsAddressDialogOpen(true); // Hiển thị dialog
     };
 
-    useEffect(() => {
-        if (customerData?.diaChi) {
-            fetchAddressData();
-        }
-    }, [customerData, selectedItems]);
+    // useEffect(() => {
+    //     if (customerData?.diaChi) {
+    //         fetchAddressData();
+    //     }
+    // }, [customerData, selectedItems]);
 
-    const fetchAddressData = async () => {
-        try {
-            const fee = await calculateShippingFee(customerData.diaChi, selectedItems);
-            console.log("Phí ship nhận được:", fee);
-            setShippingFee(fee);
-        } catch (error) {
-            console.error("Lỗi khi tính phí vận chuyển:", error);
-            setShippingFee(34000);
-        }
+    // const fetchAddressData = async () => {
+    //     try {
+    //         const fee = await calculateShippingFee(customerData.diaChi, selectedItems);
+    //         console.log("Phí ship nhận được:", fee);
+    //         setShippingFee(fee);
+    //     } catch (error) {
+    //         console.error("Lỗi khi tính phí vận chuyển:", error);
+    //         setShippingFee(34000);
+    //     }
 
-        const formattedAddress = await convertAddress(customerData.diaChi);
-        setAddress(formattedAddress);
-    };
+    //     const formattedAddress = await convertAddress(customerData.diaChi);
+    //     setAddress(formattedAddress);
+    // };
 
     // Thêm hàm lấy địa chỉ cập nhật từ backend
     useEffect(() => {
 
-        axios.get(`http://localhost:8080/admin/khach-hang/detail-client/${selectedCustomerId}`, {
-            withCredentials: true
-        })
-            .then(response => {
-                setCustomerData(response.data);
-                setCustomerAddresses(response.data.addressMappers);
-                console.log("Dữ liệu KH từ BE:" + response.data)
-            })
-            .catch(err => console.error("Lỗi khi lấy thông tin khách hàng:", err));
 
+        getDataUser()
     }, [selectedCustomerId]);
+    const getDataUser = async () => {
+        if (selectedCustomerId != null) {
+            axios.get(`http://localhost:8080/admin/khach-hang/detail-client/${selectedCustomerId}`, {
+                withCredentials: true
+            })
+                .then(async response => {
+                    setCustomerAddresses(response.data);
+                    setSelectedAddress(response.data.find(addr => addr.macDinh === true)?.id)
+                    const serviceId = 53321; // ID dịch vụ của GHN (thay đổi nếu cần)
+                    const shopId = 1542; // ID cửa hàng của bạn trên GHN (thay đổi nếu cần)
+                    // Tính tổng khối lượng và giá trị đơn hàng
+                    const totalWeight = selectedItems.reduce((total, item) => total + (item.weight || 0) * item.soLuong, 0);
+                    const totalValue = selectedItems.reduce((total, item) => total + item.gia * item.soLuong, 0);
+                    const validTotalWeight = totalWeight > 0 ? totalWeight : 500; // Đặt giá trị mặc định là 500g nếu totalWeight bằng 0
+                    const requestData = {
+                        from_district_id: shopId,
+                        service_type_id: 2,
+                        to_district_id: response.data.find(addr => addr.macDinh === true)?.quanHuyen, // Chuyển đổi districtId sang kiểu số nguyên
+                        to_ward_code: response.data.find(addr => addr.macDinh === true)?.xaPhuong,
+                        weight: validTotalWeight,
+                        insurance_value: totalValue,
+                        coupon: null
+                    };
+
+                    const res = await axios.post(
+                        "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
+                        requestData,
+                        { headers: GHN_HEADERS }
+                    );
+                    setShippingFee(res.data.data.total);
+                })
+                .catch(err => console.error("Lỗi khi lấy thông tin khách hàng:", err));
+
+        }
+    }
+    const reload = async () => {
+        getDataUser();
+
+    }
+
+    const handleAddressChange = (event) => {
+        setSelectedAddress(event.target.value);
+    };
+    const handleInputChange = (field, value) => {
+        setCustomerAddresses((prev) =>
+            prev.map((addr) =>
+                addr.id === selectedAddress ? { ...addr, [field]: value } : addr
+            )
+        );
+    };
+    const currentAddress = customerAddresses.find((addr) => addr.id === selectedAddress);
 
     // Thêm hàm fetchUpdatedCustomerData để cập nhật dữ liệu khách hàng từ backend
     const fetchUpdatedCustomerData = async () => {
@@ -195,14 +265,16 @@ const Checkout = () => {
         const isGuest = !token;
 
         const orderData = {
-            khachHang: isGuest ? null : customerData?.id,
-            tenNguoiNhan: customerData?.hoTen || "Khách vãng lai",
-            soDienThoai: customerData?.soDienThoai || "",
-            email: customerData?.email || "",
-            tinhThanhPho: customerData?.provinceID || selectedAddress?.provinceId || customerData?.diaChi?.split(", ")[0],  // Lấy từ provinceID nếu có
-            quanHuyen: customerData?.districtID || selectedAddress?.districtId || customerData?.diaChi?.split(", ")[1],     // Lấy từ districtID nếu có
-            xaPhuong: customerData?.wardCode || selectedAddress?.wardId || customerData?.diaChi?.split(", ")[2],           // Lấy từ wardCode nếu có
-            ghiChu: customerData?.ghiChu || "",
+            khachHang: isGuest ? null : currentAddress?.khachHang?.idKhachHang,
+            tenNguoiNhan: currentAddress?.tenNguoiNhan ||  customerData.tenNguoiNhan||"Khách lẻ",
+            soDienThoai: currentAddress?.soDienThoai || customerData.soDienThoai||"",
+            email: currentAddress?.khachHang?.email ||  customerData.email|| "",
+            ghiChu: currentAddress?.ghiChu ||  customerData.ghiChu || "",
+
+            tinhThanhPho: customerData?.provinceID  || currentAddress?.thanhPho,  // Lấy từ provinceID nếu có
+            quanHuyen: customerData?.districtID  || currentAddress?.quanHuyen,     // Lấy từ districtID nếu có
+            xaPhuong: customerData?.wardCode  || currentAddress?.xaPhuong,           // Lấy từ wardCode nếu có
+
             ngayGiaoHang: null,
             tongTien: totalPrice - discountAmount + shippingFee,
             phiVanChuyen: shippingFee,
@@ -213,11 +285,14 @@ const Checkout = () => {
                 idChiTietSanPham: item.productId,
                 soLuongMua: item.soLuong,
                 giaSauGiam: item.gia,
-                tenSanPham:item.tenSanPham,
-                anhSanPham:item.img,
-            }))
+                tenSanPham: item.tenSanPham,
+                anhSanPham: item.img,
+            })),
+            giaDuocGiam: discountAmount,
+            diaChiChiTiet: currentAddress?.diaChiChiTiet || customerData?.diaChiChiTiet || "",
         };
-        console.log("dữ liệu gửi lên:"+orderData)
+        // console.log(customerData);
+        // console.log(orderData);
 
         try {
             let response;
@@ -272,86 +347,141 @@ const Checkout = () => {
             >
                 <ChevronLeft size={16} /> Quay lại
             </button>
-            {isAddressDialogOpen && (
+            {/* {isAddressDialogOpen && (
                 <SelectAddress
                     customerAddresses={customerAddresses}
                     onSelect={handleAddressSelect}
                     onClose={() => setIsAddressDialogOpen(false)}
                     currentAddress={selectedAddress}
                 />
-            )}
-            {isUpdateAddressDialogOpen && (
+            )} */}
+
+            {/* {isUpdateAddressDialogOpen && (
                 <UpdateAddress
                     onClose={() => setIsUpdateAddressDialogOpen(false)}
                     existingData={customerData}
                     onUpdate={handleAddressUpdate}
                 />
-            )}
+            )} */}
             <ToastContainer />
             <div className="border-t-4 border-red-600 p-4 bg-white rounded-md shadow-md">
-                <h2 className="text-red-600 text-lg font-bold flex items-center gap-2">
-                    <MapPinCheck size={30} />  ĐỊA CHỈ NHẬN HÀNG
-                </h2>
+                <div className="flex justify-between">
+                    <h2 className="text-red-600 text-lg font-bold flex items-center gap-2">
+                        <MapPinCheck size={30} />  ĐỊA CHỈ NHẬN HÀNG
+                    </h2>
+                    {userId == "" && (
+                        <Button variant="contained" onClick={e => setCustomerData(null)}>Sửa địa chỉ</Button>
+                    )}
+                </div>
+                {userId != "" && (
+                    <div className="flex flex-col justify-between bg-white p-4 rounded-lg border col-span-3 h-full">
+                        <div>
+                            <div className='flex flex-col justify-between text-sm'>
 
-                {customerData && !isEditingAddress ? (
-                    <div className="text-lg text-gray-700 mt-2">
-                        <div className="flex items-center justify-between">
-                            {/* Thông tin khách hàng */}
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-semibold">{customerData.hoTen}</span>
-                                    <span className="font-semibold">|</span>
-                                    <span className="text-gray-600">{customerData.soDienThoai}</span>
-                                </div>
+                                <div className='flex-auto'>
+                                    <div className='flex justify-between'>
+                                        <h1 className="text-lg font-semibold mb-4">Thông tin khách hàng</h1>
 
-                                <div className="mt-1">
-                                    <p>{customerData.ghiChu} {customerData.detail || selectedAddress?.addressDetail} {address}</p>
+                                        {/* {invoice?.trangThai == "Chờ xác nhận" && ( */}
+                                        <div className='m-2'>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                size='small'
+                                                onClick={e => setOpenAddressDialog(true)}
+                                            >
+                                                Thêm địa chỉ
+                                            </Button>
+                                        </div>
+                                        {/* )} */}
+                                    </div>
+                                    <div className='flex flex-col gap-4'>
+                                        {/* {customerAddress.length > 0 && ( */}
+                                        <FormControl fullWidth>
+                                            <InputLabel id='address'>Địa chỉ</InputLabel>
+                                            <Select
+                                                label="Địa chỉ"
+                                                value={selectedAddress}
+                                                onChange={handleAddressChange}
+                                                labelId="address"
+                                                size="small"
+                                            // sx={{ fontSize: '10px' }}
+                                            >
+                                                {customerAddresses.map((address) => (
+                                                    <MenuItem key={address.id} value={address.id}>
+                                                        {address.diaChiChiTiet}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+
+                                        {/* )} */}
+                                        <Box display="flex" gap={2}>
+                                            <TextField
+                                                label="Tên người nhận"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                sx={{ fontSize: "10px" }}
+                                                value={currentAddress?.tenNguoiNhan || ""}
+                                                onChange={(e) => handleInputChange("tenNguoiNhan", e.target.value)}
+                                            />
+                                            <TextField
+                                                label="Số điện thoại"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                sx={{ fontSize: "10px" }}
+                                                value={currentAddress?.soDienThoai || ""}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    if (/^\d*$/.test(value)) {
+                                                        handleInputChange("soDienThoai", value);
+                                                    }
+                                                }}
+                                            />
+                                        </Box>
+
+                                        {/* Ô nhập ghi chú */}
+                                        <TextField
+                                            label="Ghi chú"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            sx={{ fontSize: "10px" }}
+                                            value={currentAddress?.ghiChu || ""}
+                                            onChange={(e) => handleInputChange("ghiChu", e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* Nhóm nút bấm */}
-                            {isLoggedIn && (
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        size="small"
-                                        className="border border-blue-500 text-blue-500 px-3 py-1 rounded-md hover:bg-blue-100 transition"
-                                        onClick={handleUpdateAddress}
-                                    >
-                                        Sửa địa chỉ
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        size="small"
-                                        className="border border-blue-500 text-blue-500 px-3 py-1 rounded-md hover:bg-blue-100 transition"
-                                        onClick={handleSelectAddress}
-                                    >
-                                        Chọn địa chỉ khác
-                                    </Button>
-                                </div>
-                            )}
-                            {!isLoggedIn && (
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        size="small"
-                                        className="border border-blue-500 text-blue-500 px-3 py-1 rounded-md hover:bg-blue-100 transition"
-                                        onClick={() => setIsEditingAddress(true)}
-                                    >
-                                        Sửa địa chỉ
-                                    </Button>
-                                </div>
-                            )}
                         </div>
+                        {customerAddresses.length > 0 && (
+                            <Button variant="contained" onClick={handleUpdateAddress}>
+                                Cập nhật thông tin
+                            </Button>
+                        )}
                     </div>
-                ) : (
-                    <div className="mt-4">
-                        <p className="text-gray-500 italic"> Vui lòng nhập thông tin để tiếp tục.</p>
-                        <AddAddress onConfirm={handleConfirmCustomerInfo} existingData={customerData} />
-                    </div>
+                )}
+                {userId == "" && (
+                    customerData ? (
+                        <div className="h-24 w-full">
+                            <div className="p-6 ">
+                                <div className="text-xl font-bold  mb-2">
+                                    {customerData.soDienThoai} - {customerData.hoTen}
+                                </div>
+                                <div className="text-gray-700">
+                                    <strong>Địa chỉ:</strong> {customerData.diaChiChiTiet}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="mt-4">
+                            <p className="text-gray-500 italic"> Vui lòng nhập thông tin để tiếp tục.</p>
+                            <AddAddress onConfirm={handleConfirmCustomerInfo} existingData={customerData} />
+                        </div>
+                    )
+
                 )}
             </div>
 
@@ -503,7 +633,8 @@ const Checkout = () => {
                         </div>
                     </Dialog>
 
-
+                    <AddressDialog idKhachHang={userId} reload={reload} open={openAddressDialog} onClose={handleCloseAddressDialog} />
+                    {/* <Alert open={} onClose={} message={"Xác nhân cập nhật địa chỉ ?"}/> */}
                 </div>
             </div>
         </div>

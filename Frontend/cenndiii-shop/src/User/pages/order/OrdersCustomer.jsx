@@ -39,8 +39,8 @@ const OrdersCustomer = () => {
     setSelectedStatus(status);
   };
 
-  const goToDetail = (maHoaDon, id) => {
-    navigate(`/detailOrdersCustomer/${maHoaDon}/${id}`);
+  const goToDetail = (id) => {
+    navigate(`/detail-orders-customer/${id}`);
   };
 
 
@@ -98,7 +98,7 @@ const OrdersCustomer = () => {
               <div
                 key={invoice.idHoaDon}
                 className="bg-gray-50 p-4 rounded-lg shadow-md mb-4 border border-gray-200 flex items-start justify-between cursor-pointer hover:bg-gray-100 transition"
-                onClick={() => goToDetail(invoice.maHoaDon, invoice.idHoaDon)}
+                onClick={() => goToDetail(invoice.idHoaDon)}
               >
                 <div className="text-xl font-bold text-gray-700 w-10 text-center pt-1">{index + 1}</div>
                 <div className="border-l border-gray-300 px-4 flex-1 relative">

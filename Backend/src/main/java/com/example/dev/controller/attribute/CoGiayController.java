@@ -30,8 +30,13 @@ public class CoGiayController{
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaCoGiay(@RequestBody CoGiay cg,@PathVariable Integer id){
-        return ResponseEntity.ok(coGiayService.suaCoGiay(cg,id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaCoGiay(@RequestBody CoGiay cg){
+        try {
+            coGiayService.suaCoGiay(cg);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

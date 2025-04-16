@@ -8,14 +8,18 @@ const AddAddress = ({ onConfirm, existingData }) => {
         hoTen: '',
         soDienThoai: '',
         email: '',
-        districtID:'',
-        provinceID:'',
-        wardCode:'',
+        districtID: '',
+        provinceID: '',
+        wardCode: '',
+        diaChiChiTiet: '',
         ghiChu: ''
     });
-
+    const [diaChiChiTiet,setDiaChiChiTiet] = useState("");
+    const [errDiaChiChiTiet,setErrDiaChiChiTiet] = useState("");
     const [errors, setErrors] = useState({});
-
+    useEffect(()=>{
+        
+    },[diaChiChiTiet])
     useEffect(() => {
         if (existingData) {
             setFormData(existingData);
@@ -98,13 +102,20 @@ const AddAddress = ({ onConfirm, existingData }) => {
         tempErrors.selectedProvince = selectedProvince ? "" : "Vui lòng chọn Tỉnh/Thành phố.";
         tempErrors.selectedDistrict = selectedDistrict ? "" : "Vui lòng chọn Quận/Huyện.";
         tempErrors.selectedWard = selectedWard ? "" : "Vui lòng chọn Xã/Phường.";
+        if (diaChiChiTiet === "") {
+            setErrDiaChiChiTiet("Vui lòng nhập địa chỉ chi tiết!")
+        }else{
+            setErrDiaChiChiTiet("")
+        }
         setErrors(tempErrors);
         return Object.values(tempErrors).every(x => x === "");
     };
 
     const handleConfirm = async () => {
+        
         if (validate()) {
-            const fullAddress = `${selectedWard?.WardName || ''}, ${selectedDistrict?.DistrictName || ''}, ${selectedProvince?.ProvinceName || ''}`;
+            
+            const fullAddress = `${diaChiChiTiet}, ${selectedWard?.WardName || ''}, ${selectedDistrict?.DistrictName || ''}, ${selectedProvince?.ProvinceName || ''}`;
 
             let shippingFee = 0;
             if (selectedWard && selectedDistrict) {
@@ -126,8 +137,9 @@ const AddAddress = ({ onConfirm, existingData }) => {
                 districtID: selectedDistrict.DistrictID,
                 wardCode: selectedWard.WardCode,
                 phiVanChuyen: shippingFee,
-                diaChiHienThi: fullAddress // Hiển thị địa chỉ cho người dùng
+                diaChiChiTiet: fullAddress
             });
+            
         }
     };
 
@@ -188,7 +200,16 @@ const AddAddress = ({ onConfirm, existingData }) => {
                 </Select>
                 {errors.selectedWard && <Typography color="error">{errors.selectedWard}</Typography>}
             </FormControl>
-
+            <TextField
+                fullWidth
+                size="small"
+                margin="dense"
+                label="Địa chỉ chi tiết"
+                value={diaChiChiTiet}
+                onChange={(e) => setDiaChiChiTiet(e.target.value)}
+                error={!!errDiaChiChiTiet}
+                helperText={errDiaChiChiTiet}
+            />
             <TextField
                 fullWidth
                 size="small"

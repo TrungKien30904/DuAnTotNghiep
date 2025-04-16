@@ -14,7 +14,7 @@ export default function PaymentHistoryDialog({ idHoaDon, open, onClose }) {
             };
             fetchInvoicePaymentHistory();
         }
-    }, [idHoaDon,open]);
+    }, [idHoaDon]);
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

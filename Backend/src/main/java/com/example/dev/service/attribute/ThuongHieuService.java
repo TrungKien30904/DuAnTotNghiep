@@ -1,8 +1,14 @@
 package com.example.dev.service.attribute;
 
+import com.example.dev.DTO.request.SearchRequest.SearchRequest;
+import com.example.dev.DTO.response.SearchResponse.SearchResponse;
 import com.example.dev.entity.attribute.ThuongHieu;
 import com.example.dev.repository.attribute.ThuongHieuRepo;
+import com.example.dev.util.Page.GeneratePageable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,9 +30,7 @@ public class ThuongHieuService {
         return thuongHieu;
     }
 
-    public List<ThuongHieu> suaThuongHieu(ThuongHieu thuongHieu,Integer id){
-        thuongHieu.setIdThuongHieu(id);
+    public void suaThuongHieu(ThuongHieu thuongHieu){
         thuongHieuRepo.save(thuongHieu);
-        return getTh();
     }
 }

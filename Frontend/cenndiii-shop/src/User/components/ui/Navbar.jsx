@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { AppBar, Toolbar, IconButton, Badge, Avatar } from "@mui/material";
-import { ShoppingCart, Search } from "@mui/icons-material";
+import { ShoppingCart, Search, Token } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/cart/CartContext"; // Import useCart
 import { Menu, MenuItem } from "@mui/material";
@@ -21,12 +21,13 @@ const Navbar = () => {
   ];
   const [user,setUser] = useState([])
   const [userName,setUserName] = useState("");
+  const isLoggedIn = localStorage.getItem("token");
+
   useEffect(()=>{
     setUser(getPermissions());
     setUserName(getUserName())
-  },[])
+  },[isLoggedIn])
   
-  const isLoggedIn = useMemo(() => user.length > 0, [user]);
 
   const handleAvatarClick = (event) => {
     if (!isLoggedIn) {
@@ -42,13 +43,13 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    logout(user); 
-    navigate("/home");
     handleClose();
+    navigate("/home");
+    logout(user); 
   };
   
   const handleOrder = () => {
-    navigate("/ordersCustomer");
+    navigate("/orders-customer");
     handleClose();
   };
 

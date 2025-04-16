@@ -29,8 +29,13 @@ public class KichCoController {
         return ResponseEntity.ok(kichCoService.themKichCo(kc));
     }
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaKichCo(@RequestBody KichCo kc, @PathVariable Integer id) {
-        return ResponseEntity.ok(kichCoService.suaKichCo(kc, id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaKichCo(@RequestBody KichCo kc) {
+        try {
+            kichCoService.suaKichCo(kc);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

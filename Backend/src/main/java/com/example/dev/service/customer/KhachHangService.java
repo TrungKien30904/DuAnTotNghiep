@@ -312,69 +312,6 @@ public class KhachHangService {
 
 
     // tín thêm
-    public CustomerMapper detailKhachHangClient(Integer id) {
-        Optional<KhachHang> model = khachHangRepo.findById(id);
-        CustomerMapper customerMapper = new CustomerMapper();
-
-        if (model.isPresent()) {
-            KhachHang modelPresent = model.get();
-            customerMapper.setId(modelPresent.getIdKhachHang());
-            customerMapper.setMaKhachHang(modelPresent.getMaKhachHang());
-            customerMapper.setSoDienThoai(modelPresent.getSoDienThoai());
-            customerMapper.setTrangThai(modelPresent.getTrangThai());
-            customerMapper.setGioiTinh(modelPresent.getGioiTinh());
-            customerMapper.setHoTen(modelPresent.getHoTen());
-            customerMapper.setEmail(modelPresent.getEmail());
-            customerMapper.setImage(modelPresent.getHinhAnh());
-            customerMapper.setDiaChi(modelPresent.getDiaChi());
-
-//            List<DiaChi> diaChis = diaChiRepo.findDiaChiByIdKhachHang(modelPresent.getIdKhachHang());
-            List<AddressMapper> addressMappers = new ArrayList<>();
-
-//            if (!diaChis.isEmpty()) {
-//                for (DiaChi e : diaChis) {
-//                    ProvinceModel provinceModel = provinceService.getProvinceModel(Integer.parseInt(e.getThanhPho()));
-//
-//                    String provinceName = provinceModel != null ? provinceModel.getName() : "Không xác định";
-//                    DistrictModel districtModel = provinceModel != null ?
-//                            provinceModel.getDistricts().stream()
-//                                    .filter(p -> p.getCode() == Integer.parseInt(e.getQuanHuyen()))
-//                                    .findFirst()
-//                                    .orElse(null) : null;
-//                    String districtName = districtModel != null ? districtModel.getName() : null;
-//
-//                    String wardName = districtModel != null ?
-//                            districtModel.getWards().stream()
-//                                    .filter(p -> p.getCode() == Integer.parseInt(e.getXaPhuong()))
-//                                    .findFirst()
-//                                    .map(WardModel::getName)
-//                                    .orElse(null) : null;
-//
-//                    AddressMapper addressMapper = new AddressMapper(
-//                            e.getQuanHuyen(),
-//                            e.getId(),
-//                            e.getIdKhachHang(),
-//                            e.getTenNguoiNhan(),
-//                            e.getSoDienThoai(),
-//                            e.getThanhPho(),
-//                            e.getXaPhuong(),
-//                            e.getDiaChiChiTiet(),
-//                            e.getGhiChu(),
-//                            e.isMacDinh(),
-//                            provinceName,
-//                            districtName,
-//                            wardName,
-//                            e.getStage()
-//                    );
-//
-//                    addressMappers.add(addressMapper);
-//                }
-//
-//                customerMapper.setAddressMappers(addressMappers);
-//            }
-        }
-        return customerMapper;
-    }
 
     @Transactional
     public DiaChi updateSelectedAddress(AddressMapper addressMapper) {

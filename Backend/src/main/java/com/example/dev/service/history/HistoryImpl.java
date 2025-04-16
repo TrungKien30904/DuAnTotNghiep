@@ -7,7 +7,7 @@ import com.example.dev.entity.invoice.LichSuHoaDon;
 import com.example.dev.repository.history.ChiTietLichSuRepo;
 import com.example.dev.repository.history.LichSuRepo;
 import com.example.dev.util.DiffBuilderUtil;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

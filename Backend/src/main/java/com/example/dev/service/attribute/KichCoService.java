@@ -30,9 +30,7 @@ public class KichCoService {
         return null;
     }
 
-    public List<KichCo> suaKichCo(KichCo kc,Integer id){
-        kc.setIdKichCo(id);
+    public void suaKichCo(KichCo kc){
         kichCoRepo.save(kc);
-        return getKc();
     }
 }

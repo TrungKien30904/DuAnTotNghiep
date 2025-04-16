@@ -25,9 +25,7 @@ public class MuiGiayService {
         return mg;
     }
 
-    public List<MuiGiay> suaMuiGiay(MuiGiay mg,Integer id){
-        mg.setIdMuiGiay(id);
+    public void suaMuiGiay(MuiGiay mg){
         muiGiayRepo.save(mg);
-        return getMg();
     }
 }

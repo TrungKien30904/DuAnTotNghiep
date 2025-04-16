@@ -109,8 +109,8 @@ const OrderStepper = ({ order, id }) => {
     }
 
     return (
-        <div>
-            <Stepper activeStep={[histories.length - 1]} alternativeLabel connector={<QontoConnector />}>
+        <div >
+            <Stepper activeStep={histories.length} alternativeLabel connector={<QontoConnector />}>
                 {histories.map((history, index) => (
                     history.hanhDong !== "CREATE" && (
                         <Step key={index}>

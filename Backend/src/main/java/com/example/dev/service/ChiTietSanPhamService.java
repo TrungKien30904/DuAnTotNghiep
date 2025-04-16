@@ -21,7 +21,7 @@ import com.example.dev.repository.invoice.HoaDonRepository;
 import com.example.dev.service.history.HistoryImpl;
 import com.example.dev.service.invoice.HoaDonService;
 import com.example.dev.util.FileUpLoadUtil;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -338,7 +338,7 @@ public class ChiTietSanPhamService {
         if (!"Online".equalsIgnoreCase(hoaDon.getLoaiDon())) {
             chiTietSanPhamRepo.updateQuantity(idChiTietSanPham, ctsp.getSoLuong() - soLuongThem);
         }else{
-            hoaDonService.UpdateInvoice(idHoaDon);
+            hoaDonService.updateInvoice(idHoaDon);
         }
 
         return hoaDonChiTietRepository.findAllByHoaDon_IdHoaDon(idHoaDon);
@@ -382,7 +382,7 @@ public class ChiTietSanPhamService {
             if (slThem > ctsp.getSoLuong()){
                 throw new RuntimeException("Không đủ hàng trong kho!");
             }
-            hoaDonService.UpdateInvoice(idHoaDon);
+            hoaDonService.updateInvoice(idHoaDon);
         }
 
     }
@@ -415,7 +415,7 @@ public class ChiTietSanPhamService {
                 hdct.setThanhTien(hdct.getDonGia().multiply(BigDecimal.valueOf(hdct.getSoLuong())));
                 hoaDonChiTietRepository.save(hdct);
             }
-            hoaDonService.UpdateInvoice(idHoaDon);
+            hoaDonService.updateInvoice(idHoaDon);
         }
 
         // Trả về danh sách hóa đơn chi tiết còn lại
@@ -441,7 +441,7 @@ public class ChiTietSanPhamService {
                 }
             }
         }else{
-            hoaDonService.UpdateInvoice(idHoaDon);
+            hoaDonService.updateInvoice(idHoaDon);
         }
 
     }

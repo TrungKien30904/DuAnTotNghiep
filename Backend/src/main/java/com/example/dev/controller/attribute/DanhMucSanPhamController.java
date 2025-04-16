@@ -31,8 +31,13 @@ public class DanhMucSanPhamController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaDanhMucSanPham(@RequestBody DanhMucSanPham dmsp,@PathVariable Integer id){
-        return ResponseEntity.ok(danhMucService.suaDanhMucSanPham(dmsp,id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaDanhMucSanPham(@RequestBody DanhMucSanPham dmsp){
+        try {
+            danhMucService.suaDanhMucSanPham(dmsp);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

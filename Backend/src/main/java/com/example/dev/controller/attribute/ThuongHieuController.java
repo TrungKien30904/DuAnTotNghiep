@@ -1,8 +1,12 @@
 package com.example.dev.controller.attribute;
 
+import com.example.dev.DTO.request.SearchRequest.SearchRequest;
+import com.example.dev.constant.BaseConstant;
 import com.example.dev.entity.attribute.ThuongHieu;
 import com.example.dev.service.attribute.ThuongHieuService;
+import com.example.dev.util.baseModel.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +34,13 @@ public class ThuongHieuController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaThuongHieu(@RequestBody ThuongHieu thuongHieu, @PathVariable Integer id) {
-        return ResponseEntity.ok(thuongHieuService.suaThuongHieu(thuongHieu, id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaThuongHieu(@RequestBody ThuongHieu thuongHieu) {
+        try {
+            thuongHieuService.suaThuongHieu(thuongHieu);
+            return ResponseEntity.ok("ok");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

@@ -3,7 +3,7 @@ package com.example.dev.repository;
 import com.example.dev.DTO.request.DotGiamGia.SpGiamGiaRequest;
 import com.example.dev.entity.ChiTietSanPham;
 import com.example.dev.entity.DotGiamGia;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -49,10 +49,8 @@ public class CoGiayService {
         return getCoGiay();
     }
 
-    public List<CoGiay> suaCoGiay(CoGiay cg,Integer id){
-        cg.setIdCoGiay(id);
+    public void suaCoGiay(CoGiay cg){
         coGiayRepo.save(cg);
-        return getCoGiay();
     }
 
     public CoGiay findById(Integer id) {

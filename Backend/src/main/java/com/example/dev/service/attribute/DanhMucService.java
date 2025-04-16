@@ -26,9 +26,7 @@ public class DanhMucService {
         return dmsp;
     }
 
-    public List<DanhMucSanPham> suaDanhMucSanPham(DanhMucSanPham dmsp,Integer id){
-        dmsp.setIdDanhMuc(id);
+    public void suaDanhMucSanPham(DanhMucSanPham dmsp){
         danhMucSanPhamRepo.save(dmsp);
-        return getDanhMucSanPham();
     }
 }

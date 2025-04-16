@@ -12,4 +12,12 @@ public class BaseConstant {
         CREATE("CREATE"), UPDATE("UPDATE"), DELETE("DELETE");
         private final String value;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public enum CustomResponseCode{
+        SUCCESS(200, "success"),ERROR(500, "error");
+        private final int code;
+        private final String message;
+    }
 }

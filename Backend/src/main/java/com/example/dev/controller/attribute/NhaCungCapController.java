@@ -30,8 +30,13 @@ public class NhaCungCapController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaNhaCungCap(@RequestBody NhaCungCap ncc, @PathVariable Integer id) {
-        return ResponseEntity.ok(nhaCungCapService.suaNhaCungCap(ncc, id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaNhaCungCap(@RequestBody NhaCungCap ncc) {
+        try {
+            nhaCungCapService.suaNhaCungCap(ncc);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

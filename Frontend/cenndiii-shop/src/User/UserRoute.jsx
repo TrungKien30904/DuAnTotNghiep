@@ -23,8 +23,8 @@ export default function UserRoute() {
                 <Route path="login" element={<LoginForm />} />
                 <Route path="checkout" element={<Checkout />} />
                 <Route path="payment-status" element={<PaymentStatus />} />
-                <Route path="ordersCustomer" element={<OrdersCustomer />} />
-                <Route path="detailOrdersCustomer/:id/:idHd" element={<DetailOrdersCustomer />} />
+                <Route path="orders-customer" element={<OrdersCustomer />} />
+                <Route path="detail-orders-customer/:idHd" element={<DetailOrdersCustomer />} />
             
             </Route>
         </Routes>

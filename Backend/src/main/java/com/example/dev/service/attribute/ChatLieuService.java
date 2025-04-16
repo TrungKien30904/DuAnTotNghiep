@@ -26,9 +26,7 @@ public class ChatLieuService {
         return cl;
     }
 
-    public List<ChatLieu> suaChatLieu(ChatLieu cl,Integer id){
-        cl.setIdChatLieu(id);
+    public void suaChatLieu(ChatLieu cl){
         chatLieuRepo.save(cl);
-        return getChatLieu();
     }
 }

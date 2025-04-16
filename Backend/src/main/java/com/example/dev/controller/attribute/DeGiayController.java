@@ -13,15 +13,15 @@ public class DeGiayController {
     @Autowired
     DeGiayService deGiayService;
 
-//    @GetMapping("/hien-thi")
-//    public ResponseEntity<?> hienThi() {
-//        return ResponseEntity.ok(deGiayService.getDeGiay());
-//    }
+    @GetMapping("/hien-thi")
+    public ResponseEntity<?> hienThi() {
+        return ResponseEntity.ok(deGiayService.getDeGiay());
+    }
 
-//    @GetMapping("/hien-thi/true")
-//    public ResponseEntity<?> hienThiDangBan() {
-//        return ResponseEntity.ok(deGiayService.getDeGiayBan());
-//    }
+    @GetMapping("/hien-thi/true")
+    public ResponseEntity<?> hienThiDangBan() {
+        return ResponseEntity.ok(deGiayService.deGiayBan());
+    }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
     @PostMapping("/them")
@@ -29,8 +29,14 @@ public class DeGiayController {
         return ResponseEntity.ok(deGiayService.themDeGiay(dg));
     }
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaDeGiay(@RequestBody DeGiay dg, @PathVariable Integer id) {
-        return ResponseEntity.ok(deGiayService.suaDeGiay(dg, id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaDeGiay(@RequestBody DeGiay dg) {
+
+        try {
+            deGiayService.suaDeGiay(dg);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

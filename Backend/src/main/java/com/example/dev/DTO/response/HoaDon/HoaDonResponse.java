@@ -37,10 +37,11 @@ public class HoaDonResponse {
     private String xaPhuong;
     private String ghiChu;
     private Integer idPhieuGiamGia;
+    private BigDecimal giaDuocGiam;
     private List<ThanhToanHoaDonResponse> thanhToanHoaDon;
     private List<SanPhamCartResponse> danhSachSanPham;
 
-    private Integer voucher;
+    private String diaChiChiTiet;
     private BigDecimal phuPhi;
     private BigDecimal hoanPhi;
 }

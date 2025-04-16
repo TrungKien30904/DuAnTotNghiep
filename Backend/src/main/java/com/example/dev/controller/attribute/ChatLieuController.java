@@ -32,8 +32,13 @@ public class ChatLieuController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
-    @PostMapping("/sua/{id}")
-    public ResponseEntity<?> suaChatLieu(@RequestBody ChatLieu cl, @PathVariable Integer id){
-        return ResponseEntity.ok(chatLieuService.suaChatLieu(cl,id));
+    @PostMapping("/sua")
+    public ResponseEntity<?> suaChatLieu(@RequestBody ChatLieu cl){
+        try {
+            chatLieuService.suaChatLieu(cl);
+            return ResponseEntity.ok("ok");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

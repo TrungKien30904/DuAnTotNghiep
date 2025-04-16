@@ -126,8 +126,7 @@ public class KhachHangController {
 
     @GetMapping("/detail-client/{id}")
     public ResponseEntity<?> detailClient(@PathVariable Integer id) {
-        CustomerMapper khachHang = khachHangService.detailKhachHangClient(id);
-        return ResponseEntity.ok(khachHang);
+        return ResponseEntity.ok(khachHangService.getCustomerAddress(id));
     }
 
     @PostMapping("/them-dia-chi")
