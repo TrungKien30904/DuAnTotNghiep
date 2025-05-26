@@ -359,9 +359,11 @@ export default function Orders() {
             setOrderId(updatedOrders[0].idHoaDon);
             getProductFromDetailsInvoice(updatedOrders[0].idHoaDon);
 
-            Notification(`Bạn đã xóa thành công Hóa đơn chờ có mã ${tabToRemove.maHoaDon}`, "success");
+            if (response.status === 200) {
+                Notification(`Bạn đã xóa thành công Hóa đơn chờ có mã ${tabToRemove.maHoaDon}`, "success");
+            }
         } catch (error) {
-            Notification("Xóa hóa đơn thất bại! Vui lòng thử lại.", "error");
+            // console.log("Xóa hóa đơn thất bại! Vui lòng thử lại.", "error");
         }
     };
 
